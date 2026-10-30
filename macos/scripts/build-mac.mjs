@@ -21,7 +21,7 @@ if (electronVersion !== '45.1.0') throw new Error('This reviewed release require
 
 // Keep only application entry points, assets, and production dependencies.
 // Packager's prune pass removes all devDependencies before ASAR creation.
-const appRoots = new Set(['package.json', 'main.js', 'preload.js', 'games.js', 'mac-processes.js', 'build', 'node_modules']);
+const appRoots = new Set(['package.json', 'main.js', 'preload.js', 'games.js', 'mac-processes.js', 'yappercord.js', 'yappercord', 'appearance', 'build', 'node_modules']);
 function ignoreSource(filename) {
   const normalized = filename.replaceAll('\\', '/').replace(/^\//, '');
   if (!normalized) return false;
@@ -122,7 +122,7 @@ for (const arch of architectures) {
     // Finder metadata is not part of the signed bundle and must not be shipped.
     execFileSync('/usr/bin/xattr', ['-cr', app], { stdio: 'inherit' });
     execFileSync('/usr/bin/codesign', ['--verify', '--deep', '--strict', '--verbose=2', app], { stdio: 'inherit' });
-    const archive = path.join(outputs, `Yapper-${manifest.version}-mac-${arch}.zip`);
+    const archive = path.join(outputs, `Yapper-${manifest.version}${manifest.yappercordVersion ? '-YapperCord-' + manifest.yappercordVersion : ''}-mac-${arch}.zip`);
     await rm(archive, { force: true });
     execFileSync('/usr/bin/ditto', ['-c', '-k', '--keepParent', '--norsrc', '--noextattr', '--noqtn', app, archive], { stdio: 'inherit' });
     const finalPackage = path.join(outputs, path.basename(packagePath));

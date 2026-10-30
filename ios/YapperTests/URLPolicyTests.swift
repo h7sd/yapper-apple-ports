@@ -9,7 +9,7 @@ struct URLPolicyTests {
         let previous = defaults.bool(forKey: "nativeNotifications")
         defaults.set(false, forKey: "nativeNotifications")
         defer { defaults.set(previous, forKey: "nativeNotifications") }
-        let client = WebClient()
+        let client = WebClient(ephemeralSession: true)
         let webView = client.webView
         let deadline = ContinuousClock.now + .seconds(40)
         while client.loading && ContinuousClock.now < deadline { try await Task.sleep(for: .milliseconds(200)) }

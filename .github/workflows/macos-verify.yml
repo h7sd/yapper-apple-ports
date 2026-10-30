@@ -3,9 +3,9 @@ name: Verify macOS port
 on:
   push:
     branches: [main]
-    paths: ["macos/**", "scripts/verify-macos.mjs", ".github/workflows/macos-verify.yml"]
+    paths: ["macos/**", "extensions/**", "appearance/**", "scripts/verify-macos.mjs", ".github/workflows/macos-verify.yml"]
   pull_request:
-    paths: ["macos/**", "scripts/verify-macos.mjs", ".github/workflows/macos-verify.yml"]
+    paths: ["macos/**", "extensions/**", "appearance/**", "scripts/verify-macos.mjs", ".github/workflows/macos-verify.yml"]
   workflow_dispatch:
 
 permissions:
@@ -39,6 +39,12 @@ jobs:
       - name: Install locked dependencies
         working-directory: macos
         run: npm ci --no-audit --no-fund
+      - name: Verify shared extension bundle and inventory
+        run: |
+          node extensions/yappercord/build.mjs --check
+          node --test extensions/yappercord/tests/*.cjs extensions/yappercord/tests/*.mjs
+          node appearance/build.mjs --check
+          node --test appearance/tests/appearance.test.cjs
       - name: Check syntax, source guards, and provenance
         run: node scripts/verify-macos.mjs
       - name: Run regression tests

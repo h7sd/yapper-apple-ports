@@ -68,6 +68,26 @@ private struct NativeSettings: View {
                     Text("Notifications can be delivered while the web session is running. This build has no background push service.")
                         .font(.footnote).foregroundStyle(.secondary)
                 }
+                Section("Appearance") {
+                    Toggle("Enhanced profile layout", isOn: Binding(get: { client.enhancedProfileLayoutEnabled }, set: { client.setEnhancedProfileLayoutEnabled($0) }))
+                        .accessibilityIdentifier("enhancedProfileLayoutEnabled")
+                    Text("Improves profiles and navigation using Yapper's existing information. Switching this off restores the original layout after reloading.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                    if let message = client.appearanceError { Text(message).font(.footnote).foregroundStyle(.orange) }
+                }
+                Section("YapperCord") {
+                    Toggle("Enable YapperCord", isOn: Binding(get: { client.yapperCordEnabled }, set: { client.setYapperCordEnabled($0) }))
+                        .accessibilityIdentifier("yapperCordEnabled")
+                    Button("Open Plugin Manager") {
+                        dismiss()
+                        client.openYapperCordManager()
+                    }
+                    .disabled(!client.yapperCordEnabled || client.loading)
+                    .accessibilityIdentifier("openYapperCordManager")
+                    Text("Optional local plugins for Yapper. Changing this setting reloads the page. Desktop Discord plugins and the desktop installer do not run on iOS.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                    if let message = client.yapperCordError { Text(message).font(.footnote).foregroundStyle(.orange) }
+                }
                 Section("Yapper") {
                     Button("Reload", action: client.retry)
                     Button("iOS permissions") { UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!) }

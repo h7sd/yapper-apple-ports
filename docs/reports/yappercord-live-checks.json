@@ -1,0 +1,78 @@
+{
+  "scope": "Native Electron opt-in and live login, plus synthetic semantic DOM feature fixtures; no authenticated account or calls",
+  "checks": [
+    {
+      "name": "opted-in native client injects bundled manager into live Yapper login, preserves Node isolation",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "plugin toggles preserve keyboard focus across Space and rerender",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "live manager opens over original login",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "entire upstream catalog searchable; unsupported plugins have no fake enable action",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "character counter updates only for semantic message input",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "manual URL cleaning and replacement update draft, leave unrelated fields untouched",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "image zoom opens and closes local image viewer",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "NoF1 installs and removes keyboard interception",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "picture-in-picture reports unavailable video truthfully",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "Quick CSS applies locally and rejects direct network loads",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "destroyed retained API cannot re-enable effects",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "settings survive reload; destroy removes active effects and UI",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "same runtime rejects iframe execution",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "native disable removes extension and reloads without injection",
+      "passed": true,
+      "details": {}
+    }
+  ],
+  "startedAt": "2026-10-30T14:56:44.405Z",
+  "passed": true,
+  "finishedAt": "2026-10-30T14:56:47.203Z"
+}

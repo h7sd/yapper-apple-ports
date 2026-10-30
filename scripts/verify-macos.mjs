@@ -57,11 +57,11 @@ async function checkPortableLinks(app, directory = app) {
   }
 }
 
-const applicationFiles = ['main.js', 'preload.js', 'games.js', 'mac-processes.js'];
+const applicationFiles = ['main.js', 'preload.js', 'games.js', 'mac-processes.js', 'yappercord.js', 'yappercord/bundle.js', 'appearance/bundle.js'];
 const syntaxFiles = [
   ...applicationFiles,
   'scripts/build-mac.mjs', 'scripts/make-icon.mjs',
-  'tests/desktop-main.test.js', 'tests/mac-processes.test.js'
+  'tests/desktop-main.test.js', 'tests/mac-processes.test.js', 'tests/yappercord.test.js'
 ];
 
 for (const filename of syntaxFiles) {
@@ -138,7 +138,7 @@ await check('preserved upstream files and assets match recorded hashes', async (
 if (architecture) {
   await check(`archive content, architecture, and signatures (${architecture})`, async () => {
     assert.equal(process.platform, 'darwin', 'Archive verification requires macOS codesign, lipo, plutil, and ditto');
-    const archiveName = `Yapper-${manifest.version}-mac-${architecture}.zip`;
+    const archiveName = `Yapper-${manifest.version}${manifest.yappercordVersion ? '-YapperCord-' + manifest.yappercordVersion : ''}-mac-${architecture}.zip`;
     const archive = path.join(dist, archiveName);
     archiveHash = await hashFile(archive);
     temporary = await mkdtemp(path.join(os.tmpdir(), 'yapper-verification-'));

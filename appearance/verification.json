@@ -1,0 +1,41 @@
+{
+  "fixtureOnly": true,
+  "viewports": [
+    {
+      "viewport": "desktop",
+      "width": 1280,
+      "height": 900,
+      "preservedNodesAndActions": true,
+      "safeGeometry": true,
+      "reversible": true,
+      "networkRequests": 0
+    },
+    {
+      "viewport": "tablet",
+      "width": 834,
+      "height": 1112,
+      "preservedNodesAndActions": true,
+      "safeGeometry": true,
+      "reversible": true,
+      "networkRequests": 0
+    },
+    {
+      "viewport": "phone",
+      "width": 390,
+      "height": 844,
+      "preservedNodesAndActions": true,
+      "safeGeometry": true,
+      "reversible": true,
+      "networkRequests": 0
+    }
+  ],
+  "anonymousAPI": true,
+  "adapterVersion": "0.1.0",
+  "sourceSha256": "52c19429daee71e0eda97b95b9605aaf8090367626569df101ce19a2f4a3fdf6",
+  "nodeGuardTests": {
+    "passed": 3,
+    "failed": 0
+  },
+  "designDetectorFindings": 0,
+  "scope": "Headless synthetic fixtures only; no logged-in live account/device flow asserted."
+}

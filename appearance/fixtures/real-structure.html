@@ -1,0 +1,59 @@
+<!doctype html>
+<!-- Anonymized test fixture, reconstructed from the captured public Yapper
+     component structure. Names/content are synthetic; no account data or
+     reference-image artwork is included. See ../PROVENANCE.json. -->
+<html class="new-look" lang="en" data-theme="dark">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Yapper appearance fixture</title><link rel="stylesheet" href="/fixture-base.css"></head>
+<body>
+  <div class="app mobile-nav">
+    <div class="stage-row">
+      <aside class="rail" aria-label="Servers"><span class="fixture-mark">Y</span></aside>
+      <aside class="sidebar">
+        <header class="fixture-heading">Yapper</header>
+        <div class="sidebar-scroll"><p>Structure fixture</p><p class="hint">Synthetic content for layout verification.</p></div>
+        <div class="user-bar floating">
+          <button class="who" title="Your account" aria-haspopup="menu" aria-expanded="false">
+            <div class="avatar" style="width:40px;height:40px"><span class="initials">EX</span><span class="status-dot online"></span></div>
+            <div style="min-width:0"><div class="uname"><span>Example member</span></div><div class="status">Available</div></div>
+          </button>
+          <div class="status-menu me-pop" role="menu" hidden>
+            <div class="me-card"><div class="me-banner"><button class="me-edit" aria-label="Edit profile">Edit</button></div><div class="me-av"><div class="avatar"><span class="initials">EX</span><span class="status-dot online"></span></div></div><div class="me-who"><div class="me-name">Example member</div><div class="me-tags"><span class="me-user">@example</span></div><div class="me-custom">Fixture status</div></div></div>
+            <div class="me-menu"><button class="me-row"><span class="status-dot online"></span><span class="me-row-label">Online</span></button><button class="me-row" data-fixture-profile><span class="me-ico"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4" fill="none" stroke="currentColor"/><path d="M4 22v-3a8 8 0 0116 0v3" fill="none" stroke="currentColor"/></svg></span><span class="me-row-label">View my profile</span></button></div>
+          </div>
+          <button class="icon-btn" aria-label="Settings"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+          <button class="icon-btn" aria-label="Log out"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M9 4H4v16h5m5-12 4 4-4 4m-5-4h13" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+        </div>
+      </aside>
+      <main class="main"><h1>Yapper appearance fixture</h1><p>Existing account actions, profile content and navigation remain in place.</p><button class="btn" data-fixture-open>Open existing profile</button><label class="fixture-draft">Unrelated message draft <textarea aria-label="Message fixture">Do not change this content.</textarea></label></main>
+    </div>
+    <nav class="nl-tabbar" aria-label="Sections">
+      <button class="nl-tab on" aria-current="page"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8v10H3z" fill="none" stroke="currentColor" stroke-width="2"/></svg><span>Home</span></button>
+      <button class="nl-tab"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4" fill="none" stroke="currentColor" stroke-width="2"/></svg><span>Servers</span></button>
+      <button class="nl-tab"><div class="avatar" style="width:24px;height:24px"><span class="initials">EX</span></div><span>You</span></button>
+    </nav>
+  </div>
+  <template id="profile-template">
+    <div class="modal-overlay" role="presentation"><div class="modal bare" role="dialog" aria-label="Existing member profile">
+      <div class="pc2-frame">
+        <div class="profile-card pc2">
+          <div class="pc-close-pin"><button class="icon-btn pc-close" aria-label="Close">×</button></div>
+          <div class="pc2-banner plain"><div class="banner" style="aspect-ratio:3;background:var(--accent-soft)"></div><div class="pc2-banner-fade"></div></div>
+          <div class="pc2-top"><div class="profile-card-avatar pc2-avatar"><div class="avatar" style="width:96px;height:96px"><span class="initials">EX</span><span class="status-dot online"></span></div></div><div class="pc2-custom"><div class="pc2-custom-box"><div class="pc2-custom-text">Fixture status</div></div></div></div>
+          <div class="pc2-head"><div class="pc2-name-row"><div class="profile-card-name pc2-name">Example member</div></div><div class="pc-sub-row"><div class="pc-handle"><span>@example</span></div></div></div>
+          <div class="pc2-body"><div class="pc2-status"><span class="status-dot online"></span>Online</div><section class="profile-card-section"><div class="label">About me</div><div class="bio">Synthetic profile text for visual and interaction checks.<br>No real account information is included.</div></section><div class="pc2-edit-bar"><button class="btn secondary" data-fixture-edit>Edit profile</button></div></div>
+        </div>
+        <aside class="pc2-side"><div class="pc2-side-tabs"><button class="on" data-fixture-tab="friends">Mutual friends</button><button data-fixture-tab="servers">Mutual servers</button></div><div class="pc2-side-list"><div class="pc-side-row"><span class="pc-side-name">Synthetic mutual-list content</span></div></div></aside>
+      </div>
+    </div></div>
+  </template>
+  <script>
+    // Fixture-only behavioral stand-ins. The adapter preserves these exact nodes
+    // and listeners; the production app uses the original React handlers.
+    const who=document.querySelector('.who'), menu=document.querySelector('.me-pop');
+    who.addEventListener('click',()=>{const open=who.getAttribute('aria-expanded')!=='true';who.setAttribute('aria-expanded',String(open));menu.hidden=!open;});
+    function openExistingProfile(){menu.hidden=true;who.setAttribute('aria-expanded','false');if(document.querySelector('.modal'))return;document.body.append(document.querySelector('#profile-template').content.cloneNode(true));const modal=document.querySelector('.modal');modal.querySelector('.pc-close').addEventListener('click',()=>modal.parentElement.remove());modal.querySelector('[data-fixture-edit]').addEventListener('click',()=>{document.body.dataset.editClicks=String(Number(document.body.dataset.editClicks||0)+1);});for(const button of modal.querySelectorAll('[data-fixture-tab]'))button.addEventListener('click',()=>{for(const other of modal.querySelectorAll('[data-fixture-tab]'))other.classList.toggle('on',other===button);document.body.dataset.selectedTab=button.dataset.fixtureTab;});}
+    document.querySelector('[data-fixture-profile]').addEventListener('click',openExistingProfile);
+    document.querySelector('[data-fixture-open]').addEventListener('click',openExistingProfile);
+    for(const button of document.querySelectorAll('.nl-tabbar>.nl-tab'))button.addEventListener('click',()=>{for(const other of document.querySelectorAll('.nl-tabbar>.nl-tab'))other.classList.toggle('on',other===button);document.body.dataset.navigationClicks=String(Number(document.body.dataset.navigationClicks||0)+1);});
+  </script>
+</body></html>

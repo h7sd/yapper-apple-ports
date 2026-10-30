@@ -7,6 +7,7 @@ OUTPUT_DIR="${OUTPUT_DIR:-$PROJECT_ROOT/.build/artifacts}"
 ARCHIVE_PATH="${ARCHIVE_PATH:-$PROJECT_ROOT/.build/Yapper.xcarchive}"
 MODE="${1:-simulator}"
 VERSION="1.1.0"
+EXTENSION_TAG="-YapperCord-0.1.0"
 mkdir -p "$OUTPUT_DIR"
 
 build_args=(-project "$PROJECT_ROOT/Yapper.xcodeproj" -scheme Yapper -derivedDataPath "$DERIVED_DATA" CODE_SIGNING_ALLOWED=NO)
@@ -15,8 +16,8 @@ case "$MODE" in
   simulator)
     xcodebuild "${build_args[@]}" -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' build
     APP_PATH="$DERIVED_DATA/Build/Products/Release-iphonesimulator/Yapper.app"
-    ditto --norsrc --noextattr --noqtn -c -k --keepParent "$APP_PATH" "$OUTPUT_DIR/Yapper-$VERSION-iOS-Simulator.zip"
-    printf '\nSimulator application: %s\nArchive: %s\n' "$APP_PATH" "$OUTPUT_DIR/Yapper-$VERSION-iOS-Simulator.zip"
+    ditto --norsrc --noextattr --noqtn -c -k --keepParent "$APP_PATH" "$OUTPUT_DIR/Yapper-$VERSION$EXTENSION_TAG-iOS-Simulator.zip"
+    printf '\nSimulator application: %s\nArchive: %s\n' "$APP_PATH" "$OUTPUT_DIR/Yapper-$VERSION$EXTENSION_TAG-iOS-Simulator.zip"
     ;;
   test)
     if [[ -z "${SIMULATOR_ID:-}" ]]; then
@@ -33,8 +34,8 @@ case "$MODE" in
     trap 'rm -rf "$STAGING_DIR"' EXIT
     mkdir "$STAGING_DIR/Payload"
     ditto --norsrc --noextattr --noqtn "$ARCHIVE_PATH/Products/Applications/Yapper.app" "$STAGING_DIR/Payload/Yapper.app"
-    ditto --norsrc --noextattr --noqtn -c -k --keepParent "$STAGING_DIR/Payload" "$OUTPUT_DIR/Yapper-$VERSION-ios-unsigned.ipa"
-    printf '\nUnsigned iOS archive: %s\nUnsigned IPA: %s\n' "$ARCHIVE_PATH" "$OUTPUT_DIR/Yapper-$VERSION-ios-unsigned.ipa"
+    ditto --norsrc --noextattr --noqtn -c -k --keepParent "$STAGING_DIR/Payload" "$OUTPUT_DIR/Yapper-$VERSION$EXTENSION_TAG-ios-unsigned.ipa"
+    printf '\nUnsigned iOS archive: %s\nUnsigned IPA: %s\n' "$ARCHIVE_PATH" "$OUTPUT_DIR/Yapper-$VERSION$EXTENSION_TAG-ios-unsigned.ipa"
     printf '%s\n' 'This unsigned IPA must be signed with your own Apple development or distribution profile before installation on an iPhone or iPad.'
     ;;
   *)

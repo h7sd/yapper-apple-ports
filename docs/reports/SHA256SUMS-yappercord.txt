@@ -1,0 +1,5 @@
+04e2391680e8a854fedf3a2fb337b55a69e5f34b7ba100bcd31b444e36147f18  YapperCord-Setup-0.1.0-mac-arm64.zip
+d2ba22867b1b83409a508e29e434c9fdf688a37a0d7d32167a9e7808b685bc8d  YapperCord-Setup-0.1.0-mac-x64.zip
+782f9663f3f050d4b4ef0a6b0af2d7f7bbe9b2aa33593456cff692c5c29afae0  YapperCord-Installer-0.1.0-mac-universal.zip
+a9b174a4001562c6748158eaba6d08466bfa19828ec5912869eb7d200d11eab3  Yapper-1.1.0-YapperCord-0.1.0-iOS-Simulator.zip
+67a8b455321021c5d5e69910085f70b1502dbf69d66112781580e61165853d3f  Yapper-1.1.0-YapperCord-0.1.0-ios-unsigned.ipa

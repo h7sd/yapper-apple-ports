@@ -22,11 +22,24 @@ struct WebSurface: UIViewRepresentable {
     private var popup: PopupController?
     private let notificationDelegate = NotificationDelegate()
     private var notificationSettingsRevision = 0
+    private let preferences: UserDefaults
+    private let ephemeralSession: Bool
+    private var scriptSettingsRevision = 0
+    private(set) var yapperCordEnabled: Bool
+    private(set) var yapperCordError: String?
+    private(set) var enhancedProfileLayoutEnabled: Bool
+    private(set) var appearanceError: String?
     @ObservationIgnored private var handler: NativeHandler?
 
     @ObservationIgnored lazy var webView: WKWebView = {
         let config = WKWebViewConfiguration()
-        config.websiteDataStore = .default()
+        config.websiteDataStore = ephemeralSession ? .nonPersistent() : .default()
+        #if DEBUG
+        // UI tests use a fresh in-memory session without touching the owner's cookies.
+        if ProcessInfo.processInfo.arguments.contains("--yapper-uitest-ephemeral-session") {
+            config.websiteDataStore = .nonPersistent()
+        }
+        #endif
         config.applicationNameForUserAgent = "YapperIOS/1.1.0"
         config.allowsInlineMediaPlayback = true
         config.allowsPictureInPictureMediaPlayback = true
@@ -35,9 +48,7 @@ struct WebSurface: UIViewRepresentable {
         let handler = NativeHandler(client: self)
         self.handler = handler
         config.userContentController.addScriptMessageHandler(handler, contentWorld: .page, name: "yapperNative")
-        if let url = Bundle.main.url(forResource: "NativeBridge", withExtension: "js"), let source = try? String(contentsOf: url, encoding: .utf8) {
-            config.userContentController.addUserScript(WKUserScript(source: source, injectionTime: .atDocumentStart, forMainFrameOnly: true))
-        } else { logger.error("Native bridge resource is missing") }
+        installUserScripts(in: config.userContentController)
         let view = WKWebView(frame: .zero, configuration: config)
         view.navigationDelegate = self
         view.uiDelegate = self
@@ -54,10 +65,94 @@ struct WebSurface: UIViewRepresentable {
         return view
     }()
 
-    override init() {
+    init(preferences: UserDefaults = .standard, ephemeralSession: Bool = false) {
+        self.preferences = preferences
+        self.ephemeralSession = ephemeralSession
+        yapperCordEnabled = preferences.bool(forKey: YapperCordSupport.preferenceKey)
+        enhancedProfileLayoutEnabled = YapperAppearanceSupport.isEnabled(in: preferences)
         super.init()
+        if yapperCordEnabled && YapperCordSupport.bundledSource() == nil {
+            yapperCordEnabled = false
+            preferences.set(false, forKey: YapperCordSupport.preferenceKey)
+            yapperCordError = "YapperCord is missing from this app. Reinstall the YapperCord build."
+        }
+        if enhancedProfileLayoutEnabled && YapperAppearanceSupport.bundledSource() == nil {
+            enhancedProfileLayoutEnabled = false
+            appearanceError = "The enhanced profile layout is missing from this app. Reinstall this build."
+        }
         notificationDelegate.client = self
         UNUserNotificationCenter.current().delegate = notificationDelegate
+    }
+
+    private func installUserScripts(in controller: WKUserContentController) {
+        controller.removeAllUserScripts()
+        if let url = Bundle.main.url(forResource: "NativeBridge", withExtension: "js"),
+           let source = try? String(contentsOf: url, encoding: .utf8) {
+            controller.addUserScript(WKUserScript(source: source, injectionTime: .atDocumentStart, forMainFrameOnly: true))
+        } else { logger.error("Native bridge resource is missing") }
+        if enhancedProfileLayoutEnabled, let source = YapperAppearanceSupport.bundledSource() {
+            controller.addUserScript(WKUserScript(source: source, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
+        }
+        if yapperCordEnabled, let source = YapperCordSupport.bundledSource() {
+            controller.addUserScript(WKUserScript(source: source, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
+        }
+    }
+
+    @discardableResult func setEnhancedProfileLayoutEnabled(_ enabled: Bool) -> Bool {
+        guard enabled != enhancedProfileLayoutEnabled else { return true }
+        guard !enabled || YapperAppearanceSupport.bundledSource() != nil else {
+            appearanceError = "The enhanced profile layout is missing from this app. Reinstall this build."
+            return false
+        }
+        scriptSettingsRevision += 1
+        let revision = scriptSettingsRevision
+        enhancedProfileLayoutEnabled = enabled
+        preferences.set(enabled, forKey: YapperAppearanceSupport.preferenceKey)
+        appearanceError = nil
+        loading = true
+        let view = webView
+        installUserScripts(in: view.configuration.userContentController)
+        if !enabled, URLPolicy.isTrusted(view.url) {
+            view.callAsyncJavaScript("window.YapperAppearance?.destroy?.();", arguments: [:], in: nil, in: .page, completionHandler: { [weak self] _ in
+                guard let self, scriptSettingsRevision == revision else { return }
+                retry()
+            })
+        } else { retry() }
+        return true
+    }
+
+    @discardableResult func setYapperCordEnabled(_ enabled: Bool) -> Bool {
+        guard enabled != yapperCordEnabled else { return true }
+        guard !enabled || YapperCordSupport.bundledSource() != nil else {
+            yapperCordError = "YapperCord is missing from this app. Reinstall the YapperCord build."
+            return false
+        }
+        scriptSettingsRevision += 1
+        let revision = scriptSettingsRevision
+        yapperCordEnabled = enabled
+        preferences.set(enabled, forKey: YapperCordSupport.preferenceKey)
+        yapperCordError = nil
+        loading = true
+        let view = webView
+        installUserScripts(in: view.configuration.userContentController)
+        if !enabled, URLPolicy.isTrusted(view.url) {
+            view.callAsyncJavaScript("window.YapperCord?.destroy?.();", arguments: [:], in: nil, in: .page, completionHandler: { [weak self] _ in
+                guard let self, scriptSettingsRevision == revision else { return }
+                retry()
+            })
+        } else { retry() }
+        return true
+    }
+
+    func openYapperCordManager() {
+        guard yapperCordEnabled, !loading, URLPolicy.isTrusted(webView.url) else {
+            yapperCordError = "Enable YapperCord and wait for Yapper to finish loading."
+            return
+        }
+        webView.callAsyncJavaScript("if (typeof window.YapperCord?.open !== 'function') return false; window.YapperCord.open(); return true;", arguments: [:], in: nil, in: .page, completionHandler: { [weak self] result in
+            if case .success(let value) = result, value as? Bool == true { self?.yapperCordError = nil }
+            else { self?.yapperCordError = "The plugin manager could not open. Reload Yapper and try again." }
+        })
     }
 
     func open(_ url: URL) {

@@ -147,6 +147,7 @@ function desktop(options = {}) {
       };
       if (name === './games') return { games: [], tools: [] };
       if (name === './mac-processes') return { listMacProcesses: async () => new Map() };
+      if (name === './yappercord') return { readEnabled: () => false, readLayoutEnabled: () => true, writeEnabled: () => {}, trustedPage: require('../yappercord').trustedPage, bundleSource: () => '', appearanceSource: () => '' };
       if (name === 'uiohook-napi') {
         state.nativeLoads++;
         return { uIOhook: hook, UiohookKey: { Backquote: 41, M: 50 } };

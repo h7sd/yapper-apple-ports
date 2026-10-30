@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "artifact": "YapperCord-Installer-0.1.0-mac-universal.zip",
+  "passed": true,
+  "checks": [
+    "Extracted installer and nested code signatures verify; installer is ad-hoc signed",
+    "Universal arm64/x86_64 native installer and CLI version 0.1.0",
+    "Installer MIT license and provenance documentation included"
+  ],
+  "limitations": [
+    "No installer GUI interaction or real installation is performed.",
+    "Ad-hoc signatures do not identify a trusted publisher; these checks are not a malware-free guarantee."
+  ],
+  "archiveSHA256": "782f9663f3f050d4b4ef0a6b0af2d7f7bbe9b2aa33593456cff692c5c29afae0"
+}

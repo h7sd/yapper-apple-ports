@@ -8,6 +8,7 @@ const { autoUpdater } = require('electron-updater');
 const { execFile } = require('node:child_process');
 const { games: GAMES, tools: TOOLS } = require('./games');
 const { listMacProcesses } = require('./mac-processes');
+const yappercord = require('./yappercord');
 const IS_MAC = process.platform === 'darwin';
 
 const SITE = 'https://www.yapper.website';
@@ -184,6 +185,16 @@ function createWindow() {
   win.on('show', () => { everShown = true; });
 
   const wc = win.webContents;
+  wc.on('did-finish-load', () => {
+    if (yappercord.readLayoutEnabled(path.join(app.getPath('userData'), 'appearance.json')) && yappercord.trustedPage(wc.getURL())) {
+      try { wc.executeJavaScript(yappercord.appearanceSource()).catch(error => console.error('Profile layout failed to start:', error.message)); }
+      catch (error) { console.error('Profile layout rejected:', error.message); }
+    }
+    if (yappercord.readEnabled(path.join(app.getPath('userData'), 'yappercord.json')) && yappercord.trustedPage(wc.getURL())) {
+      try { wc.executeJavaScript(yappercord.bundleSource()).catch(error => console.error('YapperCord failed to start:', error.message)); }
+      catch (error) { console.error('YapperCord bundle rejected:', error.message); }
+    }
+  });
   // Right-click in a text box: spelling suggestions, Add to dictionary, Cut / Copy / Paste. Spellcheck was on but
   // had no menu to show its answers in, and with no app menu there was no Paste to click either.
   wc.on('context-menu', (_e, params) => {
@@ -365,8 +376,32 @@ function createMacMenu() {
       { label: 'Zoom In', accelerator: 'Command+Plus', click: () => setZoom(zoom + 0.1) },
       { label: 'Zoom Out', accelerator: 'Command+-', click: () => setZoom(zoom - 0.1) },
       { type: 'separator' }, { role: 'togglefullscreen' },
+      { type: 'separator' },
+      { label: 'Enhanced Profile Layout', type: 'checkbox', checked: yappercord.readLayoutEnabled(path.join(app.getPath('userData'), 'appearance.json')), click: item => {
+        try {
+          yappercord.writeEnabled(path.join(app.getPath('userData'), 'appearance.json'), item.checked);
+          if (win && !win.isDestroyed()) win.webContents.executeJavaScript('window.YapperAppearance?.destroy()').catch(() => {}).finally(() => { if (win && !win.isDestroyed()) win.reload(); });
+          createMacMenu();
+        } catch (error) { console.error('Could not save layout preference:', error.message); createMacMenu(); }
+      } },
     ] },
     { role: 'windowMenu' },
+    { label: 'YapperCord', submenu: [
+      { label: 'Enable YapperCord', type: 'checkbox', checked: yappercord.readEnabled(path.join(app.getPath('userData'), 'yappercord.json')), click: item => {
+        try {
+          yappercord.writeEnabled(path.join(app.getPath('userData'), 'yappercord.json'), item.checked);
+          if (win && !win.isDestroyed()) {
+            // Remove live effects immediately, then reload with the new opt-in state.
+            win.webContents.executeJavaScript('window.YapperCord?.destroy()').catch(() => {}).finally(() => { if (win && !win.isDestroyed()) win.reload(); });
+          }
+          createMacMenu();
+        } catch (error) { console.error('Could not save YapperCord preference:', error.message); createMacMenu(); }
+      } },
+      { label: 'Open Plugin Manager', accelerator: 'Command+Shift+P', enabled: yappercord.readEnabled(path.join(app.getPath('userData'), 'yappercord.json')), click: () => {
+        show(); if (win && yappercord.trustedPage(win.webContents.getURL())) win.webContents.executeJavaScript('window.YapperCord?.open()').catch(() => {});
+      } },
+      { label: 'Source & Compatibility', click: () => shell.openExternal('https://github.com/h7sd/yapper-apple-ports/tree/main/extensions/yappercord') },
+    ] },
     { role: 'help', submenu: [
       { label: 'Yapper website', click: () => shell.openExternal(SITE) },
       { label: 'Yapper downloads…', click: () => shell.openExternal(`${SITE}/download`) },

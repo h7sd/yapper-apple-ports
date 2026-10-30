@@ -1,0 +1,400 @@
+{
+  "schemaVersion": 1,
+  "capturedOn": "2026-10-30",
+  "scope": "Public anonymous HTML/CSS/JavaScript assets only; no authenticated session or private account/chat content captured.",
+  "assets": [
+    {
+      "url": "https://yapin.gg/_next/static/chunks/0cz1d0mv5g_q7.js",
+      "file": "0cz1d0mv5g_q7.js",
+      "sha256": "0973c1d64c88adc8e3c950410cb58b288f72118d5965b78049438deb8f2f9683",
+      "bytes": 112594
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/0hi7-fgb9h6ky.js",
+      "file": "0hi7-fgb9h6ky.js",
+      "sha256": "6c2da6641d041368c320c5f77bf7be59b85f6f45d81f758c4e154ae80000c627",
+      "bytes": 22723
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/13zenmyl4ejka.js",
+      "file": "13zenmyl4ejka.js",
+      "sha256": "064915b883bcbc8dac6a111b0d75c09f7c72dfee06581ad9bac3e869251fbae2",
+      "bytes": 6902
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/19asn8ss2k-j-.js",
+      "file": "19asn8ss2k-j-.js",
+      "sha256": "aabc0c2406a6185f5cfa91fe5ddb64ed89b2a5effec1aa3d8cdb40174a7ccc3b",
+      "bytes": 38457
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/1b5f2lvdqu1w3.js",
+      "file": "1b5f2lvdqu1w3.js",
+      "sha256": "0a991d079cbd118acb7f9a28e9c8b1880783e79eb9bb5c6d70e077fc8a51a4c0",
+      "bytes": 275636
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/1x6obpmlu1_c2.js",
+      "file": "1x6obpmlu1_c2.js",
+      "sha256": "7c0be00bfd43494dcddc8817168e952d9900555c3e80355686a423eedd2bab22",
+      "bytes": 5361
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/24fq97d13bb9p.js",
+      "file": "24fq97d13bb9p.js",
+      "sha256": "4ec9300cae02c5ea11f48af730c2d62c31b710f61124c4b692f2ca0e541a8942",
+      "bytes": 158644
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/2nii411saqstq.js",
+      "file": "2nii411saqstq.js",
+      "sha256": "26e10e842ba5a5b045049d4805777befd3509178f795c40fac72e54574a0607a",
+      "bytes": 207234
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/31lvwxfm1ldof.js",
+      "file": "31lvwxfm1ldof.js",
+      "sha256": "3ff3156dab9ae6b4302001b8c1b33fa65f96c68c8f07306b2be64328b89dc8cc",
+      "bytes": 80655
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/41gytme82oyrw.js",
+      "file": "41gytme82oyrw.js",
+      "sha256": "dab6708b32d693dea77fd1f6b3ea33ee14ceb1ec78a5489df5b50eec0b7db4fe",
+      "bytes": 14942
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/turbopack-2c3mg3r-05n1w.js",
+      "file": "turbopack-2c3mg3r-05n1w.js",
+      "sha256": "b5f9b5199b99ab6c141f4540f0b7d0fe803c4ecf6956849ecb6e59d3d439272e",
+      "bytes": 11255
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/0-lokdq9a6g34.js",
+      "file": "0-lokdq9a6g34.js",
+      "sha256": "d4bb548e8b656b0347e5639362f7e4eb9d5a447ca7c3a731fde0e4ecf3f6058a",
+      "bytes": 43100
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/0e8a2xvx7gqc3.js",
+      "file": "0e8a2xvx7gqc3.js",
+      "sha256": "428ad2ee252baa7f752528b07f8540d1384d740b572ef95032b9ab0a24eea672",
+      "bytes": 454270
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/0g3ljga0z2y_z.js",
+      "file": "0g3ljga0z2y_z.js",
+      "sha256": "1f9f8a47fa2dbf1a3ba6154835348bf8ab0e2f50c82b4e6cf94c3a2897e6dc30",
+      "bytes": 203003
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/0qm-uykpqj-q6.js",
+      "file": "0qm-uykpqj-q6.js",
+      "sha256": "b69dfc564191f27a862f488f67b5090103fac40c743a48e48abed9541ddca5b1",
+      "bytes": 52301
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/0rpiuaoxmsbpm.js",
+      "file": "0rpiuaoxmsbpm.js",
+      "sha256": "d6570a4fb1ad0c80ac7712ff1980549e55f8b18d496ea32b623b45c4c26d3ab5",
+      "bytes": 60680
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/0yj8cn3x9eql7.js",
+      "file": "0yj8cn3x9eql7.js",
+      "sha256": "e6898bc405fc81fa9224bb6f2a45e0e41776cd58ca31dcf3002d18037a83f131",
+      "bytes": 44170
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/0zamnbdmqtxa9.js",
+      "file": "0zamnbdmqtxa9.js",
+      "sha256": "130f13e9ee6cb774f8d582a36c2cbbb1420158e28fdb10d94dec0ee5b6f40849",
+      "bytes": 28159
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/15odzi_c65vxu.js",
+      "file": "15odzi_c65vxu.js",
+      "sha256": "e004ebc9d4dc8fa93f62edadde9268ecc0397ec7adfd0222dc3399676a00c169",
+      "bytes": 99981
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/1cf2x9opjlwm6.js",
+      "file": "1cf2x9opjlwm6.js",
+      "sha256": "2da2b13f70e65e901d545ae2f369b8f4c1e961852113da5ed22c5d49a01b5028",
+      "bytes": 95615
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/1gom9pvmhz36y.js",
+      "file": "1gom9pvmhz36y.js",
+      "sha256": "45bd0e3de873cea0451938996c89e68ea77b87c14b77ff82341077dfeb9aedff",
+      "bytes": 437440
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/1hu0uktie-cf6.js",
+      "file": "1hu0uktie-cf6.js",
+      "sha256": "9d8d4fb59fa45e350e36ff04c7c46177c86122c9ec0787779ac495654af94fb7",
+      "bytes": 70452
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/1o96fsfqeknng.js",
+      "file": "1o96fsfqeknng.js",
+      "sha256": "dc42103d6e654b46f90793f4eeb11d02a3e318374606ece5c57d5614138e0030",
+      "bytes": 152582
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/1tz97x56rtnij.js",
+      "file": "1tz97x56rtnij.js",
+      "sha256": "00b6276f707050fb23fd7c0b6666dc6ba959892c726d9ca17794686f9c22c148",
+      "bytes": 444830
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/1vg2hz3k_4ur7.js",
+      "file": "1vg2hz3k_4ur7.js",
+      "sha256": "b341bef4f85b943bf02e450a33e40681d58d0e167d552ccbcb2387f8d1bfe813",
+      "bytes": 47762
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/29mti5o2r3n9b.js",
+      "file": "29mti5o2r3n9b.js",
+      "sha256": "d184ba50d425db5c432e14dd36c94cc0ef44f6dbca72272feafb448f9937b080",
+      "bytes": 132906
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/2afz69pmugtgr.js",
+      "file": "2afz69pmugtgr.js",
+      "sha256": "2ef77c959c8a2326faea18f290284fb604182570975cbb1acb79817d5645fd18",
+      "bytes": 127759
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/2u11j0kcpjft4.js",
+      "file": "2u11j0kcpjft4.js",
+      "sha256": "0a755bd7d9aadc25420bd63e37e62a4819774880133127c9433aee8322a0b1f2",
+      "bytes": 634816
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/2xu7c1x2cnu_8.js",
+      "file": "2xu7c1x2cnu_8.js",
+      "sha256": "039f1166c3fbed0b2abc2d98806ad98674e1741395f91a6814c680a3b93cb536",
+      "bytes": 434117
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/3-qb3kp9rydmi.js",
+      "file": "3-qb3kp9rydmi.js",
+      "sha256": "23c344f8483022e8f09c2401333f4746db8bb07238b9078dad52201d1cb23453",
+      "bytes": 31111
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/3-tvf_5k3e4cd.js",
+      "file": "3-tvf_5k3e4cd.js",
+      "sha256": "4856b1075915d17d85945eae5d90dd8f22090863b0d10b12dc9ffa667f77a5c7",
+      "bytes": 28613
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/3o9c4m1xvl-2y.js",
+      "file": "3o9c4m1xvl-2y.js",
+      "sha256": "a6f2c8013562a3bffa1a847739ade8a347b3cfde183d346701c1970487cc73c2",
+      "bytes": 29590
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/3wgef576le71a.js",
+      "file": "3wgef576le71a.js",
+      "sha256": "758083e74b9f274601ab0ebfc381d521210f3f9f800dee683a469714413ebfed",
+      "bytes": 41090
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/43be1cnbtde6m.js",
+      "file": "43be1cnbtde6m.js",
+      "sha256": "4e14fa462560e1fa6bf88b2d5a0144499f4527316630883a57e7dd23b54c4b09",
+      "bytes": 3504
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/2jlpe9c5u0_4h.css",
+      "file": "2jlpe9c5u0_4h.css",
+      "sha256": "518f28d1ed54045957d1874bc8a23bf2edf56b473a3f35372097088e7a9375a4",
+      "bytes": 11635
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/3swy1h98m4xoy.css",
+      "file": "3swy1h98m4xoy.css",
+      "sha256": "3b5edf529ef572bb695517d1d719796705f475b59d60b5fa9dcef8939c59cf40",
+      "bytes": 503507
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/1tse-n9mzibn7.css",
+      "file": "1tse-n9mzibn7.css",
+      "sha256": "89365cc2bac4cc5ad02f3989f91c54fcac37e8b28cb78d9f9b5063332eefc572",
+      "bytes": 92942
+    },
+    {
+      "url": "https://yapin.gg/_next/static/chunks/2ybrplgyen6ut.css",
+      "file": "2ybrplgyen6ut.css",
+      "sha256": "af91d71b9906139e1584911a14f251ab51730f9f4edcea82074ca4acc0007814",
+      "bytes": 50303
+    }
+  ],
+  "sourceAnchors": [
+    {
+      "file": "2u11j0kcpjft4.js",
+      "sourceURL": "https://yapin.gg/_next/static/chunks/2u11j0kcpjft4.js",
+      "sourceSha256": "0a755bd7d9aadc25420bd63e37e62a4819774880133127c9433aee8322a0b1f2",
+      "byteOffset": 429825,
+      "needle": "className:`user-bar",
+      "observedStaticStructure": "Original account strip contains the who button, original settings/mention/logout actions, and conditional account menu."
+    },
+    {
+      "file": "2u11j0kcpjft4.js",
+      "sourceURL": "https://yapin.gg/_next/static/chunks/2u11j0kcpjft4.js",
+      "sourceSha256": "0a755bd7d9aadc25420bd63e37e62a4819774880133127c9433aee8322a0b1f2",
+      "byteOffset": 429953,
+      "needle": "className:\"who\"",
+      "observedStaticStructure": "The original account button toggles its own menu and declares aria-haspopup/aria-expanded."
+    },
+    {
+      "file": "2u11j0kcpjft4.js",
+      "sourceURL": "https://yapin.gg/_next/static/chunks/2u11j0kcpjft4.js",
+      "sourceSha256": "0a755bd7d9aadc25420bd63e37e62a4819774880133127c9433aee8322a0b1f2",
+      "byteOffset": 431317,
+      "needle": "className:\"me-banner\"",
+      "observedStaticStructure": "Existing profile banner/preview and Edit profile controls are supplied by the account component."
+    },
+    {
+      "file": "2u11j0kcpjft4.js",
+      "sourceURL": "https://yapin.gg/_next/static/chunks/2u11j0kcpjft4.js",
+      "sourceSha256": "0a755bd7d9aadc25420bd63e37e62a4819774880133127c9433aee8322a0b1f2",
+      "byteOffset": 434712,
+      "needle": "\"View my profile\"",
+      "observedStaticStructure": "Existing account-menu action sets profileCard to the current member id."
+    },
+    {
+      "file": "2u11j0kcpjft4.js",
+      "sourceURL": "https://yapin.gg/_next/static/chunks/2u11j0kcpjft4.js",
+      "sourceSha256": "0a755bd7d9aadc25420bd63e37e62a4819774880133127c9433aee8322a0b1f2",
+      "byteOffset": 320196,
+      "needle": "className:`profile-card pc2",
+      "observedStaticStructure": "The actual full-profile card has themed/compact variants and existing user data."
+    },
+    {
+      "file": "2u11j0kcpjft4.js",
+      "sourceURL": "https://yapin.gg/_next/static/chunks/2u11j0kcpjft4.js",
+      "sourceSha256": "0a755bd7d9aadc25420bd63e37e62a4819774880133127c9433aee8322a0b1f2",
+      "byteOffset": 331628,
+      "needle": "className:\"pc2-side-tabs\"",
+      "observedStaticStructure": "Existing side tabs switch mutual-friend and mutual-server lists; no board/wishlist tab contract was established."
+    },
+    {
+      "file": "2u11j0kcpjft4.js",
+      "sourceURL": "https://yapin.gg/_next/static/chunks/2u11j0kcpjft4.js",
+      "sourceSha256": "0a755bd7d9aadc25420bd63e37e62a4819774880133127c9433aee8322a0b1f2",
+      "byteOffset": 513138,
+      "needle": "className:\"nl-tabbar\"",
+      "observedStaticStructure": "Original navigation buttons implement Home, Servers, optional Mentions, and You/Settings."
+    },
+    {
+      "file": "3swy1h98m4xoy.css",
+      "sourceURL": "https://yapin.gg/_next/static/chunks/3swy1h98m4xoy.css",
+      "sourceSha256": "3b5edf529ef572bb695517d1d719796705f475b59d60b5fa9dcef8939c59cf40",
+      "byteOffset": 224,
+      "needle": ":root{--bg-rail:",
+      "observedStaticStructure": "Original site palette and font token declarations."
+    },
+    {
+      "file": "3swy1h98m4xoy.css",
+      "sourceURL": "https://yapin.gg/_next/static/chunks/3swy1h98m4xoy.css",
+      "sourceSha256": "3b5edf529ef572bb695517d1d719796705f475b59d60b5fa9dcef8939c59cf40",
+      "byteOffset": 64010,
+      "needle": ".profile-card{",
+      "observedStaticStructure": "Original profile component surfaces and layout declarations."
+    },
+    {
+      "file": "1tse-n9mzibn7.css",
+      "sourceURL": "https://yapin.gg/_next/static/chunks/1tse-n9mzibn7.css",
+      "sourceSha256": "89365cc2bac4cc5ad02f3989f91c54fcac37e8b28cb78d9f9b5063332eefc572",
+      "byteOffset": 69127,
+      "needle": "html.new-look .app:not(.chat-open) .nl-tabbar",
+      "observedStaticStructure": "Original bottom-navigation visibility and positioning depend on app state/viewport."
+    },
+    {
+      "file": "1tz97x56rtnij.js",
+      "sourceURL": "https://yapin.gg/_next/static/chunks/1tz97x56rtnij.js",
+      "sourceSha256": "00b6276f707050fb23fd7c0b6666dc6ba959892c726d9ca17794686f9c22c148",
+      "byteOffset": 345382,
+      "needle": "\"View my profile\":\"Mein Profil ansehen\"",
+      "observedStaticStructure": "Published German label for the original account action."
+    },
+    {
+      "file": "1gom9pvmhz36y.js",
+      "sourceURL": "https://yapin.gg/_next/static/chunks/1gom9pvmhz36y.js",
+      "sourceSha256": "45bd0e3de873cea0451938996c89e68ea77b87c14b77ff82341077dfeb9aedff",
+      "byteOffset": 339890,
+      "needle": "\"View my profile\":\"Ver mi perfil\"",
+      "observedStaticStructure": "Published Spanish label for the original account action."
+    },
+    {
+      "file": "0e8a2xvx7gqc3.js",
+      "sourceURL": "https://yapin.gg/_next/static/chunks/0e8a2xvx7gqc3.js",
+      "sourceSha256": "428ad2ee252baa7f752528b07f8540d1384d740b572ef95032b9ab0a24eea672",
+      "byteOffset": 353564,
+      "needle": "\"View my profile\":\"Voir mon profil\"",
+      "observedStaticStructure": "Published French label for the original account action."
+    },
+    {
+      "file": "2xu7c1x2cnu_8.js",
+      "sourceURL": "https://yapin.gg/_next/static/chunks/2xu7c1x2cnu_8.js",
+      "sourceSha256": "039f1166c3fbed0b2abc2d98806ad98674e1741395f91a6814c680a3b93cb536",
+      "byteOffset": 336745,
+      "needle": "\"View my profile\":\"Ver meu perfil\"",
+      "observedStaticStructure": "Published Portuguese label for the original account action."
+    }
+  ],
+  "assetURLLimit": "Exact content-named deployment URLs and SHA-256 values are recorded. The upstream host can replace/delete URLs; permanent immutability is not guaranteed.",
+  "rea": {
+    "version": "6.5.0",
+    "operation": "analyze_javascript_application",
+    "evidenceId": "ev_9f5a921417d321dee1663d91b52d3779408641634c710ea207497a9542eeb019",
+    "evidenceFileSha256": "58d38ae254753399a3c85484c3c4b5fb7d70bb8a512cf369a29a0af765baf289",
+    "rootArtifactSha256": "fa4f06ee9bf8cc938481c69efc09043c54ecf26bec06195e58f08a9740ad9bb1",
+    "sourceSelection": {
+      "requested_paths": [
+        "2u11j0kcpjft4.js",
+        "0zamnbdmqtxa9.js",
+        "3wgef576le71a.js",
+        "1o96fsfqeknng.js"
+      ],
+      "unselected_files": 35
+    },
+    "statistics": {
+      "relevant_files": 39,
+      "nested_asar_containers": 0,
+      "text_bytes_read": 856647,
+      "invalid_utf8_files": 0,
+      "parsed_javascript_files": 4,
+      "visited_ast_nodes": 265648,
+      "findings": 89,
+      "modules": 0,
+      "parse_failures": 0
+    },
+    "confidence": "derived",
+    "limitations": [
+      "Caller-selected source analysis leaves 35 inventoried files outside analysis scope. Inventory identity covers the complete artifact; relationships through unselected sources remain unknown.",
+      "CommonJS and ESM binding relationships were recovered from inert syntax and resolved only within the inventoried artifact container.",
+      "Graph coverage is incomplete; unavailable facts remain explicit and must not be read as absence.",
+      "JavaScript and HTML were parsed as inert text; bundle bootstrap code was never executed.",
+      "Static imports, entrypoints, workers, endpoints, and storage relationships do not prove runtime execution.",
+      "Static paths and relationships may remain unresolved when expressions are dynamic or obfuscated.",
+      "Webpack/Rspack factories were recovered from AST literals; REA did not invoke push handlers or bundle bootstrap code."
+    ]
+  },
+  "fixture": {
+    "html": "fixtures/real-structure.html",
+    "css": "fixtures/fixture-base.css",
+    "kind": "authored, anonymized structure/behavior fixture derived from public component declarations",
+    "containsPrivateReferenceImages": false,
+    "containsRealAccountData": false
+  },
+  "boundaries": [
+    "Static source declarations are observations, not live authenticated runtime evidence.",
+    "The adapter inherits site paint/fonts and tags existing nodes. It adds no source-independent account state, actions, tabs, avatars or rewards.",
+    "Missing or renamed structures remain untouched. openProfile forwards only a recognized existing account-menu action.",
+    "Headless fixture checks validate the local adapter, not the complete remote React application or real-device media behavior."
+  ]
+}

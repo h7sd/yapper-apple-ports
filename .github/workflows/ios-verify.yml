@@ -42,6 +42,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          node extensions/yappercord/build.mjs --check
+          node appearance/build.mjs --check
           node --test ios/tests/native-bridge.test.cjs 2>&1 | tee dist/ios-verification/native-bridge-tests.log
       - name: Build unsigned Release simulator application
         shell: bash

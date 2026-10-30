@@ -7,15 +7,23 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		06F6D6C22F637F1F539CC66F /* LICENSE.Appearance in Resources */ = {isa = PBXBuildFile; fileRef = 6787FC99D15A36D032502A29 /* LICENSE.Appearance */; };
 		4BEE38C21222CC187EE50A24 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 24E343B278B25BC3DEBA742E /* Assets.xcassets */; };
 		665ABAB17F70A6D18AE3A4D4 /* YapperApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34F967D44EB79C3F52861A18 /* YapperApp.swift */; };
 		829A4D5E1EC66F4EFAEA7FBB /* URLPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97A361998C58A9C7FD457CD3 /* URLPolicyTests.swift */; };
 		954A1CB79AB912CBCC42B3D8 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 94F3F1358BA576D316103E76 /* Foundation.framework */; };
 		9B59721E90F10B588D37CFAD /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 94F3F1358BA576D316103E76 /* Foundation.framework */; };
+		AD75F567E10CA97A981BC899 /* LICENSE.Vencord in Resources */ = {isa = PBXBuildFile; fileRef = BA4837CD0D1ADA0F2C4ACDF2 /* LICENSE.Vencord */; };
+		BDB417F9E81D1B840BE0A8E9 /* YapperAppearance.js in Resources */ = {isa = PBXBuildFile; fileRef = 76ADED4898CA821DB9B3FC27 /* YapperAppearance.js */; };
 		C6FC57DEB3928F7826324484 /* YapperUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE73517C754E909DA7CD38FA /* YapperUITests.swift */; };
+		D3C2782394A16E8D6801F8A4 /* YapperCordSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BF85508DCAFCAC24011B291 /* YapperCordSupport.swift */; };
 		D44F38E2D52823EA0CC3C20A /* URLPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95BCE3C7BB2E98516BC01DFC /* URLPolicy.swift */; };
+		D6351FC04434EE13E588D9A2 /* YapperCord.js in Resources */ = {isa = PBXBuildFile; fileRef = EB5CFDFAE0F668B34894E655 /* YapperCord.js */; };
 		D7994C6816A1F0C0FF173D83 /* NativeBridge.js in Resources */ = {isa = PBXBuildFile; fileRef = D5CBE73106698ADFA16A37E3 /* NativeBridge.js */; };
+		DE2623F68B930091A4B00816 /* YapperCordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA38074576D8F4C1CC499047 /* YapperCordTests.swift */; };
+		DE7C505A3EE798D084E375F7 /* YapperAppearanceSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = C77451DAD7E3841BBD058EDB /* YapperAppearanceSupport.swift */; };
 		DE81073FDC1EA417E116C161 /* WebClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A763E7347E2E52ED5C2449FC /* WebClient.swift */; };
+		FBC0EA0883D4E056967142D5 /* YapperAppearanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E3A7B63D7A8231B66DDEBE9 /* YapperAppearanceTests.swift */; };
 		FE5580C7AE1EA8FE8F63B764 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 94F3F1358BA576D316103E76 /* Foundation.framework */; };
 /* End PBXBuildFile section */
 
@@ -37,18 +45,26 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		1BF85508DCAFCAC24011B291 /* YapperCordSupport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = YapperCordSupport.swift; sourceTree = "<group>"; };
 		24E343B278B25BC3DEBA742E /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2C563069EB8813DEAB519B1C /* YapperTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = YapperTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		34F967D44EB79C3F52861A18 /* YapperApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = YapperApp.swift; sourceTree = "<group>"; };
 		4DCBEE0493EDA72C8DC570B2 /* Yapper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Yapper.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6787FC99D15A36D032502A29 /* LICENSE.Appearance */ = {isa = PBXFileReference; includeInIndex = 1; path = LICENSE.Appearance; sourceTree = "<group>"; };
+		6E3A7B63D7A8231B66DDEBE9 /* YapperAppearanceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = YapperAppearanceTests.swift; sourceTree = "<group>"; };
+		76ADED4898CA821DB9B3FC27 /* YapperAppearance.js */ = {isa = PBXFileReference; includeInIndex = 1; path = YapperAppearance.js; sourceTree = "<group>"; };
 		94F3F1358BA576D316103E76 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		95BCE3C7BB2E98516BC01DFC /* URLPolicy.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = URLPolicy.swift; sourceTree = "<group>"; };
 		97A361998C58A9C7FD457CD3 /* URLPolicyTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = URLPolicyTests.swift; sourceTree = "<group>"; };
 		A763E7347E2E52ED5C2449FC /* WebClient.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WebClient.swift; sourceTree = "<group>"; };
+		BA4837CD0D1ADA0F2C4ACDF2 /* LICENSE.Vencord */ = {isa = PBXFileReference; includeInIndex = 1; path = LICENSE.Vencord; sourceTree = "<group>"; };
+		C77451DAD7E3841BBD058EDB /* YapperAppearanceSupport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = YapperAppearanceSupport.swift; sourceTree = "<group>"; };
 		CE73517C754E909DA7CD38FA /* YapperUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = YapperUITests.swift; sourceTree = "<group>"; };
 		D5CBE73106698ADFA16A37E3 /* NativeBridge.js */ = {isa = PBXFileReference; includeInIndex = 1; path = NativeBridge.js; sourceTree = "<group>"; };
 		DC469F5CE7756FBA88A520BE /* YapperUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = YapperUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DE0CD821D307C77F8CFD20D8 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		EB5CFDFAE0F668B34894E655 /* YapperCord.js */ = {isa = PBXFileReference; includeInIndex = 1; path = YapperCord.js; sourceTree = "<group>"; };
+		FA38074576D8F4C1CC499047 /* YapperCordTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = YapperCordTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -91,6 +107,8 @@
 			isa = PBXGroup;
 			children = (
 				97A361998C58A9C7FD457CD3 /* URLPolicyTests.swift */,
+				FA38074576D8F4C1CC499047 /* YapperCordTests.swift */,
+				6E3A7B63D7A8231B66DDEBE9 /* YapperAppearanceTests.swift */,
 			);
 			name = YapperTests;
 			path = YapperTests;
@@ -100,6 +118,10 @@
 			isa = PBXGroup;
 			children = (
 				D5CBE73106698ADFA16A37E3 /* NativeBridge.js */,
+				EB5CFDFAE0F668B34894E655 /* YapperCord.js */,
+				BA4837CD0D1ADA0F2C4ACDF2 /* LICENSE.Vencord */,
+				76ADED4898CA821DB9B3FC27 /* YapperAppearance.js */,
+				6787FC99D15A36D032502A29 /* LICENSE.Appearance */,
 			);
 			name = resources;
 			path = resources;
@@ -133,6 +155,8 @@
 				DE0CD821D307C77F8CFD20D8 /* Info.plist */,
 				A2AE73443788CA93B30E1D51 /* resources */,
 				24E343B278B25BC3DEBA742E /* Assets.xcassets */,
+				1BF85508DCAFCAC24011B291 /* YapperCordSupport.swift */,
+				C77451DAD7E3841BBD058EDB /* YapperAppearanceSupport.swift */,
 			);
 			name = Yapper;
 			path = Yapper;
@@ -264,6 +288,10 @@
 			files = (
 				D7994C6816A1F0C0FF173D83 /* NativeBridge.js in Resources */,
 				4BEE38C21222CC187EE50A24 /* Assets.xcassets in Resources */,
+				D6351FC04434EE13E588D9A2 /* YapperCord.js in Resources */,
+				AD75F567E10CA97A981BC899 /* LICENSE.Vencord in Resources */,
+				BDB417F9E81D1B840BE0A8E9 /* YapperAppearance.js in Resources */,
+				06F6D6C22F637F1F539CC66F /* LICENSE.Appearance in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -297,6 +325,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				829A4D5E1EC66F4EFAEA7FBB /* URLPolicyTests.swift in Sources */,
+				DE2623F68B930091A4B00816 /* YapperCordTests.swift in Sources */,
+				FBC0EA0883D4E056967142D5 /* YapperAppearanceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -307,6 +337,8 @@
 				665ABAB17F70A6D18AE3A4D4 /* YapperApp.swift in Sources */,
 				DE81073FDC1EA417E116C161 /* WebClient.swift in Sources */,
 				D44F38E2D52823EA0CC3C20A /* URLPolicy.swift in Sources */,
+				D3C2782394A16E8D6801F8A4 /* YapperCordSupport.swift in Sources */,
+				DE7C505A3EE798D084E375F7 /* YapperAppearanceSupport.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

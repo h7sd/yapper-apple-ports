@@ -1,0 +1,107 @@
+{
+  "scope": "Source invariants and optional macOS archive consistency; no malware-free certification",
+  "generatedAt": "2026-10-30T14:56:49.070Z",
+  "node": "24.15.0",
+  "architecture": "arm64",
+  "declaredElectron": "45.1.0",
+  "passed": true,
+  "checks": [
+    {
+      "name": "syntax macos/main.js",
+      "passed": true
+    },
+    {
+      "name": "syntax macos/preload.js",
+      "passed": true
+    },
+    {
+      "name": "syntax macos/games.js",
+      "passed": true
+    },
+    {
+      "name": "syntax macos/mac-processes.js",
+      "passed": true
+    },
+    {
+      "name": "syntax macos/yappercord.js",
+      "passed": true
+    },
+    {
+      "name": "syntax macos/yappercord/bundle.js",
+      "passed": true
+    },
+    {
+      "name": "syntax macos/appearance/bundle.js",
+      "passed": true
+    },
+    {
+      "name": "syntax macos/scripts/build-mac.mjs",
+      "passed": true
+    },
+    {
+      "name": "syntax macos/scripts/make-icon.mjs",
+      "passed": true
+    },
+    {
+      "name": "syntax macos/tests/desktop-main.test.js",
+      "passed": true
+    },
+    {
+      "name": "syntax macos/tests/mac-processes.test.js",
+      "passed": true
+    },
+    {
+      "name": "syntax macos/tests/yappercord.test.js",
+      "passed": true
+    },
+    {
+      "name": "all declared webPreferences retain sandbox and isolation",
+      "passed": true
+    },
+    {
+      "name": "native bridge retains its HTTPS hostname guard",
+      "passed": true
+    },
+    {
+      "name": "preload exposes the named bridge without a generic IPC or execution API",
+      "passed": true
+    },
+    {
+      "name": "Mac binary updates remain disabled",
+      "passed": true
+    },
+    {
+      "name": "runtime and packaging dependencies remain pinned",
+      "passed": true
+    },
+    {
+      "name": "preserved upstream files and assets match recorded hashes",
+      "passed": true
+    },
+    {
+      "name": "archive content, architecture, and signatures (arm64)",
+      "passed": true
+    },
+    {
+      "name": "loose app has portable, non-dangling symlinks (arm64)",
+      "passed": true
+    }
+  ],
+  "sourceSHA256": {
+    "main.js": "c07b3f4087088858ad22b9a143bb0bf62797c583105639327aae8fa9d1a3650c",
+    "preload.js": "755085f5656689fb29656079bb3cd8145c52d88731b1a5a24ef4bd1d8686ab62",
+    "games.js": "ff51d6f52b7ca30ca1404dd139f31d83c5a5ebcdfeac53d8d6b9181bda0b809e",
+    "mac-processes.js": "34038411d72e8abdedba977a939024e6c19b068cbb9c623863a6f1e74c522e2c",
+    "yappercord.js": "d2db82da29f1c38cf5383e8de4b63880449bdc90eb6c9a418bc07f24b3acde09",
+    "yappercord/bundle.js": "e87ad714ad8cafb088870dcdf41d78247f415cbc29311242be2cdf676cc57bba",
+    "appearance/bundle.js": "52c19429daee71e0eda97b95b9605aaf8090367626569df101ce19a2f4a3fdf6"
+  },
+  "archiveSHA256": "e1f57f50f4d7e5377646ddb54afc3611fc7bb86c2bba478342b1427a7abcbaa5",
+  "limitations": [
+    "Source guards check selected known invariants and are not a complete static security analysis.",
+    "Regression tests, dependency advisory results, native permission flows, and live-service behavior have separate scopes.",
+    "No application launch, real call, media recording, Accessibility grant, or login-item change is performed by this script.",
+    "The live website and its network requests can change independently of these source and archive hashes.",
+    "Checksums show integrity relative to this build; ad-hoc signatures do not identify a trusted publisher."
+  ]
+}
