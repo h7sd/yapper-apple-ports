@@ -4,7 +4,7 @@ Unofficial iPhone/iPad port derived from the official Yapper Linux desktop clien
 
 ## Build
 
-Requires a Mac with Xcode 27.1 or later for the verified toolchain, plus Node.js to run the JavaScript bridge tests. Deployment target is iOS 17.0.
+Requires a Mac with Xcode 27.2 for the verified toolchain, plus Node.js to run the JavaScript bridge tests. Deployment target is iOS 17.0.
 
 ```sh
 node --test tests/native-bridge.test.cjs
@@ -20,7 +20,7 @@ To run the tests on an existing simulator:
 SIMULATOR_ID=YOUR_SIMULATOR_UDID scripts/build-ios.sh test
 ```
 
-By default, derived data and artifacts go into the ignored `.build/` folder. `DERIVED_DATA`, `OUTPUT_DIR`, `ARCHIVE_PATH`, and `RESULT_BUNDLE` can override those paths.
+By default, derived data and artifacts go into the ignored `.build/` folder. `DERIVED_DATA`, `OUTPUT_DIR`, `ARCHIVE_PATH`, and `RESULT_BUNDLE_PATH` can override those paths.
 
 ## Behavior
 
@@ -30,6 +30,10 @@ By default, derived data and artifacts go into the ignored `.build/` folder. `DE
 - Load failure and process-termination screens offer Retry.
 - The original 17-member desktop bridge is preserved as a compatibility API with `platform: 'ios'`; unsupported desktop features return unavailable values.
 - Native local notifications and badges require opt-in and iOS consent. Open `yapper://app-settings` to reach native App Settings; the failure screen also has an App Settings button. The Home Screen quick action is provided as an additional entry point.
+
+The bundled **Yapinplugger** plugin manager is optional and disabled by default. Native App Settings contains its enable switch and manager action. The independent enhanced profile layout starts enabled and can be switched off. See [iOS extension integration](../docs/IOS-YAPPERCORD.md) for plugin boundaries, licenses, sync scripts, and tests.
+
+The WebView fills the screen; Yapper's own dynamic background extends behind the visible system status and home areas. The local trusted-page viewport adapter keeps app controls clear of those areas. Native UI tests verify complete view bounds, safe controls, and red-to-teal background changes at both display edges without loading an account.
 
 ## Limits
 

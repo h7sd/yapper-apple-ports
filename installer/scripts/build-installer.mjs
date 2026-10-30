@@ -22,18 +22,18 @@ if (requestedClientArch && !selectedApp && !selectedZip) throw new Error('A clie
 execFileSync('/usr/bin/xcrun', ['swift', 'test', '--package-path', root], { stdio: 'inherit' });
 const binaries = [];
 for (const arch of ['arm64', 'x86_64']) {
-  const options = ['swift', 'build', '--package-path', root, '--scratch-path', path.join(root, `.build-${arch}`), '-c', 'release', '--triple', `${arch}-apple-macosx13.0`, '--product', 'YapperCordInstaller'];
+  const options = ['swift', 'build', '--package-path', root, '--scratch-path', path.join(root, `.build-${arch}`), '-c', 'release', '--triple', `${arch}-apple-macosx13.0`, '--product', 'Yapinplugger'];
   execFileSync('/usr/bin/xcrun', options, { stdio: 'inherit' });
   const binPath = execFileSync('/usr/bin/xcrun', [...options, '--show-bin-path'], { encoding: 'utf8' }).trim().split('\n').at(-1);
-  binaries.push(path.join(binPath, 'YapperCordInstaller'));
+  binaries.push(path.join(binPath, 'Yapinplugger'));
 }
 
 await mkdir(dist, { recursive: true });
-const staging = await mkdtemp(path.join(os.tmpdir(), 'yappercord-installer-'));
+const staging = await mkdtemp(path.join(os.tmpdir(), 'yapinplugger-installer-'));
 try {
-  const app = path.join(staging, 'YapperCord Installer.app');
+  const app = path.join(staging, 'Yapinplugger.app');
   const contents = path.join(app, 'Contents');
-  const executable = path.join(contents, 'MacOS', 'YapperCordInstaller');
+  const executable = path.join(contents, 'MacOS', 'Yapinplugger');
   await mkdir(path.dirname(executable), { recursive: true });
   await mkdir(path.join(contents, 'Resources'), { recursive: true });
   execFileSync('/usr/bin/lipo', ['-create', ...binaries, '-output', executable], { stdio: 'inherit' });
@@ -41,10 +41,10 @@ try {
   const info = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
-<key>CFBundleIdentifier</key><string>website.yapper.yappercord.installer</string>
-<key>CFBundleName</key><string>YapperCord Installer</string>
-<key>CFBundleDisplayName</key><string>YapperCord Installer</string>
-<key>CFBundleExecutable</key><string>YapperCordInstaller</string>
+<key>CFBundleIdentifier</key><string>website.yapper.yapinplugger</string>
+<key>CFBundleName</key><string>Yapinplugger</string>
+<key>CFBundleDisplayName</key><string>Yapinplugger</string>
+<key>CFBundleExecutable</key><string>Yapinplugger</string>
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>CFBundleShortVersionString</key><string>${version}</string>
 <key>CFBundleVersion</key><string>${version}</string>
@@ -80,24 +80,24 @@ try {
   execFileSync(executable, ['--version'], { stdio: 'inherit' });
   const architecture = execFileSync('/usr/bin/lipo', ['-archs', executable], { encoding: 'utf8' }).trim();
   if (!architecture.includes('arm64') || !architecture.includes('x86_64')) throw new Error('Installer binary is not universal.');
-  const name = clientArch ? `YapperCord-Setup-${version}-mac-${clientArch}.zip` : `YapperCord-Installer-${version}-mac-universal.zip`;
+  const name = clientArch ? `Yapinplugger-Setup-${version}-mac-${clientArch}.zip` : `Yapinplugger-Installer-${version}-mac-universal.zip`;
   const archive = path.join(dist, name);
   await rm(archive, { force: true });
   execFileSync('/usr/bin/ditto', ['-c', '-k', '--keepParent', '--sequesterRsrc', app, archive], { stdio: 'inherit' });
   const appFolder = clientArch ? path.join(dist, `setup-${clientArch}`) : dist;
   await mkdir(appFolder, { recursive: true });
-  const finalApp = path.join(appFolder, 'YapperCord Installer.app');
+  const finalApp = path.join(appFolder, 'Yapinplugger.app');
   if (!archiveOnly) {
     await rm(finalApp, { recursive: true, force: true });
     execFileSync('/usr/bin/ditto', ['-x', '-k', archive, appFolder], { stdio: 'inherit' });
   }
   const hash = createHash('sha256').update(await readFile(archive)).digest('hex');
   const checksumLines = [];
-  for (const filename of (await readdir(dist)).filter(item => /^YapperCord-(Installer|Setup)-.+\.zip$/.test(item)).sort()) {
+  for (const filename of (await readdir(dist)).filter(item => /^Yapinplugger-(Installer|Setup)-.+\.zip$/.test(item)).sort()) {
     checksumLines.push(`${createHash('sha256').update(await readFile(path.join(dist, filename))).digest('hex')}  ${filename}`);
   }
   await writeFile(path.join(dist, 'SHA256SUMS.txt'), checksumLines.join('\n') + '\n');
-  await writeFile(path.join(dist, `verification${clientArch ? '-' + clientArch : ''}.json`), JSON.stringify({ installerVersion: version, architectures: ['arm64', 'x86_64'], minimumMacOS: '13.0', signature: 'ad-hoc; no publisher identity or notarization', bundledCompatibleYapper: Boolean(source), clientArchitecture: clientArch ?? null, clientAppVersion: clientInspection?.appVersion ?? null, clientASARSHA256: clientInspection?.asarSHA256 ?? null, yappercordBundleSHA256: clientInspection?.runtimeBundleSHA256 ?? null, archiveSHA256: hash, validation: ['Swift tests', 'Nested codesign verification', 'Universal installer executable architecture', 'CLI version command', ...(source ? ['Bundled client architecture', 'YapperCord version marker', 'Bundled runtime checksum matches reviewed hash', 'Copied app ASAR matches selected source'] : [])], limitations: ['End-to-end GUI installation has not been automated.', 'Signature verification is not a malware-free guarantee.', 'No user app or user profile was installed or modified by the build.'] }, null, 2) + '\n');
+  await writeFile(path.join(dist, `verification${clientArch ? '-' + clientArch : ''}.json`), JSON.stringify({ installerVersion: version, architectures: ['arm64', 'x86_64'], minimumMacOS: '13.0', signature: 'ad-hoc; no publisher identity or notarization', bundledCompatibleYapper: Boolean(source), clientArchitecture: clientArch ?? null, clientAppVersion: clientInspection?.appVersion ?? null, clientASARSHA256: clientInspection?.asarSHA256 ?? null, yapinpluggerBundleSHA256: clientInspection?.runtimeBundleSHA256 ?? null, archiveSHA256: hash, validation: ['Swift tests', 'Nested codesign verification', 'Universal installer executable architecture', 'CLI version command', ...(source ? ['Bundled client architecture', 'Yapinplugger version marker', 'Bundled runtime checksum matches reviewed hash', 'Copied app ASAR matches selected source'] : [])], limitations: ['End-to-end GUI installation has not been automated.', 'Signature verification is not a malware-free guarantee.', 'No user app or user profile was installed or modified by the build.'] }, null, 2) + '\n');
   console.log(`${archiveOnly ? 'Archive only; existing unpacked installer preserved' : `Built ${finalApp}`}\nZIP ${archive}`);
 } finally {
   await rm(staging, { recursive: true, force: true });

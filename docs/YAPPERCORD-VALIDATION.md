@@ -1,6 +1,6 @@
-# YapperCord validation and remaining work
+# Yapinplugger validation and remaining work
 
-This records bounded local checks for the experimental YapperCord integration. It is not a malware-free certification, universal plugin compatibility report, or verification of Yapper's backend.
+This records bounded local checks for the experimental Yapinplugger integration. It is not a malware-free certification, universal plugin compatibility report, or verification of Yapper's backend.
 
 ## Source and feature coverage
 
@@ -14,10 +14,10 @@ Six independent feature adaptations are implemented. The other 161 public upstre
 - **20 Mac regression tests passed**, including the existing permission/bridge tests and new opt-in/configuration/bundle-integrity checks.
 - **14 Electron checks passed** in the real packaged Apple Silicon app. Live anonymous Yapper login and the manager were checked; semantic draft transformations and image zoom used a synthetic, explicitly routed HTML fixture. Keyboard focus survives toggling, disabled effects are removed, retained APIs cannot restart them, iframe execution is rejected, and native disabling reloads without the extension. [Machine-readable results](reports/yappercord-live-checks.json).
 - Both Mac package architectures were rebuilt and inspected with the repository verifier. Their final package checksums/signature results are recorded alongside the downloadable artifacts.
-- **Four additional native Mac appearance checks passed** for default-on initialization, the unchanged 17-member bridge, forwarding the original fixture profile action, and disabling/re-enabling independently from YapperCord. [Results](reports/appearance-native-macos.json).
+- **Four additional native Mac appearance checks passed** for default-on initialization, the unchanged 17-member bridge, forwarding the original fixture profile action, and disabling/re-enabling independently from Yapinplugger. [Results](reports/appearance-native-macos.json).
 - **20 source/package checks per Mac architecture passed** in the final appearance-enabled builds. [Apple Silicon](reports/yappercord-macos-arm64.json), [Intel](reports/yappercord-macos-x64.json).
-- **44 iOS executions across 15 test functions passed**, with no failures, skips or recorded runtime warnings, on a dedicated clean iPhone 17 Pro simulator running iOS 26.4.1. Both unsigned Release artifacts embed the verified script/license bytes. [Report](reports/yappercord-ios.json).
-- **15 installer Swift test functions passed**, plus fresh-extraction checks of both self-contained setup ZIPs: universal installer binary, matching client architecture, nested signatures and exact Cord/appearance bytes. [Apple Silicon](reports/yappercord-setup-arm64.json), [Intel](reports/yappercord-setup-x64.json). The GUI accessibility smoke was bounded; interactive install/chooser flows were not automated. See [installer limits](../installer/VALIDATION.md).
+- **45 iOS executions across 16 test functions passed**, with no failures, skips or recorded runtime warnings, on a dedicated clean iPhone 17 Pro simulator running iOS 26.4.1. Both unsigned Release artifacts embed the verified script/license bytes. The WebView covers the full display while controls respect nonzero safe areas; both edge bands matched the page theme in all sampled pixels before and after a red-to-teal change. [Red fixture](images/yapinplugger-ios-fullscreen-red-fixture.png), [teal fixture](images/yapinplugger-ios-fullscreen-teal-fixture.png). [Report](reports/yappercord-ios.json).
+- **27 installer Swift test functions passed**, plus fresh-extraction checks of both self-contained setup ZIPs: universal installer binary, matching client architecture, nested signatures and exact Cord/appearance bytes. [Apple Silicon](reports/yappercord-setup-arm64.json), [Intel](reports/yappercord-setup-x64.json). The installer defaults to the bundled reviewed client; pre-rename receipts and selected interrupted operations have regression coverage. Finder metadata is handled only on an isolated validation copy of an older destination, with content tampering still rejected. The GUI smoke is bounded; full interactive installation was not automated. See [installer limits](../installer/VALIDATION.md).
 
 The UI reviewer inspected desktop and narrow-width manager captures and requested one keyboard-focus correction, which was implemented and verified. The profile-layout adapter has its own fixture coverage and source evidence under [appearance](../appearance/README.md).
 

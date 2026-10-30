@@ -1,4 +1,4 @@
-/* YapperCord 0.1.0 — independent Yapper adaptations of selected Vencord features.
+/* Yapinplugger 0.1.0 — independent Yapper adaptations of selected Vencord features.
  * SPDX-License-Identifier: GPL-3.0-or-later
  * No Discord modules, account tokens, remote code, or native APIs are loaded here.
  */
@@ -29,7 +29,7 @@
         });
     }
     function sanitizeSettings(raw) {
-        if (!raw || raw.schemaVersion !== 1 || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('Use a YapperCord settings export (schema version 1).');
+        if (!raw || raw.schemaVersion !== 1 || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('Use a Yapinplugger settings export (schema version 1).');
         const plugins = {};
         for (const id of IDS) plugins[id] = raw.plugins?.[id] === true;
         const customCSS = typeof raw.customCSS === 'string' ? raw.customCSS.slice(0, 30000) : '';
@@ -48,7 +48,7 @@
     const helpers = { trustedURL, cleanURL, cleanText, sanitizeSettings, replaceText, IDS };
     if (typeof module !== 'undefined' && module.exports) module.exports = helpers;
     if (typeof window === 'undefined' || window.top !== window || !trustedURL(window.location.href)) return;
-    if (window.YapperCord) return;
+    if (window.Yapinplugger || window.YapperCord) return;
     const catalog = typeof YAPPERCORD_CATALOG !== 'undefined' ? YAPPERCORD_CATALOG : { plugins: [], upstream: {} };
     const doc = window.document;
     let settings = sanitizeSettings({ schemaVersion: 1 });
@@ -76,15 +76,15 @@
       ::selection{background:#7161c7;color:#fff} @media(max-width:600px){header{padding:20px 16px 14px}nav{padding:0 16px 12px}.content{padding:16px}.row{gap:12px}h1{font-size:23px}.filters{flex-wrap:wrap}.filters select{width:100%}.rule{flex-wrap:wrap}.rule input{width:calc(50% - 4px)}.launcher{min-height:44px}button{min-height:44px}}
     `);
     shadow.append(style);
-    const launcher = h('button', 'Plugins', { class: 'launcher', 'aria-label': 'Open YapperCord plugins' });
+    const launcher = h('button', 'Plugins', { class: 'launcher', 'aria-label': 'Open Yapinplugger plugins' });
     const dialog = h('dialog', null, { 'aria-labelledby': 'yc-title' });
     const shell = h('div', null, { class: 'shell' });
     const header = h('header');
     const titleWrap = h('div');
-    titleWrap.append(h('h1', 'YapperCord', { id: 'yc-title' }), h('p', 'Plugins for your Yapper client · ' + VERSION));
+    titleWrap.append(h('h1', 'Yapinplugger', { id: 'yc-title' }), h('p', 'Plugins for your Yapper client · ' + VERSION));
     const close = h('button', 'Close', { 'aria-label': 'Close plugin manager' });
     header.append(titleWrap, close);
-    const nav = h('nav', null, { 'aria-label': 'YapperCord settings' });
+    const nav = h('nav', null, { 'aria-label': 'Yapinplugger settings' });
     const content = h('div', null, { class: 'content' });
     shell.append(header, nav, content); dialog.append(shell); shadow.append(launcher, dialog);
     (doc.body || doc.documentElement).append(host);
@@ -174,7 +174,7 @@
         if (css) css.textContent = settings.customCSS;
     }
     function setEnabled(id, enabled) {
-        if (dead) throw new Error('YapperCord is disabled. Reload the enabled client to use it.');
+        if (dead) throw new Error('Yapinplugger is disabled. Reload the enabled client to use it.');
         if (!IDS.includes(id)) throw new Error('This upstream plugin has no Yapper adaptation yet.');
         if (typeof enabled !== 'boolean') throw new Error('Plugin enabled must be a boolean.');
         persist({ ...settings, plugins: { ...settings.plugins, [id]: enabled } }); reconcile();
@@ -256,7 +256,7 @@
         content.append(rules, actions); status();
     }
     function renderSettings() {
-        content.append(h('h2', 'Settings backup'), h('p', 'Only YapperCord switches, your CSS and replacement rules are exported. Drafts, messages, account sessions and website storage are excluded. Copy your export somewhere private if replacement rules contain personal text.'));
+        content.append(h('h2', 'Settings backup'), h('p', 'Only Yapinplugger switches, your CSS and replacement rules are exported. Drafts, messages, account sessions and website storage are excluded. Copy your export somewhere private if replacement rules contain personal text.'));
         const text = h('textarea', '', { 'aria-label': 'Settings JSON', spellcheck: 'false' });
         const actions = h('div', null, { class: 'actions' });
         actions.append(button('Show export', () => { text.value = JSON.stringify(settings, null, 2); message('Export ready to copy.'); }), button('Import settings', () => { persist(JSON.parse(text.value)); reconcile(); message('Settings imported.'); }), button('Reset plugins and CSS', () => { persist({ schemaVersion: 1 }); reconcile(); text.value = ''; message('All plugins and custom CSS disabled.'); }));
@@ -288,14 +288,16 @@
         if (dead) return; dead = true;
         cleanups.forEach(fn => fn()); cleanups.clear(); allCleanups.forEach(fn => fn());
         shadow.querySelectorAll('dialog[open]').forEach(el => el.close());
-        doc.getElementById('yappercord-custom-css')?.remove(); host.remove(); delete window.YapperCord;
+        doc.getElementById('yappercord-custom-css')?.remove(); host.remove(); delete window.Yapinplugger; delete window.YapperCord;
     }
-    Object.defineProperty(window, 'YapperCord', { configurable: true, value: Object.freeze({
+    Object.defineProperty(window, 'Yapinplugger', { configurable: true, value: Object.freeze({
         version: VERSION, open, destroy, setEnabled,
         list: () => definitions.map(p => ({ id: p.id, enabled: settings.plugins[p.id], kind: 'adaptation' })),
         getSettings: () => JSON.parse(JSON.stringify(settings)), exportSettings: () => JSON.parse(JSON.stringify(settings)),
-        importSettings: value => { if (dead) throw new Error('YapperCord is disabled.'); persist(value); reconcile(); },
+        importSettings: value => { if (dead) throw new Error('Yapinplugger is disabled.'); persist(value); reconcile(); },
         catalog: () => JSON.parse(JSON.stringify(catalog))
     }) });
+    // Keep the preview API name as an alias so existing native integrations migrate safely.
+    Object.defineProperty(window, 'YapperCord', { configurable: true, value: window.Yapinplugger });
     reconcile();
 })();

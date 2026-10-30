@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
-import { access, mkdir, mkdtemp, open, readFile, rm, writeFile } from 'node:fs/promises';
+import { access, mkdir, mkdtemp, open, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -13,9 +13,9 @@ const filename = process.argv[2];
 if (!filename || process.argv.length !== 3) throw new Error('Usage: node scripts/verify-installer.mjs /path/installer-or-setup.zip');
 const archive = path.resolve(filename);
 const name = path.basename(archive);
-const variant = /^YapperCord-Setup-0\.1\.0-mac-(arm64|x64)\.zip$/.exec(name)?.[1];
-assert.ok(variant || name === 'YapperCord-Installer-0.1.0-mac-universal.zip', 'Unexpected installer artifact name');
-const staging = await mkdtemp(path.join(os.tmpdir(), 'yappercord-verify-'));
+const variant = /^Yapinplugger-Setup-0\.1\.0-mac-(arm64|x64)\.zip$/.exec(name)?.[1];
+assert.ok(variant || name === 'Yapinplugger-Installer-0.1.0-mac-universal.zip', 'Unexpected installer artifact name');
+const staging = await mkdtemp(path.join(os.tmpdir(), 'yapinplugger-verify-'));
 const report = { schemaVersion: 1, artifact: name, passed: false, checks: [], limitations: ['No installer GUI interaction or real installation is performed.', 'Ad-hoc signatures do not identify a trusted publisher; these checks are not a malware-free guarantee.'] };
 
 // Bounded, non-executing ASAR reads independently compare shipped script bytes.
@@ -53,13 +53,16 @@ async function packedMember(archivePath, member) {
 
 try {
   execFileSync('/usr/bin/ditto', ['-x', '-k', archive, staging], { stdio: 'pipe' });
-  const app = path.join(staging, 'YapperCord Installer.app');
+  const app = path.join(staging, 'Yapinplugger.app');
   execFileSync('/usr/bin/codesign', ['--verify', '--deep', '--strict', app], { stdio: 'pipe' });
   const signature = spawnSync('/usr/bin/codesign', ['-d', '-vv', app], { encoding: 'utf8' });
   assert.equal(signature.status, 0);
   assert.match(signature.stderr, /Signature=adhoc/);
   report.checks.push('Extracted installer and nested code signatures verify; installer is ad-hoc signed');
-  const executable = path.join(app, 'Contents', 'MacOS', 'YapperCordInstaller');
+  const executable = path.join(app, 'Contents', 'MacOS', 'Yapinplugger');
+  for (const key of ['CFBundleName', 'CFBundleDisplayName', 'CFBundleExecutable']) {
+    assert.equal(execFileSync('/usr/libexec/PlistBuddy', ['-c', `Print :${key}`, path.join(app, 'Contents', 'Info.plist')], { encoding: 'utf8' }).trim(), 'Yapinplugger');
+  }
   const architectures = execFileSync('/usr/bin/lipo', ['-archs', executable], { encoding: 'utf8' }).trim().split(/\s+/).sort();
   assert.deepEqual(architectures, ['arm64', 'x86_64']);
   assert.equal(execFileSync(executable, ['--version'], { encoding: 'utf8' }).trim(), '0.1.0');
@@ -73,25 +76,29 @@ try {
   assert.equal(containsApp, Boolean(variant), 'Setup must contain a client; standalone artifact must not');
   if (containsApp) {
     const inspection = JSON.parse(execFileSync(executable, ['inspect', '--app', bundled], { encoding: 'utf8' }));
-    assert.equal(inspection.yappercordVersion, '0.1.0');
-    assert.equal(inspection.runtimeBundleSHA256, 'e87ad714ad8cafb088870dcdf41d78247f415cbc29311242be2cdf676cc57bba');
+    assert.equal(inspection.yapinpluggerVersion, '0.1.0');
+    assert.equal(inspection.runtimeBundleSHA256, 'de53f573bfa5fb3fdbcd8d35e710ef5805bae60284603a519c7c3850ab28e2a7');
     const arch = execFileSync('/usr/bin/lipo', ['-archs', path.join(bundled, 'Contents', 'MacOS', 'Yapper')], { encoding: 'utf8' }).trim();
     assert.equal(arch, variant === 'x64' ? 'x86_64' : 'arm64');
     report.clientArchitecture = variant;
     report.clientASARSHA256 = inspection.asarSHA256;
-    report.yappercordBundleSHA256 = inspection.runtimeBundleSHA256;
+    report.yapinpluggerBundleSHA256 = inspection.runtimeBundleSHA256;
+    const defaultSource = JSON.parse(execFileSync(executable, ['inspect-bundled'], { encoding: 'utf8' }));
+    assert.equal(await realpath(defaultSource.path), await realpath(bundled));
+    assert.equal(defaultSource.asarSHA256, inspection.asarSHA256);
+    report.checks.push('Default source resolves to the included compatible client');
     report.checks.push('Bundled client version marker, architecture, portable links, signatures, and reviewed runtime bundle checksum');
     for (const [directory, expected] of [
-      ['yappercord', 'e87ad714ad8cafb088870dcdf41d78247f415cbc29311242be2cdf676cc57bba'],
+      ['yappercord', 'de53f573bfa5fb3fdbcd8d35e710ef5805bae60284603a519c7c3850ab28e2a7'],
       ['appearance', '52c19429daee71e0eda97b95b9605aaf8090367626569df101ce19a2f4a3fdf6']
     ]) {
       const bytes = await packedMember(path.join(bundled, 'Contents', 'Resources', 'app.asar'), `${directory}/bundle.js`);
       const hash = createHash('sha256').update(bytes).digest('hex');
       assert.equal(hash, expected, `Bundled ${directory} script differs from reviewed release`);
       assert.deepEqual(bytes, await readFile(path.join(root, '..', 'macos', directory, 'bundle.js')), `Bundled ${directory} script differs from source`);
-      report[`${directory}BundleSHA256`] = hash;
+      report[directory === 'yappercord' ? 'yapinpluggerBundleSHA256' : 'appearanceBundleSHA256'] = hash;
     }
-    report.checks.push('Independent packed-ASAR reads match reviewed YapperCord and appearance script hashes and current source bytes');
+    report.checks.push('Independent packed-ASAR reads match reviewed Yapinplugger and appearance script hashes and current source bytes');
   }
   const hasher = createHash('sha256');
   for await (const chunk of createReadStream(archive)) hasher.update(chunk);

@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "artifact": "Yapinplugger-Setup-0.1.0-mac-arm64.zip",
+  "passed": true,
+  "interface": "native macOS accessibility",
+  "windowTitle": "Yapinplugger",
+  "menuTitle": "Yapinplugger",
+  "sourceLocation": "Yapinplugger.app/Contents/Resources/Yapper.app",
+  "checks": [
+    "Source defaults to the included compatible client",
+    "Clearing source disables Install and Validate",
+    "Use bundled client restores the included source and ready status"
+  ],
+  "performedActions": [
+    "Clear new window source field",
+    "Use bundled client"
+  ],
+  "notPerformed": [
+    "Install",
+    "Enable",
+    "Disable",
+    "Restore",
+    "Change profile or destination"
+  ],
+  "olderInstallerPreserved": true,
+  "limitations": [
+    "Source chooser cancellation remains untested",
+    "No end-to-end GUI installation on a real user profile was performed",
+    "No screenshots containing local paths are published"
+  ],
+  "scope": "GUI selection/reset was observed before a final recovery-only core correction; GUI source remains unchanged. Final rebuilt archives are independently verified.",
+  "uiSourceSHA256": "04a474f002189417670f9db577c430d34d39d6408d8d50e79cc41f27ceba33fd",
+  "finalArtifactVerification": "verified-arm64.json"
+}

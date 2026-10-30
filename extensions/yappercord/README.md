@@ -1,4 +1,4 @@
-# YapperCord 0.1.0 (experimental)
+# Yapinplugger 0.1.0 (experimental)
 
 An **independent Yapper extension**, based on a source study of Vencord. It is not Vencord running on Yapper, and it does **not** make every Discord plugin work. Neither Yapper nor Vencord endorses this project.
 
@@ -19,17 +19,19 @@ Quick CSS, JSON settings import/export, search, on/off controls and cleanup on d
 
 **The other 161 public upstream plugins remain unported.** Entries such as ShowHiddenChannels, FakeNitro, SpotifyControls and MessageLogger depend on Discord-specific stores, patches, services or product behavior. A UI catalog cannot provide those APIs. Some features would require Yapper-specific frontend integration or server support. See [UPSTREAM.md](UPSTREAM.md) and each catalog entry's static dependency observations. No unsupported entry has an enable switch, and no API stubs claim success.
 
+The public name is **Yapinplugger**. Internal `yappercord` directories, storage/configuration keys and the legacy `window.YapperCord` API alias are retained so preview users keep their settings. `window.Yapinplugger` is the current API; both names refer to the same object and are removed on disable.
+
 ## Enable on Mac
 
-Use a YapperCord-compatible build from this repository. In the native menu choose **YapperCord → Enable YapperCord**, then **Open Plugin Manager** (Command–Shift–P). Disabling removes active effects and reloads the page. The original 17-member `yapperDesktop` bridge is unchanged.
+Use a Yapinplugger-compatible build from this repository. In the native menu choose **Yapinplugger → Enable Yapinplugger**, then **Open Plugin Manager** (Command–Shift–P). Disabling removes active effects and reloads the page. The original 17-member `yapperDesktop` bridge is unchanged.
 
-The optional [native installer](../../installer/README.md) installs a compatible signed app copy and enables the bundled extension. It does not patch Discord, modify the supplied Linux AppImage, bypass code signatures, or download arbitrary plugin code. Older Apple port builds without the YapperCord integration must be upgraded first.
+The optional [native installer](../../installer/README.md) installs a compatible signed app copy and enables the bundled extension. It does not patch Discord, modify the supplied Linux AppImage, bypass code signatures, or download arbitrary plugin code. Older Apple port builds without the Yapinplugger integration must be upgraded first.
 
 The native enable flag is `yappercord.json` (`{"schemaVersion":1,"enabled":true}`) in the client's user data directory. On Mac the default is `~/Library/Application Support/Yapper`. The script itself is bundled inside the signed app; it is never loaded from that directory. Local user settings are per website origin, under `yappercord.settings.v1`. Changing from a yapper.website origin to yapin.gg requires importing the settings on the new origin.
 
 ## Enable on iOS
 
-In native app settings enable **YapperCord**, then open the plugin manager. The initial state is off. Only the bundled script is installed into trusted main-frame Yapper pages. Disabling removes it and reloads the page. The Mac installer cannot install plugins into an iOS app; install your own signed build of the integrated iOS app instead. See [iOS integration](../../docs/IOS-YAPPERCORD.md).
+In native app settings enable **Yapinplugger**, then open the plugin manager. The initial state is off. Only the bundled script is installed into trusted main-frame Yapper pages. Disabling removes it and reloads the page. The Mac installer cannot install plugins into an iOS app; install your own signed build of the integrated iOS app instead. See [iOS integration](../../docs/IOS-YAPPERCORD.md).
 
 ## Build and inspect
 

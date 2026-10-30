@@ -14,6 +14,14 @@ struct WebSurface: UIViewRepresentable {
     func updateUIView(_ uiView: WKWebView, context: Context) {}
 }
 
+private final class EdgeToEdgeWebView: WKWebView {
+    override func safeAreaInsetsDidChange() {
+        super.safeAreaInsetsDidChange()
+        scrollView.verticalScrollIndicatorInsets = UIEdgeInsets(top: safeAreaInsets.top, left: 0, bottom: safeAreaInsets.bottom, right: 0)
+        scrollView.horizontalScrollIndicatorInsets = UIEdgeInsets(top: 0, left: safeAreaInsets.left, bottom: 0, right: safeAreaInsets.right)
+    }
+}
+
 @Observable final class WebClient: NSObject, WKNavigationDelegate, WKUIDelegate {
     private(set) var loading = true
     private(set) var failure: String?
@@ -49,19 +57,28 @@ struct WebSurface: UIViewRepresentable {
         self.handler = handler
         config.userContentController.addScriptMessageHandler(handler, contentWorld: .page, name: "yapperNative")
         installUserScripts(in: config.userContentController)
-        let view = WKWebView(frame: .zero, configuration: config)
+        let view = EdgeToEdgeWebView(frame: .zero, configuration: config)
         view.navigationDelegate = self
         view.uiDelegate = self
         view.isOpaque = false
-        view.backgroundColor = UIColor(red: 0.055, green: 0.055, blue: 0.065, alpha: 1)
-        view.scrollView.backgroundColor = view.backgroundColor
+        view.backgroundColor = .clear
+        view.scrollView.backgroundColor = .clear
+        view.scrollView.contentInsetAdjustmentBehavior = .never
+        view.scrollView.automaticallyAdjustsScrollIndicatorInsets = false
         view.allowsBackForwardNavigationGestures = true
         view.scrollView.keyboardDismissMode = .interactive
         view.accessibilityIdentifier = "yapperWebView"
         #if DEBUG
         view.isInspectable = true
         #endif
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--yapper-uitest-edge-fixture"),
+           let html = ProcessInfo.processInfo.environment["YAPPER_EDGE_FIXTURE_HTML"] {
+            view.loadHTMLString(html, baseURL: URLPolicy.home)
+        } else { view.load(URLRequest(url: lastURL)) }
+        #else
         view.load(URLRequest(url: lastURL))
+        #endif
         return view
     }()
 
@@ -74,7 +91,7 @@ struct WebSurface: UIViewRepresentable {
         if yapperCordEnabled && YapperCordSupport.bundledSource() == nil {
             yapperCordEnabled = false
             preferences.set(false, forKey: YapperCordSupport.preferenceKey)
-            yapperCordError = "YapperCord is missing from this app. Reinstall the YapperCord build."
+            yapperCordError = "Yapinplugger is missing from this app. Reinstall the Yapinplugger build."
         }
         if enhancedProfileLayoutEnabled && YapperAppearanceSupport.bundledSource() == nil {
             enhancedProfileLayoutEnabled = false
@@ -86,6 +103,15 @@ struct WebSurface: UIViewRepresentable {
 
     private func installUserScripts(in controller: WKUserContentController) {
         controller.removeAllUserScripts()
+        if let source = YapperViewportSupport.rawSource() {
+            var guarded = TrustedDocumentScript.guardedSource(source)
+            #if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("--yapper-uitest-edge-fixture") {
+                guarded = source // Bundled test HTML only; this branch is absent from Release.
+            }
+            #endif
+            controller.addUserScript(WKUserScript(source: guarded, injectionTime: .atDocumentStart, forMainFrameOnly: true))
+        }
         if let url = Bundle.main.url(forResource: "NativeBridge", withExtension: "js"),
            let source = try? String(contentsOf: url, encoding: .utf8) {
             controller.addUserScript(WKUserScript(source: source, injectionTime: .atDocumentStart, forMainFrameOnly: true))
@@ -124,7 +150,7 @@ struct WebSurface: UIViewRepresentable {
     @discardableResult func setYapperCordEnabled(_ enabled: Bool) -> Bool {
         guard enabled != yapperCordEnabled else { return true }
         guard !enabled || YapperCordSupport.bundledSource() != nil else {
-            yapperCordError = "YapperCord is missing from this app. Reinstall the YapperCord build."
+            yapperCordError = "Yapinplugger is missing from this app. Reinstall the Yapinplugger build."
             return false
         }
         scriptSettingsRevision += 1
@@ -146,7 +172,7 @@ struct WebSurface: UIViewRepresentable {
 
     func openYapperCordManager() {
         guard yapperCordEnabled, !loading, URLPolicy.isTrusted(webView.url) else {
-            yapperCordError = "Enable YapperCord and wait for Yapper to finish loading."
+            yapperCordError = "Enable Yapinplugger and wait for Yapper to finish loading."
             return
         }
         webView.callAsyncJavaScript("if (typeof window.YapperCord?.open !== 'function') return false; window.YapperCord.open(); return true;", arguments: [:], in: nil, in: .page, completionHandler: { [weak self] result in
@@ -208,6 +234,9 @@ struct WebSurface: UIViewRepresentable {
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction) async -> WKNavigationActionPolicy {
         guard let url = navigationAction.request.url else { return .cancel }
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--yapper-uitest-edge-fixture"), url.absoluteString == "about:blank" { return .allow }
+        #endif
         if URLPolicy.isTrusted(url) { return .allow }
         if url.scheme == "yapper" { open(url); return .cancel }
         // Subframes can contain embeds but never receive a native bridge or native media access.

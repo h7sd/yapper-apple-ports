@@ -23,23 +23,19 @@ private enum InstallerOperation: Sendable {
         return try engine.restore(destination: destination)
     case .inspect(let app):
         let inspection = try engine.inspect(app)
-        return OperationResult(message: "Compatible Yapper \(inspection.appVersion) · YapperCord \(inspection.yappercordVersion ?? "unknown"). Nested signature and bundle links verified.", destination: app.path)
+        return OperationResult(message: "Compatible Yapper \(inspection.appVersion) · Yapinplugger \(inspection.yapinpluggerVersion ?? "unknown"). Nested signature and bundle links verified.", destination: app.path)
     }
 }
 
 private enum BundledSource {
     static var app: URL? {
-        let candidates = [
-            Bundle.main.resourceURL?.appendingPathComponent("Yapper.app"),
-            Bundle.main.bundleURL.deletingLastPathComponent().appendingPathComponent("Yapper.app")
-        ].compactMap { $0 }
-        return candidates.first { FileManager.default.fileExists(atPath: $0.path) }
+        InstallerSourceSelection.bundledApp(resourceDirectory: Bundle.main.resourceURL)
     }
 }
 
 struct InstallerApplication: App {
     var body: some Scene {
-        WindowGroup("YapperCord Installer") {
+        WindowGroup("Yapinplugger") {
             InstallerView().frame(minWidth: 650, minHeight: 620)
         }
         .windowResizability(.contentSize)
@@ -53,26 +49,43 @@ private struct InstallerView: View {
     @State private var profile = InstallerPaths().defaultUserData.path
     @State private var replace = false
     @State private var busy = false
-    @State private var status = "Choose a compatible Yapper build to install. Existing app data stays in its profile."
+    @State private var status = BundledSource.app == nil
+        ? "This standalone installer needs a compatible source. Open Yapinplugger Setup for a bundled client, or choose the compatible Yapper.app from that release."
+        : "The bundled compatible client is selected. Install & enable copies it to your destination and keeps existing profile data."
     @State private var recoveryDirectory: String?
     @State private var showRestoreConfirmation = false
-    private let logger = Logger(subsystem: "website.yapper.yappercord.installer", category: "operations")
+    private let logger = Logger(subsystem: "website.yapper.yapinplugger", category: "operations")
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             HStack(spacing: 14) {
                 Image(systemName: "puzzlepiece.extension.fill").font(.system(size: 36)).foregroundStyle(.orange)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("YapperCord Installer").font(.largeTitle.bold())
+                    Text("Yapinplugger").font(.largeTitle.bold())
                     Text("Built-in plugins for Yapper · \(InstallerEngine.version)").foregroundStyle(.secondary)
                 }
             }
             Text("Install a compatible Yapper build, then enable its bundled plugin runtime. The app is validated before it replaces anything.")
                 .fixedSize(horizontal: false, vertical: true)
 
-            GroupBox("Compatible Yapper build") {
-                pathRow(value: $source, placeholder: "Choose Yapper.app", action: chooseSource)
-                    .padding(8)
+            GroupBox("Client to install") {
+                VStack(alignment: .leading, spacing: 8) {
+                    pathRow(value: $source, placeholder: "Choose compatible Yapper.app", action: chooseSource)
+                    if let bundled = BundledSource.app {
+                        HStack {
+                            Text("A compatible client is included with this setup.").font(.caption).foregroundStyle(.secondary)
+                            Spacer()
+                            Button("Use bundled client") {
+                                source = bundled.path
+                                recoveryDirectory = nil
+                                status = "The bundled compatible client is selected. Ready to validate or install."
+                            }
+                        }
+                    } else {
+                        Text("Choose the Yapper.app from a Yapinplugger release. Use a self-contained Setup download to include it automatically.")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                }.padding(8)
             }
             GroupBox("Install destination") {
                 VStack(alignment: .leading, spacing: 12) {
@@ -110,7 +123,7 @@ private struct InstallerView: View {
                         NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: recoveryDirectory)
                     }.font(.caption)
                 }
-                Text("No downloads. No changes inside signed app bundles. Local ad-hoc signatures do not identify a trusted publisher.")
+                Text("No downloads or re-signing. Existing app files are backed up unchanged. Local ad-hoc signatures do not identify a trusted publisher.")
                     .font(.caption).foregroundStyle(.secondary)
             }.frame(maxWidth: .infinity, minHeight: 90, alignment: .topLeading)
         }
@@ -120,7 +133,7 @@ private struct InstallerView: View {
             Button("Restore / uninstall") { run(.restore(destination: url(destination))) }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("YapperCord will be disabled. The installer restores the app it backed up, or removes its installed copy from the destination if no prior app existed. Recovery copies and plugin settings are kept.")
+            Text("Yapinplugger will be disabled. The installer restores the app it backed up, or removes its installed copy from the destination if no prior app existed. Recovery copies and plugin settings are kept.")
         }
     }
 
@@ -136,7 +149,7 @@ private struct InstallerView: View {
         panel.allowedContentTypes = [.applicationBundle]
         panel.canChooseDirectories = false
         panel.allowsMultipleSelection = false
-        panel.message = "Choose a compatible Yapper.app containing YapperCord \(InstallerEngine.version)."
+        panel.message = "Choose the compatible Yapper.app containing Yapinplugger \(InstallerEngine.version) from its release."
         if panel.runModal() == .OK, let selected = panel.url { source = selected.path }
     }
 
@@ -208,7 +221,15 @@ private enum InstallerCLI {
             let profile = try url("--user-data", fallback: engine.paths.defaultUserData)
             switch command {
             case "inspect": try output(engine.inspect(url("--app")))
+            case "inspect-bundled":
+                guard let source = BundledSource.app else {
+                    throw InstallerFailure.invalid("This standalone installer has no bundled client. Open Yapinplugger Setup for your Mac.")
+                }
+                try output(engine.inspect(source))
             case "install":
+                guard options["--source"] != nil || BundledSource.app != nil else {
+                    throw InstallerFailure.invalid("No compatible client is bundled. Open Yapinplugger Setup or provide --source /path/to/compatible/Yapper.app explicitly.")
+                }
                 let source = try url("--source", fallback: BundledSource.app)
                 try output(engine.install(source: source, destination: url("--destination", fallback: engine.paths.defaultDestination), userData: profile, replaceExisting: replace))
             case "enable", "disable":
@@ -231,16 +252,17 @@ private enum InstallerCLI {
     }
 
     private static let help = """
-    YapperCord Installer \(InstallerEngine.version)
+    Yapinplugger \(InstallerEngine.version)
     With no arguments, opens the native installer.
 
     inspect --app /path/Yapper.app
+    inspect-bundled
     install --source /path/compatible/Yapper.app [--destination ~/Applications/Yapper.app] [--replace]
     enable --app /path/Yapper.app [--user-data /path/to/Yapper-profile]
     disable --app /path/Yapper.app [--user-data /path/to/Yapper-profile]
     restore|uninstall [--destination ~/Applications/Yapper.app]
 
-    install can omit --source only when a compatible Yapper.app is bundled or adjacent.
+    install can omit --source only when a compatible Yapper.app is bundled inside this Setup.
     Replacement always requires --replace and creates a recovery backup.
     All commands refuse to change a running target app. No administrator access or network downloads.
     """

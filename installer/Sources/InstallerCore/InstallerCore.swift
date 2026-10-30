@@ -7,11 +7,12 @@ public enum InstallerFailure: Error, LocalizedError, Sendable {
     case invalid(String)
     case running(String)
     case command(String)
+    case metadataSignature(String)
     case recovery(String)
 
     public var errorDescription: String? {
         switch self {
-        case .invalid(let message), .running(let message), .command(let message), .recovery(let message): message
+        case .invalid(let message), .running(let message), .command(let message), .metadataSignature(let message), .recovery(let message): message
         }
     }
 }
@@ -32,9 +33,19 @@ public struct InstallerPaths: Sendable {
 public struct AppInspection: Codable, Sendable {
     public let path: String
     public let appVersion: String
+    public let yapinpluggerVersion: String?
     public let yappercordVersion: String?
     public let asarSHA256: String
     public let runtimeBundleSHA256: String?
+}
+
+public enum InstallerSourceSelection {
+    /// Only a client shipped inside this installer is selected automatically.
+    public static func bundledApp(resourceDirectory: URL?) -> URL? {
+        guard let app = resourceDirectory?.appendingPathComponent("Yapper.app"),
+              FileManager.default.fileExists(atPath: app.path) else { return nil }
+        return app
+    }
 }
 
 public struct OperationResult: Codable, Sendable {
@@ -69,7 +80,7 @@ private struct OperationLock: Codable {
 
 public struct InstallerEngine: Sendable {
     public static let version = "0.1.0"
-    public static let runtimeBundleSHA256 = "e87ad714ad8cafb088870dcdf41d78247f415cbc29311242be2cdf676cc57bba"
+    public static let runtimeBundleSHA256 = "de53f573bfa5fb3fdbcd8d35e710ef5805bae60284603a519c7c3850ab28e2a7"
     public let paths: InstallerPaths
     private let runningExecutables: @Sendable () throws -> [String]
 
@@ -88,15 +99,20 @@ public struct InstallerEngine: Sendable {
               info["CFBundleExecutable"] as? String == "Yapper" else {
             throw InstallerFailure.invalid("Choose a Yapper.app with bundle identifier website.yapper.desktop.")
         }
-        _ = try Self.run("/usr/bin/codesign", ["--verify", "--deep", "--strict", app.path])
+        do {
+            _ = try Self.run("/usr/bin/codesign", ["--verify", "--deep", "--strict", app.path])
+        } catch let failure as InstallerFailure {
+            guard !requireYapperCord, case .metadataSignature = failure else { throw failure }
+            try verifyPreviousAppWithMetadata(app)
+        }
         let asar = app.appendingPathComponent("Contents/Resources/app.asar")
         let manifest = try ASARManifest.read(from: asar)
         guard manifest["productName"] as? String == "Yapper" else {
             throw InstallerFailure.invalid("This app does not use the expected Yapper application profile.")
         }
-        let cordVersion = manifest["yappercordVersion"] as? String
+        let cordVersion = manifest["yapinpluggerVersion"] == nil ? manifest["yappercordVersion"] as? String : manifest["yapinpluggerVersion"] as? String
         if requireYapperCord && cordVersion != Self.version {
-            throw InstallerFailure.invalid("This installer needs a Yapper build containing YapperCord \(Self.version). It does not patch older apps.")
+            throw InstallerFailure.invalid("This Yapper build does not contain Yapinplugger \(Self.version). Open Yapinplugger Setup for your Mac and choose Use bundled client, or select the compatible Yapper.app from that release. Existing older apps can be backed up at the installation destination.")
         }
         var runtimeHash: String?
         if requireYapperCord {
@@ -105,10 +121,59 @@ public struct InstallerEngine: Sendable {
             let declared = String(decoding: checksum, as: UTF8.self).split(whereSeparator: \.isWhitespace).first.map(String.init)
             runtimeHash = Self.hash(bundle)
             guard runtimeHash == Self.runtimeBundleSHA256, declared == runtimeHash else {
-                throw InstallerFailure.invalid("The built-in YapperCord bundle does not match this installer's reviewed 0.1.0 checksum.")
+                throw InstallerFailure.invalid("The built-in Yapinplugger bundle does not match this installer's reviewed 0.1.0 checksum. Use bundled client from a fresh Yapinplugger Setup.")
             }
         }
-        return AppInspection(path: app.path, appVersion: manifest["version"] as? String ?? "unknown", yappercordVersion: cordVersion, asarSHA256: try Self.hashFile(asar), runtimeBundleSHA256: runtimeHash)
+        return AppInspection(path: app.path, appVersion: manifest["version"] as? String ?? "unknown", yapinpluggerVersion: cordVersion, yappercordVersion: cordVersion, asarSHA256: try Self.hashFile(asar), runtimeBundleSHA256: runtimeHash)
+    }
+
+    /// Only previous/backup apps may use this path. The selected app is never modified.
+    func verifyPreviousAppWithMetadata(_ app: URL) throws {
+        let manager = FileManager.default
+        let temporary = manager.temporaryDirectory.resolvingSymlinksInPath().appendingPathComponent("Yapinplugger-LegacyValidation-\(UUID().uuidString)")
+        defer { try? manager.removeItem(at: temporary) }
+        do {
+            try rejectSymlinkAncestors(temporary)
+            try manager.createDirectory(at: temporary, withIntermediateDirectories: false, attributes: [.posixPermissions: 0o700])
+            let copy = temporary.appendingPathComponent("previous.app")
+            let originalASAR = app.appendingPathComponent("Contents/Resources/app.asar")
+            let originalHash = try Self.hashFile(originalASAR)
+            _ = try Self.run("/usr/bin/ditto", ["--rsrc", "--extattr", "--qtn", app.path, copy.path])
+            try validatePortableLinks(copy)
+            try Self.removeSignatureMetadataFromCopy(copy)
+            do {
+                _ = try Self.run("/usr/bin/codesign", ["--verify", "--deep", "--strict", copy.path])
+            } catch {
+                throw InstallerFailure.invalid("The previous app failed full code-signature verification after Finder metadata was removed from a temporary copy. Its signed contents may have changed. The original app was left unchanged.")
+            }
+            guard try Self.hashFile(copy.appendingPathComponent("Contents/Resources/app.asar")) == originalHash,
+                  try Self.hashFile(originalASAR) == originalHash else {
+                throw InstallerFailure.invalid("The previous app changed during metadata validation. It was left unchanged by the installer.")
+            }
+        } catch let failure as InstallerFailure {
+            throw failure
+        } catch {
+            throw InstallerFailure.invalid("The previous app could not be checked in an isolated temporary copy. Check available disk space and file access. The original app was left unchanged.")
+        }
+    }
+
+    private static func removeSignatureMetadataFromCopy(_ app: URL) throws {
+        let manager = FileManager.default
+        var pending = [app]
+        while let entry = pending.popLast() {
+            let type = try manager.attributesOfItem(atPath: entry.path)[.type] as? FileAttributeType
+            for name in ["com.apple.FinderInfo", "com.apple.ResourceFork"] {
+                let result = entry.path.withCString { path in
+                    name.withCString { attribute in removexattr(path, attribute, XATTR_NOFOLLOW) }
+                }
+                if result != 0, errno != ENOATTR {
+                    throw InstallerFailure.invalid("Finder metadata could not be removed from the temporary validation copy. The original app was left unchanged.")
+                }
+            }
+            if type == .typeDirectory {
+                pending.append(contentsOf: try manager.contentsOfDirectory(at: entry, includingPropertiesForKeys: nil))
+            }
+        }
     }
 
     public func install(source: URL, destination: URL, userData: URL? = nil, replaceExisting: Bool = false) throws -> OperationResult {
@@ -129,7 +194,8 @@ public struct InstallerEngine: Sendable {
             let prior: AppInspection?
             if manager.fileExists(atPath: destination.path) {
                 guard replaceExisting else { throw InstallerFailure.invalid("Destination already exists. Explicitly allow replacement with a backup, or choose another destination.") }
-                prior = try inspect(destination, requireYapperCord: false)
+                do { prior = try inspect(destination, requireYapperCord: false) }
+                catch { throw InstallerFailure.invalid("The existing destination could not be validated. Choose another empty destination to keep that app unchanged. \(error.localizedDescription)") }
             } else { prior = nil }
             let config = userData.appendingPathComponent("yappercord.json")
             let oldConfig = try existingConfig(config)
@@ -140,9 +206,9 @@ public struct InstallerEngine: Sendable {
             try rejectSymlinkAncestors(backup)
             try manager.createDirectory(at: destination.deletingLastPathComponent(), withIntermediateDirectories: true)
             try rejectSymlinkAncestors(destination.deletingLastPathComponent())
-            _ = try Self.run("/usr/bin/ditto", ["--rsrc", "--extattr", "--qtn", source.path, stage.path])
             var hasReceipt = false
             defer { if !hasReceipt { try? manager.removeItem(at: stage) } }
+            _ = try Self.run("/usr/bin/ditto", ["--rsrc", "--extattr", "--qtn", source.path, stage.path])
             let staged = try inspect(stage)
             guard staged.asarSHA256 == inspected.asarSHA256 else { throw InstallerFailure.invalid("Staged app differs from the selected source.") }
             try refuseRunning([source, destination])
@@ -152,6 +218,9 @@ public struct InstallerEngine: Sendable {
                 }
             } else if manager.fileExists(atPath: destination.path) {
                 throw InstallerFailure.invalid("Destination appeared during preparation. Nothing was replaced.")
+            }
+            guard try existingConfig(config) == oldConfig else {
+                throw InstallerFailure.invalid("Yapinplugger settings changed while the app was being prepared. They were preserved. Try again after other Yapper copies are closed.")
             }
             var receipt = Receipt(schemaVersion: 1, transaction: transaction, destination: destination.path, userData: userData.path, expectedASAR: inspected.asarSHA256,
                                   hadPreviousApp: prior != nil, previousASAR: prior?.asarSHA256, previousConfig: oldConfig, enabledConfigSHA256: Self.hash(newConfig), phase: "prepared")
@@ -167,10 +236,13 @@ public struct InstallerEngine: Sendable {
                 try manager.moveItem(at: stage, to: destination)
                 receipt.phase = "copied"
                 try writeReceipt(receipt, to: receiptURL)
+                guard try existingConfig(config) == oldConfig else {
+                    throw InstallerFailure.invalid("Yapinplugger settings changed during installation. They were preserved; the app change will be rolled back.")
+                }
                 try writeConfig(newConfig, to: config)
                 receipt.phase = "installed"
                 try writeReceipt(receipt, to: receiptURL)
-                return OperationResult(message: "Installed Yapper and enabled its built-in YapperCord runtime. Plugin settings were preserved.", destination: destination.path, recoveryDirectory: backup.path)
+                return OperationResult(message: "Installed Yapper and enabled Yapinplugger. Plugin settings were preserved. Open the installed Yapper app when ready.", destination: destination.path, recoveryDirectory: backup.path)
             } catch {
                 do {
                     try rollback(receipt, destination: destination)
@@ -188,13 +260,13 @@ public struct InstallerEngine: Sendable {
 
     public func setEnabled(_ enabled: Bool, app: URL, userData: URL? = nil) throws -> OperationResult {
         let app = app.standardizedFileURL
-        _ = try inspect(app)
+        _ = try inspect(app, requireYapperCord: enabled)
         try refuseRunning([app])
         let profile = try profilePath(userData ?? paths.defaultUserData)
         return try withLock(app) {
             let config = profile.appendingPathComponent("yappercord.json")
             try writeConfig(configData(existingConfig(config), enabled: enabled), to: config)
-            return OperationResult(message: enabled ? "YapperCord is enabled. Open Yapper to use it." : "YapperCord is disabled. Plugin settings were preserved.", destination: app.path)
+            return OperationResult(message: enabled ? "Yapinplugger is enabled. Open Yapper to use it." : "Yapinplugger is disabled. Plugin settings were preserved.", destination: app.path)
         }
     }
 
@@ -214,7 +286,7 @@ public struct InstallerEngine: Sendable {
             if receipt.hadPreviousApp {
                 guard try inspect(previous, requireYapperCord: false).asarSHA256 == receipt.previousASAR else { throw InstallerFailure.recovery("The previous app backup has changed. Nothing was removed.") }
             }
-            guard try inspect(destination).asarSHA256 == receipt.expectedASAR else {
+            guard try inspect(destination, requireYapperCord: false).asarSHA256 == receipt.expectedASAR else {
                 throw InstallerFailure.recovery("Installed app changed after installation. Use Disable to preserve the new app; Restore will not overwrite it.")
             }
             let configURL = try profilePath(URL(fileURLWithPath: receipt.userData)).appendingPathComponent("yappercord.json")
@@ -235,7 +307,7 @@ public struct InstallerEngine: Sendable {
                 if !manager.fileExists(atPath: destination.path) { try? manager.moveItem(at: removed, to: destination) }
                 throw InstallerFailure.recovery("Restore could not finish; the installed app was kept where possible. \(error.localizedDescription)")
             }
-            return OperationResult(message: receipt.hadPreviousApp ? "Restored the previous app and disabled YapperCord. Plugin settings and recovery copies were kept." : "Removed the installed app from its destination and disabled YapperCord. A recovery copy and plugin settings were kept.", destination: destination.path, recoveryDirectory: backup.path)
+            return OperationResult(message: receipt.hadPreviousApp ? "Restored the previous app and disabled Yapinplugger. Plugin settings and recovery copies were kept." : "Removed the installed app from its destination and disabled Yapinplugger. A recovery copy and plugin settings were kept.", destination: destination.path, recoveryDirectory: backup.path)
         }
     }
 
@@ -243,16 +315,37 @@ public struct InstallerEngine: Sendable {
         let manager = FileManager.default
         let backup = backupDirectory(destination, transaction: receipt.transaction)
         let previous = backup.appendingPathComponent("previous.app")
+        let previousExists = manager.fileExists(atPath: previous.path)
+        let recovered = backup.appendingPathComponent("interrupted-Yapper.app")
+        let missingBackup = "The previous app backup is missing, and recovery cannot confirm the prior app's location. No further app changes were made; the installation receipt was kept for review."
         if manager.fileExists(atPath: destination.path) {
             let current = try inspect(destination, requireYapperCord: false)
-            if current.asarSHA256 == receipt.expectedASAR {
-                let recovered = backup.appendingPathComponent("interrupted-Yapper.app")
+            // Before backup, and after a completed move back during recovery,
+            // the prior app is already at its destination. Equal ASAR hashes
+            // cannot distinguish it from a same-version replacement.
+            let priorAlreadyAtDestination = receipt.hadPreviousApp
+                && !previousExists
+                && current.asarSHA256 == receipt.previousASAR
+            if receipt.hadPreviousApp && !previousExists {
+                var priorRecoveryConfirmed = receipt.phase == "prepared" || receipt.phase == "restoring"
+                if !priorRecoveryConfirmed && manager.fileExists(atPath: recovered.path) {
+                    priorRecoveryConfirmed = try inspect(recovered, requireYapperCord: false).asarSHA256 == receipt.expectedASAR
+                }
+                guard priorAlreadyAtDestination && priorRecoveryConfirmed else {
+                    throw InstallerFailure.recovery(missingBackup)
+                }
+            }
+            if priorAlreadyAtDestination {
+                // Keep it in place and finish the journal/config cleanup.
+            } else if current.asarSHA256 == receipt.expectedASAR {
                 try manager.createDirectory(at: backup, withIntermediateDirectories: true)
                 guard !manager.fileExists(atPath: recovered.path) else { throw InstallerFailure.recovery("A prior recovery copy must be reviewed first.") }
                 try manager.moveItem(at: destination, to: recovered)
             } else if current.asarSHA256 != receipt.previousASAR {
                 throw InstallerFailure.recovery("Destination changed during recovery. It was left untouched.")
             }
+        } else if receipt.hadPreviousApp && !previousExists {
+            throw InstallerFailure.recovery(missingBackup)
         }
         if manager.fileExists(atPath: previous.path) {
             guard !manager.fileExists(atPath: destination.path) else { throw InstallerFailure.recovery("Destination is occupied; the previous app remains in its backup folder.") }
@@ -268,7 +361,7 @@ public struct InstallerEngine: Sendable {
         }
         let stage = destination.deletingLastPathComponent().appendingPathComponent(".YapperCord-stage-\(receipt.transaction).app")
         if manager.fileExists(atPath: stage.path) {
-            guard try inspect(stage).asarSHA256 == receipt.expectedASAR else { throw InstallerFailure.recovery("Staging app changed and was left untouched.") }
+            guard try inspect(stage, requireYapperCord: false).asarSHA256 == receipt.expectedASAR else { throw InstallerFailure.recovery("Staging app changed and was left untouched.") }
             try manager.removeItem(at: stage)
         }
         try manager.removeItem(at: receiptURL(destination))
@@ -341,7 +434,7 @@ public struct InstallerEngine: Sendable {
         try rejectSymlinkAncestors(url)
         guard FileManager.default.fileExists(atPath: url.path) else { return nil }
         let size = (try FileManager.default.attributesOfItem(atPath: url.path)[.size] as? NSNumber)?.intValue ?? 0
-        guard size <= 1_048_576 else { throw InstallerFailure.invalid("YapperCord settings exceed the 1 MiB safety limit.") }
+        guard size <= 1_048_576 else { throw InstallerFailure.invalid("Yapinplugger settings exceed the 1 MiB safety limit.") }
         let data = try Data(contentsOf: url)
         _ = try configData(data, enabled: false)
         return data
@@ -350,7 +443,7 @@ public struct InstallerEngine: Sendable {
     private func configData(_ old: Data?, enabled: Bool) throws -> Data {
         var object: [String: Any] = [:]
         if let old {
-            guard let parsed = try JSONSerialization.jsonObject(with: old) as? [String: Any] else { throw InstallerFailure.invalid("Existing YapperCord settings are not a JSON object; they were left untouched.") }
+            guard let parsed = try JSONSerialization.jsonObject(with: old) as? [String: Any] else { throw InstallerFailure.invalid("Existing Yapinplugger settings are not a JSON object; they were left untouched.") }
             object = parsed
             if let schema = object["schemaVersion"] {
                 guard let number = schema as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID(), number.doubleValue == 1 else {
@@ -428,11 +521,21 @@ public struct InstallerEngine: Sendable {
         process.arguments = arguments
         let output = Pipe()
         process.standardOutput = output
-        process.standardError = FileHandle.nullDevice
+        process.standardError = output
         try process.run()
         let data = output.fileHandleForReading.readDataToEndOfFile()
         process.waitUntilExit()
-        guard process.terminationStatus == 0 else { throw InstallerFailure.command("\(URL(fileURLWithPath: executable).lastPathComponent) could not validate or copy the selected app (exit \(process.terminationStatus)). No signature or security checks were bypassed.") }
+        guard process.terminationStatus == 0 else {
+            let tool = URL(fileURLWithPath: executable).lastPathComponent
+            if tool == "codesign", arguments.contains("--verify") {
+                let diagnostic = String(decoding: data, as: UTF8.self).lowercased()
+                if diagnostic.contains("resource fork, finder information, or similar detritus not allowed") {
+                    throw InstallerFailure.metadataSignature("macOS rejected this app's signature because it contains Finder metadata or resource forks. Use bundled client from a fresh Yapinplugger Setup, or extract a fresh compatible build. The app was left unchanged.")
+                }
+                throw InstallerFailure.command("This app's code signature is invalid or incomplete. Use bundled client from a fresh Yapinplugger Setup. The app was left unchanged.")
+            }
+            throw InstallerFailure.command("\(tool) could not complete the app operation (exit \(process.terminationStatus)). Check available disk space and file access. No signature or security checks were bypassed.")
+        }
         return String(decoding: data, as: UTF8.self)
     }
 

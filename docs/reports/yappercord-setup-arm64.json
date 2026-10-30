@@ -1,21 +1,22 @@
 {
   "schemaVersion": 1,
-  "artifact": "YapperCord-Setup-0.1.0-mac-arm64.zip",
+  "artifact": "Yapinplugger-Setup-0.1.0-mac-arm64.zip",
   "passed": true,
   "checks": [
     "Extracted installer and nested code signatures verify; installer is ad-hoc signed",
     "Universal arm64/x86_64 native installer and CLI version 0.1.0",
     "Installer MIT license and provenance documentation included",
+    "Default source resolves to the included compatible client",
     "Bundled client version marker, architecture, portable links, signatures, and reviewed runtime bundle checksum",
-    "Independent packed-ASAR reads match reviewed YapperCord and appearance script hashes and current source bytes"
+    "Independent packed-ASAR reads match reviewed Yapinplugger and appearance script hashes and current source bytes"
   ],
   "limitations": [
     "No installer GUI interaction or real installation is performed.",
     "Ad-hoc signatures do not identify a trusted publisher; these checks are not a malware-free guarantee."
   ],
   "clientArchitecture": "arm64",
-  "clientASARSHA256": "35154fd05e484280a20fcaf37c852f03345a4a4c7b471df61e850f1e3faeabf5",
-  "yappercordBundleSHA256": "e87ad714ad8cafb088870dcdf41d78247f415cbc29311242be2cdf676cc57bba",
+  "clientASARSHA256": "b472a2632b6fb1fc042fae3798bd3b530f2bcfa34b35ab08bffd5d2f03d7427d",
+  "yapinpluggerBundleSHA256": "de53f573bfa5fb3fdbcd8d35e710ef5805bae60284603a519c7c3850ab28e2a7",
   "appearanceBundleSHA256": "52c19429daee71e0eda97b95b9605aaf8090367626569df101ce19a2f4a3fdf6",
-  "archiveSHA256": "04e2391680e8a854fedf3a2fb337b55a69e5f34b7ba100bcd31b444e36147f18"
+  "archiveSHA256": "b107a3d1934a3a1e0db2a82fc07b3bb559ae1ff51b9aa620afbb1b722b19e20f"
 }

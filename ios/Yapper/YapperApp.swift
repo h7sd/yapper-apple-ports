@@ -22,8 +22,8 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
     var body: some Scene {
         WindowGroup {
             ZStack {
-                Color(red: 0.055, green: 0.055, blue: 0.065).ignoresSafeArea()
                 WebSurface(client: client)
+                    .ignoresSafeArea(.container, edges: .all)
                 if let failure = client.failure {
                     VStack(spacing: 18) {
                         Image("AppMark").resizable().frame(width: 64, height: 64).clipShape(.rect(cornerRadius: 16))
@@ -34,7 +34,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
                         Button("App Settings") { navigation.settingsPresented = true }
                     }
                     .padding(30).frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color(red: 0.055, green: 0.055, blue: 0.065))
+                    .background(.ultraThinMaterial)
                     .accessibilityIdentifier("connectionError")
                 } else if client.loading {
                     ProgressView().tint(.orange).accessibilityLabel("Loading Yapper").allowsHitTesting(false)
@@ -75,8 +75,8 @@ private struct NativeSettings: View {
                         .font(.footnote).foregroundStyle(.secondary)
                     if let message = client.appearanceError { Text(message).font(.footnote).foregroundStyle(.orange) }
                 }
-                Section("YapperCord") {
-                    Toggle("Enable YapperCord", isOn: Binding(get: { client.yapperCordEnabled }, set: { client.setYapperCordEnabled($0) }))
+                Section("Yapinplugger") {
+                    Toggle("Enable Yapinplugger", isOn: Binding(get: { client.yapperCordEnabled }, set: { client.setYapperCordEnabled($0) }))
                         .accessibilityIdentifier("yapperCordEnabled")
                     Button("Open Plugin Manager") {
                         dismiss()

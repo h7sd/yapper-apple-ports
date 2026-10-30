@@ -7,7 +7,7 @@ OUTPUT_DIR="${OUTPUT_DIR:-$PROJECT_ROOT/.build/artifacts}"
 ARCHIVE_PATH="${ARCHIVE_PATH:-$PROJECT_ROOT/.build/Yapper.xcarchive}"
 MODE="${1:-simulator}"
 VERSION="1.1.0"
-EXTENSION_TAG="-YapperCord-0.1.0"
+EXTENSION_TAG="-Yapinplugger-0.1.0"
 mkdir -p "$OUTPUT_DIR"
 
 build_args=(-project "$PROJECT_ROOT/Yapper.xcodeproj" -scheme Yapper -derivedDataPath "$DERIVED_DATA" CODE_SIGNING_ALLOWED=NO)

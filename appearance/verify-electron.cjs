@@ -7,7 +7,7 @@ const record=name=>{report.checks.push({name,passed:true});console.log('PASS '+n
  client=await _electron.launch({executablePath:path.join(root,'dist/Yapper-darwin-arm64/Yapper.app/Contents/MacOS/Yapper'),args:[`--user-data-dir=${profile}`],timeout:30000});
  const page=await client.firstWindow();await page.waitForFunction(()=>!!window.YapperAppearance,{timeout:40000});
  assert.equal(await page.evaluate(()=>window.YapperAppearance.getState().accounts),0);
- assert.equal(await page.evaluate(()=>typeof window.YapperCord),'undefined');
+ assert.equal(await page.evaluate(()=>typeof window.Yapinplugger),'undefined');
  assert.equal(await page.evaluate(()=>Object.keys(window.yapperDesktop).length),17);
  record('appearance starts on anonymous trusted page by default; Cord remains opt-in and bridge retains17 members');
  await page.route('https://www.yapper.website/fixture-base.css',r=>r.fulfill({contentType:'text/css',body:fs.readFileSync(path.join(root,'appearance/fixtures/fixture-base.css'),'utf8')}));
@@ -18,10 +18,10 @@ const record=name=>{report.checks.push({name,passed:true});console.log('PASS '+n
  await page.locator('[data-ypa-profile]').waitFor();record('packaged adapter tags account/navigation and forwards existing fixture profile action');
  await client.evaluate(({Menu})=>Menu.getApplicationMenu().items.find(x=>x.label==='View').submenu.items.find(x=>x.label==='Enhanced Profile Layout').click({checked:false}));
  await page.waitForFunction(()=>typeof window.YapperAppearance==='undefined');await page.waitForLoadState('domcontentloaded');
- assert.equal(await page.locator('[data-yapper-appearance]').count(),0);assert.equal(await page.evaluate(()=>typeof window.YapperCord),'undefined');
+ assert.equal(await page.locator('[data-yapper-appearance]').count(),0);assert.equal(await page.evaluate(()=>typeof window.Yapinplugger),'undefined');
  record('native appearance switch removes adapter and reloads without enabling Cord');
  await client.evaluate(({Menu})=>Menu.getApplicationMenu().items.find(x=>x.label==='View').submenu.items.find(x=>x.label==='Enhanced Profile Layout').click({checked:true}));
  await page.waitForFunction(()=>window.YapperAppearance?.getState().accounts===1);
- assert.equal(await page.evaluate(()=>typeof window.YapperCord),'undefined');record('native appearance re-enable is independent from Cord settings');
+ assert.equal(await page.evaluate(()=>typeof window.Yapinplugger),'undefined');record('native appearance re-enable is independent from Cord settings');
  report.passed=true;
 })().catch(e=>{report.passed=false;report.error=e.stack.replaceAll(root,'<repository>').replaceAll(__dirname,'<work>');console.error(e);process.exitCode=1}).finally(async()=>{if(client)await client.close();report.finishedAt=new Date().toISOString();fs.writeFileSync(path.join(root,'dist/appearance-native-macos.json'),JSON.stringify(report,null,2)+'\n')});

@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-30T14:57:58.899592+00:00",
+  "generatedAt": "2026-10-30T15:19:07.576647+00:00",
   "product": {
     "name": "Yapper",
     "baseVersion": "1.1.0",
-    "yapperCordVersion": "0.1.0",
     "appearanceVersion": "0.1.0",
     "bundleIdentifier": "website.yapper.ios",
-    "minimumIOSVersion": "17.0"
+    "minimumIOSVersion": "17.0",
+    "yapinpluggerVersion": "0.1.0"
   },
   "toolchain": {
     "xcode": "27.2",
@@ -17,21 +17,30 @@
     "sdk": "27.2"
   },
   "features": {
-    "yapperCord": {
+    "enhancedProfileLayout": {
+      "defaultEnabled": true,
+      "nativePreference": "enhancedProfileLayoutEnabled",
+      "cleanup": "Runtime destroy, script removal, trusted page reload.",
+      "nativeAPIAdded": false,
+      "independentOfYapinplugger": true
+    },
+    "testSessions": "Integration clients and UI checks use ephemeral WebKit stores; saved account sessions are neither used by those checks nor cleared.",
+    "yapinplugger": {
       "defaultEnabled": false,
       "nativePreference": "yapperCordEnabled",
       "injection": "Document end, main frame only, exact trusted HTTPS host guard; no credentials or nonstandard ports.",
       "nativeAPIAdded": false,
-      "desktopBridgeMemberCount": 17
+      "desktopBridgeMemberCount": 17,
+      "compatibilityAlias": "window.YapperCord is the same frozen API object as window.Yapinplugger."
     },
-    "enhancedProfileLayout": {
-      "defaultEnabled": true,
-      "nativePreference": "enhancedProfileLayoutEnabled",
-      "independentOfYapperCord": true,
-      "cleanup": "Runtime destroy, script removal, trusted page reload.",
+    "fullscreenViewport": {
+      "webView": "Display-edge bounds; transparent native background; automatic content inset adjustment disabled.",
+      "injection": "Document start, exact trusted HTTPS host/main-frame guard; no credentials or nonstandard ports.",
+      "pageBackground": "Website-owned dynamic theme paints through the status and home safe areas.",
+      "controls": "CSS env(safe-area-inset-*) keeps app controls, native-page dialogs and plugin manager clear of system areas.",
+      "systemChromeHidden": false,
       "nativeAPIAdded": false
-    },
-    "testSessions": "Integration clients and UI checks use ephemeral WebKit stores; saved account sessions are neither used by those checks nor cleared."
+    }
   },
   "builds": {
     "simulatorRelease": {
@@ -54,8 +63,12 @@
     "packaging": {
       "embeddedJavaScriptAndLicenseHashesMatchSharedSources": true,
       "originalNativeBridgeBytesUnchanged": true,
-      "appleDoubleEntries": 0
-    }
+      "appleDoubleEntries": 0,
+      "viewportJavaScriptIncluded": true
+    },
+    "nonfatalBuildWarnings": [
+      "App Intents metadata extraction was skipped because the app has no AppIntents.framework dependency."
+    ]
   },
   "tests": {
     "result": "passed",
@@ -66,8 +79,8 @@
       "architecture": "arm64",
       "session": "Dedicated clean verification device"
     },
-    "testFunctions": 15,
-    "caseExecutions": 44,
+    "testFunctions": 16,
+    "caseExecutions": 45,
     "failed": 0,
     "skipped": 0,
     "xcresultRecordedRuntimeWarnings": 0,
@@ -76,13 +89,14 @@
       "caseExecutions": 42,
       "parameterizedFunctions": 6,
       "parameterizedCaseExecutions": 35,
-      "durationSeconds": 4.69
+      "durationSeconds": 2.769
     },
     "xctestUI": {
-      "testFunctions": 2,
-      "caseExecutions": 2,
-      "anonymousLoginDurationSeconds": 7.055,
-      "pluginManagerDurationSeconds": 9.461
+      "testFunctions": 3,
+      "caseExecutions": 3,
+      "anonymousLoginDurationSeconds": 5.511,
+      "pluginManagerDurationSeconds": 5.974,
+      "fullscreenDynamicThemeDurationSeconds": 6.307
     },
     "caseGroups": [
       {
@@ -105,29 +119,112 @@
       },
       {
         "name": "YapperUITests",
-        "functions": 2,
-        "executions": 2,
+        "functions": 3,
+        "executions": 3,
         "result": "passed"
       }
     ],
     "checks": [
-      "YapperCord stays disabled until explicitly enabled.",
+      "Yapinplugger stays disabled until explicitly enabled.",
       "Eight WebKit JavaScript guard cases cover trusted hosts, external/lookalike hosts, HTTP, credentials, nonstandard ports, and frames.",
-      "An actual example.com document receives neither YapperCord nor YapperAppearance.",
+      "An actual example.com document receives neither Yapinplugger nor YapperAppearance.",
       "Trusted same-origin child frames do not receive extension/appearance/desktop bridge globals.",
-      "YapperCord can be enabled and disabled through the native preference while the original desktop API stays at 17 members.",
+      "Yapinplugger can be enabled and disabled through the native preference while the original desktop API stays at 17 members.",
       "Enhanced profile layout defaults on, its off state persists, and a new client restores that state.",
       "Appearance destroy removes its global; retained refresh cannot revive it and retained state reports disposed.",
-      "Appearance can be toggled independently while YapperCord stays enabled and the desktop API stays at 17 members.",
-      "Anonymous original login and actual YapperCord launcher/manager UI both load without the native connection-error overlay."
+      "Appearance can be toggled independently while Yapinplugger stays enabled and the desktop API stays at 17 members.",
+      "Anonymous original login and actual Yapinplugger launcher/manager UI both load without the native connection-error overlay.",
+      "Live trusted pages retain viewport-fit=cover; actual external documents and same-origin iframes receive no viewport marker.",
+      "The canonical window.Yapinplugger and legacy window.YapperCord aliases refer to the same frozen runtime API.",
+      "The native WebView fills the display; the top action and bottom Home control remain hittable beyond the nonzero system safe areas (62pt top and 34pt bottom on the tested device).",
+      "The live anonymous manager Close control clears the status area.",
+      "The full-screen red fixture changes to teal through a page CSS variable; screenshot pixels at both display edges match each current theme exactly."
     ],
     "passMarkers": [
-      "Test liveLayoutCleanupAndCordPreferenceStayIndependent() passed after 4.682 seconds.",
-      "Test run with 13 tests in 3 suites passed after 4.690 seconds.",
-      "Test testOriginalMobileLoginLoads passed (7.055 seconds).",
-      "Test testYapperCordManagerOpensInAnonymousSession passed (9.461 seconds).",
+      "Test run with 13 tests in 3 suites passed after 2.769 seconds.",
+      "Test testFullScreenViewportProtectsControlsAndFollowsTheme passed (6.307 seconds).",
+      "Test testOriginalMobileLoginLoads passed (5.511 seconds).",
+      "Test testYapperCordManagerOpensInAnonymousSession passed (5.974 seconds).",
       "TEST SUCCEEDED"
-    ]
+    ],
+    "fullscreenPixelVerification": {
+      "red": {
+        "imagePixels": [
+          1206,
+          2622
+        ],
+        "expectedRGB": [
+          105,
+          39,
+          54
+        ],
+        "bands": {
+          "top": {
+            "sampledPixels": 17352,
+            "matchingThemePixels": 17352,
+            "matches": true,
+            "heightPixels": 24,
+            "horizontalRangePercent": [
+              20,
+              80
+            ]
+          },
+          "bottom": {
+            "sampledPixels": 17352,
+            "matchingThemePixels": 17352,
+            "matches": true,
+            "heightPixels": 24,
+            "horizontalRangePercent": [
+              20,
+              80
+            ]
+          }
+        },
+        "sha256": "38022f40402b0f26522046f4190bad17ed1633b709bde2deb5dc29f352f5f273"
+      },
+      "teal": {
+        "imagePixels": [
+          1206,
+          2622
+        ],
+        "expectedRGB": [
+          27,
+          82,
+          97
+        ],
+        "bands": {
+          "top": {
+            "sampledPixels": 17352,
+            "matchingThemePixels": 17352,
+            "matches": true,
+            "heightPixels": 24,
+            "horizontalRangePercent": [
+              20,
+              80
+            ]
+          },
+          "bottom": {
+            "sampledPixels": 17352,
+            "matchingThemePixels": 17352,
+            "matches": true,
+            "heightPixels": 24,
+            "horizontalRangePercent": [
+              20,
+              80
+            ]
+          }
+        },
+        "sha256": "4beaf1edc45be0cd473812cb2e9d2d19edbec6c00127763a3824bb02c171e4b3"
+      }
+    },
+    "javascriptBridge": {
+      "runner": "Node.js built-in test runner",
+      "caseExecutions": 12,
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0,
+      "source": "tests/native-bridge.test.cjs"
+    }
   },
   "earlierAttempts": [
     {
@@ -148,9 +245,10 @@
   ],
   "sourceInputs": {
     "algorithm": "sha256",
-    "fileCount": 40,
+    "fileCount": 44,
     "files": {
       ".gitignore": "4daeb3a3d5383ad5d1f1319b861f584778f4923e78afe55ac8554500fb3f934e",
+      "README.md": "fb38657e68df3f15e011e7fc4daaa064c57a8fc4d40da076277d1e3b29d6059c",
       "Yapper/Assets.xcassets/AccentColor.colorset/Contents.json": "12afa1e950ff746af5505f3d0ccf617a73d39ee071e94349c0d0add89b557fb2",
       "Yapper/Assets.xcassets/AppIcon.appiconset/Contents.json": "8d7dc6f60bb2c12485e819a14b207f1c33e6ed8db5f820e16755998ecdf027bc",
       "Yapper/Assets.xcassets/AppIcon.appiconset/Icon-1024.png": "8fe66d6aaeb8359993d8a2562f09f98184ad1e110767df95b36d0b45fb59600e",
@@ -172,61 +270,83 @@
       "Yapper/Assets.xcassets/LaunchBackground.colorset/Contents.json": "df40051bed538803abc70fb87de9ed957bcecf0fe76cc45e3b3d798c7e27a1d6",
       "Yapper/Info.plist": "b6c56cb06e75982b7fffb4cb9c35773164aed35ad59b498d5f1053f8d35ecc45",
       "Yapper/URLPolicy.swift": "18e9dfd871bd5e8272ad68d063e47c68a6a01faf107fbcaaa359254d33251221",
-      "Yapper/WebClient.swift": "0537474ec056ca93285468df7e061104853364c8bc8123846f45f0699e98a23a",
-      "Yapper/YapperApp.swift": "1f729e64e2d2a9297e2a61fcc070af5ccdaabbac9e096cc257a9afd8a4c89d0f",
+      "Yapper/WebClient.swift": "f89b4f0eb72577cda545231bea8181cbf7597c9374ab92a24989dc1773e346e2",
+      "Yapper/YapperApp.swift": "abc3a154d995c243baaeb00971a77d24a1daef5b4866667cbd1ec4ec3b69ce2c",
       "Yapper/YapperAppearanceSupport.swift": "387543e5961fe5c5957ce464dcf111c37e1ecea5bfc3be8522d50e7e7c05e6d9",
       "Yapper/YapperCordSupport.swift": "dc1ae3a7103f63171e67ab9e114fe9ebe835c8f2902cf3e0046c1764f718540e",
+      "Yapper/YapperViewportSupport.swift": "39ee8658aa9134e5ac2c363ebe3d15b6c10f40bbc918e2de00bca18acb0eab0d",
       "Yapper/resources/LICENSE.Appearance": "f9046e05df9221647c73268b51e8dfded4b7d1978ab9efb28c8a81af3e94f3ee",
       "Yapper/resources/LICENSE.Vencord": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
       "Yapper/resources/NativeBridge.js": "0dedd00a5aa704bb115b79b9b8d440c93d511ffe3e19306d5d26f6821a4dc002",
       "Yapper/resources/YapperAppearance.js": "52c19429daee71e0eda97b95b9605aaf8090367626569df101ce19a2f4a3fdf6",
-      "Yapper/resources/YapperCord.js": "e87ad714ad8cafb088870dcdf41d78247f415cbc29311242be2cdf676cc57bba",
-      "Yapper.xcodeproj/project.pbxproj": "45ea3aff6694348223e137627048299285e5f24461210207309aa38c05ccd07d",
+      "Yapper/resources/YapperCord.js": "de53f573bfa5fb3fdbcd8d35e710ef5805bae60284603a519c7c3850ab28e2a7",
+      "Yapper/resources/YapperViewport.js": "cdcb02fd7d6859f38f7e1e4d210f3aa2af6be80385120206c2799f4454e15f90",
+      "Yapper.xcodeproj/project.pbxproj": "7e42b6bc8630676160fac9b0f6c1675032e8248277fc0301055c4ff51036be38",
       "Yapper.xcodeproj/xcshareddata/xcschemes/Yapper.xcscheme": "c25e1f82f603129d058a606cf519b6ff88e5818a46dc9b989ef0cb19da7746c8",
       "YapperTests/URLPolicyTests.swift": "c7d067f51bf314c28d52b86aa1067dd630d3dd889f0026b5f3d1e337f7d6a5bb",
       "YapperTests/YapperAppearanceTests.swift": "fee2efe44bf9c4f7ac7c21fba2c0d4db8f8c8cce8d52d6ae83206ec3827ac13c",
-      "YapperTests/YapperCordTests.swift": "85512557042e87a30bab40313758b27d7e9bb5786577d9dea4714be056d6972f",
-      "YapperUITests/YapperUITests.swift": "b65d053a520968334a9b6c63471f17162d02f3b6e8e35d57fc8c37509a62f266",
-      "scripts/build-ios.sh": "c53182b5d5293957aa8600ae828ad7bc31745fe7de45dbd2a6cb6b62179652f7",
+      "YapperTests/YapperCordTests.swift": "b1d1987210f8256e3c6c289e3eb16464932fae428775eee6134326202a1d3a43",
+      "YapperUITests/YapperUITests.swift": "a765191767e5d42dd3106d59eb1ab5c10540e12feb8d066fca8b9399d3e1a68a",
+      "scripts/build-ios.sh": "76a25bbf37b4e4516c6c42ed290914c043f99342873a0059ae0056016cfa4e3b",
       "scripts/sync-appearance.mjs": "f3020be712bf6bc2e4562dbf942c573e9420149702bb9cbd0ca752997cde3871",
-      "scripts/sync-yappercord.mjs": "fc81917bd29931736c43b58066748def8e94593c9ca6e3a22d29f82e7438eb5b"
+      "scripts/sync-yappercord.mjs": "0908d6067700871dd959b44b6560f38ec6609ca71133623eb9526b00391c0ea1",
+      "tests/native-bridge.test.cjs": "e6c8d72b56abe37cac634782a3c5c8f80b237f1b7f88a596a6be68e57190f10d"
     }
   },
   "sharedSourceHashes": {
-    "extensions/yappercord/bundle.js": "e87ad714ad8cafb088870dcdf41d78247f415cbc29311242be2cdf676cc57bba",
+    "extensions/yappercord/bundle.js": "de53f573bfa5fb3fdbcd8d35e710ef5805bae60284603a519c7c3850ab28e2a7",
     "extensions/yappercord/LICENSE.Vencord": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
     "appearance/appearance.js": "52c19429daee71e0eda97b95b9605aaf8090367626569df101ce19a2f4a3fdf6",
     "appearance/LICENSE": "f9046e05df9221647c73268b51e8dfded4b7d1978ab9efb28c8a81af3e94f3ee"
   },
   "artifacts": {
-    "Yapper-1.1.0-YapperCord-0.1.0-iOS-Simulator.zip": {
-      "sha256": "a9b174a4001562c6748158eaba6d08466bfa19828ec5912869eb7d200d11eab3",
-      "sizeBytes": 550275,
+    "Yapper-1.1.0-Yapinplugger-0.1.0-iOS-Simulator.zip": {
+      "sha256": "9a1849672dfefec39532901ce3281949ef902b122a24dfeb2e78490d0c0baafd",
+      "sizeBytes": 553819,
       "embeddedFiles": {
-        "YapperCord.js": "e87ad714ad8cafb088870dcdf41d78247f415cbc29311242be2cdf676cc57bba",
+        "YapperCord.js": "de53f573bfa5fb3fdbcd8d35e710ef5805bae60284603a519c7c3850ab28e2a7",
         "YapperAppearance.js": "52c19429daee71e0eda97b95b9605aaf8090367626569df101ce19a2f4a3fdf6",
+        "YapperViewport.js": "cdcb02fd7d6859f38f7e1e4d210f3aa2af6be80385120206c2799f4454e15f90",
         "LICENSE.Vencord": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
         "LICENSE.Appearance": "f9046e05df9221647c73268b51e8dfded4b7d1978ab9efb28c8a81af3e94f3ee",
         "NativeBridge.js": "0dedd00a5aa704bb115b79b9b8d440c93d511ffe3e19306d5d26f6821a4dc002"
       },
-      "appleDoubleEntries": 0
+      "appleDoubleEntries": 0,
+      "debugFixtureBranchIncluded": false
     },
-    "Yapper-1.1.0-YapperCord-0.1.0-ios-unsigned.ipa": {
-      "sha256": "67a8b455321021c5d5e69910085f70b1502dbf69d66112781580e61165853d3f",
-      "sizeBytes": 374461,
+    "Yapper-1.1.0-Yapinplugger-0.1.0-ios-unsigned.ipa": {
+      "sha256": "94b6045aaf9f17e0aced55380efa4859a3ef37d41be84d8946e88b635f7c568e",
+      "sizeBytes": 376852,
       "embeddedFiles": {
-        "YapperCord.js": "e87ad714ad8cafb088870dcdf41d78247f415cbc29311242be2cdf676cc57bba",
+        "YapperCord.js": "de53f573bfa5fb3fdbcd8d35e710ef5805bae60284603a519c7c3850ab28e2a7",
         "YapperAppearance.js": "52c19429daee71e0eda97b95b9605aaf8090367626569df101ce19a2f4a3fdf6",
+        "YapperViewport.js": "cdcb02fd7d6859f38f7e1e4d210f3aa2af6be80385120206c2799f4454e15f90",
         "LICENSE.Vencord": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
         "LICENSE.Appearance": "f9046e05df9221647c73268b51e8dfded4b7d1978ab9efb28c8a81af3e94f3ee",
         "NativeBridge.js": "0dedd00a5aa704bb115b79b9b8d440c93d511ffe3e19306d5d26f6821a4dc002"
       },
-      "appleDoubleEntries": 0
+      "appleDoubleEntries": 0,
+      "debugFixtureBranchIncluded": false
     },
-    "YapperCord-iOS-preview.png": {
-      "sha256": "dade7ea69f4b613f6621f3ee3c7c2121cba4c3e24627d71bd8adee93bf8367e0",
-      "sizeBytes": 290240,
-      "content": "Anonymous YapperCord manager captured by the passing UI test."
+    "Yapinplugger-iOS-fullscreen-red-fixture.png": {
+      "sha256": "38022f40402b0f26522046f4190bad17ed1633b709bde2deb5dc29f352f5f273",
+      "sizeBytes": 117151,
+      "content": "Anonymous synthetic layout fixture; red theme edge proof, not account UI."
+    },
+    "Yapinplugger-iOS-fullscreen-teal-fixture.png": {
+      "sha256": "4beaf1edc45be0cd473812cb2e9d2d19edbec6c00127763a3824bb02c171e4b3",
+      "sizeBytes": 122314,
+      "content": "The same anonymous fixture after a dynamic theme change to teal."
+    },
+    "Yapinplugger-iOS-login-preview.png": {
+      "sha256": "d348dbacb7fa965aeb779c0b95b219577817e0582eaafef970d120b013e101f3",
+      "sizeBytes": 251193,
+      "content": "Anonymous original login page captured by the passing full-screen UI test."
+    },
+    "Yapinplugger-iOS-preview.png": {
+      "sha256": "ccb853faae844fcf54bb3d5d40e98d29ef7a79dc9c206e67ae62aae692c2e54c",
+      "sizeBytes": 301445,
+      "content": "Anonymous Yapinplugger manager captured by the passing full-screen UI test."
     }
   },
   "coverageLimits": [
@@ -234,6 +354,7 @@
     "No message, profile, account, or server mutation was performed by this verification.",
     "Physical-device installation/signing, camera/microphone permission flows, media calls, background notification delivery, and desktop Discord plugin execution were not tested.",
     "The device IPA is unsigned and needs the owner's Apple signing/provisioning before installation.",
-    "The enhanced layout reuses existing Yapper profile/navigation controls; it supplies no profile data."
+    "The enhanced layout reuses existing Yapper profile/navigation controls; it supplies no profile data.",
+    "Fullscreen native rendering was verified on an iPhone 17 Pro simulator with anonymous red/teal fixtures and live anonymous login/manager UI. The account-specific custom red theme from the user screenshot was not loaded or published."
   ]
 }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "artifact": "YapperCord-Installer-0.1.0-mac-universal.zip",
+  "artifact": "Yapinplugger-Installer-0.1.0-mac-universal.zip",
   "passed": true,
   "checks": [
     "Extracted installer and nested code signatures verify; installer is ad-hoc signed",
@@ -11,5 +11,5 @@
     "No installer GUI interaction or real installation is performed.",
     "Ad-hoc signatures do not identify a trusted publisher; these checks are not a malware-free guarantee."
   ],
-  "archiveSHA256": "782f9663f3f050d4b4ef0a6b0af2d7f7bbe9b2aa33593456cff692c5c29afae0"
+  "archiveSHA256": "2b5a0238e0df8207288ed98995b21a94fc65ca3d174481b728a4ca2af34a7d3f"
 }

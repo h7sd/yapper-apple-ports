@@ -17,7 +17,7 @@ struct Fixture {
 
     func cleanup() { try? FileManager.default.removeItem(at: root) }
 
-    func app(_ name: String, cord: String? = "0.1.0", version: String = "1.1.0", bundleID: String = "website.yapper.desktop") throws -> URL {
+    func app(_ name: String, cord: String? = "0.1.0", canonical: String? = nil, version: String = "1.1.0", bundleID: String = "website.yapper.desktop") throws -> URL {
         let app = home.appendingPathComponent("Sources/\(name).app")
         let contents = app.appendingPathComponent("Contents")
         try FileManager.default.createDirectory(at: contents.appendingPathComponent("MacOS"), withIntermediateDirectories: true)
@@ -27,6 +27,7 @@ struct Fixture {
         try PropertyListSerialization.data(fromPropertyList: info, format: .xml, options: 0).write(to: contents.appendingPathComponent("Info.plist"))
         var manifest: [String: Any] = ["productName": "Yapper", "name": "yapper-desktop", "version": version]
         if let cord { manifest["yappercordVersion"] = cord }
+        if let canonical { manifest["yapinpluggerVersion"] = canonical }
         try archive(manifest).write(to: contents.appendingPathComponent("Resources/app.asar"))
         _ = try InstallerEngine.run("/usr/bin/codesign", ["--force", "--sign", "-", app.path])
         return app
@@ -44,7 +45,7 @@ struct Fixture {
     private func archive(_ manifest: [String: Any]) throws -> Data {
         var content = try JSONSerialization.data(withJSONObject: manifest, options: [.sortedKeys])
         var files: [String: Any] = ["package.json": ["size": content.count, "offset": "0"]]
-        if manifest["yappercordVersion"] != nil {
+        if manifest["yappercordVersion"] != nil || manifest["yapinpluggerVersion"] != nil {
             let repository = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
             let bundle = try Data(contentsOf: repository.appendingPathComponent("macos/yappercord/bundle.js"))
             let checksum = Data((InstallerEngine.runtimeBundleSHA256 + "  bundle.js\n").utf8)
@@ -78,9 +79,45 @@ struct Fixture {
         let source = try fixture.app("Source")
         let inspection = try fixture.engine.inspect(source)
         #expect(inspection.yappercordVersion == "0.1.0")
+        #expect(inspection.yapinpluggerVersion == "0.1.0")
         #expect(inspection.appVersion == "1.1.0")
         #expect(inspection.asarSHA256.count == 64)
         #expect(fixture.paths.defaultUserData.lastPathComponent == "Yapper")
+    }
+
+    @Test func `canonical marker works without legacy marker and takes precedence`() throws {
+        let fixture = try Fixture(); defer { fixture.cleanup() }
+        let canonical = try fixture.app("Canonical", cord: nil, canonical: "0.1.0")
+        #expect(try fixture.engine.inspect(canonical).yapinpluggerVersion == "0.1.0")
+        let future = try fixture.app("Future", canonical: "0.2.0")
+        #expect(throws: (any Error).self) { try fixture.engine.inspect(future) }
+    }
+
+    @Test func `automatic source is bundled and never an adjacent app`() throws {
+        let fixture = try Fixture(); defer { fixture.cleanup() }
+        let resources = fixture.home.appendingPathComponent("Setup.app/Contents/Resources")
+        let adjacent = resources.deletingLastPathComponent().appendingPathComponent("Yapper.app")
+        try FileManager.default.createDirectory(at: adjacent, withIntermediateDirectories: true)
+        #expect(InstallerSourceSelection.bundledApp(resourceDirectory: resources) == nil)
+        let bundled = resources.appendingPathComponent("Yapper.app")
+        try FileManager.default.createDirectory(at: bundled, withIntermediateDirectories: true)
+        #expect(InstallerSourceSelection.bundledApp(resourceDirectory: resources)?.path == bundled.path)
+        #expect(InstallerSourceSelection.bundledApp(resourceDirectory: nil) == nil)
+    }
+
+    @Test func `Finder metadata rejection gives the bundled setup recovery action`() throws {
+        let fixture = try Fixture(); defer { fixture.cleanup() }
+        let source = try fixture.app("Source")
+        _ = try InstallerEngine.run("/usr/bin/xattr", ["-wx", "com.apple.FinderInfo", "0000000000000000000100000000000000000000000000000000000000000000", source.path])
+        do {
+            _ = try fixture.engine.inspect(source)
+            Issue.record("Finder metadata was accepted")
+        } catch let error as InstallerFailure {
+            #expect(error.localizedDescription.contains("Finder metadata"))
+            #expect(error.localizedDescription.contains("Use bundled client"))
+            #expect(!error.localizedDescription.contains(fixture.home.path))
+        }
+        #expect(FileManager.default.fileExists(atPath: source.path))
     }
 
     @Test(arguments: [nil, "0.2.0", "1.0.0"])
@@ -146,7 +183,8 @@ struct Fixture {
         let source = try fixture.app("Source")
         let archive = source.appendingPathComponent("Contents/Resources/app.asar")
         var data = try Data(contentsOf: archive)
-        let start = try #require(data.range(of: Data("/* YapperCord:".utf8)))
+        let originalBundle = try ASARManifest.file("yappercord/bundle.js", from: archive, limit: 16_777_216)
+        let start = try #require(data.range(of: originalBundle))
         data[start.lowerBound] = 46
         try data.write(to: archive)
         _ = try InstallerEngine.run("/usr/bin/codesign", ["--force", "--sign", "-", source.path])

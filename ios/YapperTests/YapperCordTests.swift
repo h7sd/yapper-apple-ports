@@ -12,7 +12,10 @@ struct YapperCordTests {
         let client = WebClient(preferences: preferences, ephemeralSession: true)
         #expect(!client.yapperCordEnabled)
         #expect(!preferences.bool(forKey: YapperCordSupport.preferenceKey))
-        #expect(client.webView.configuration.userContentController.userScripts.count == 1)
+        #expect(client.webView.configuration.userContentController.userScripts.count == 2)
+        #expect(client.webView.scrollView.contentInsetAdjustmentBehavior == .never)
+        #expect(!client.webView.scrollView.automaticallyAdjustsScrollIndicatorInsets)
+        #expect(client.webView.configuration.userContentController.userScripts.first?.isForMainFrameOnly == true)
     }
 
     @Test(arguments: [
@@ -50,14 +53,16 @@ struct YapperCordTests {
         #expect(client.setYapperCordEnabled(true))
         let view = client.webView
         try await waitUntilLoaded(view, client: client)
-        let initial = try await run("return JSON.stringify({available: typeof window.YapperCord?.open === 'function', members: Object.keys(window.yapperDesktop).length});", in: view)
+        let initial = try await run("return JSON.stringify({available: typeof window.YapperCord?.open === 'function', canonicalAlias: window.Yapinplugger === window.YapperCord, viewport: document.querySelector('meta[name=viewport]')?.content.includes('viewport-fit=cover') === true, members: Object.keys(window.yapperDesktop).length});", in: view)
         let result = try #require(JSONSerialization.jsonObject(with: Data(initial.utf8)) as? [String: Any])
         #expect(result["available"] as? Bool == true)
+        #expect(result["canonicalAlias"] as? Bool == true)
+        #expect(result["viewport"] as? Bool == true)
         #expect(result["members"] as? Int == 17)
         #expect(preferences.bool(forKey: YapperCordSupport.preferenceKey))
-        let iframe = try await run("const frame = document.createElement('iframe'); frame.hidden = true; frame.srcdoc = '<!doctype html><html><body>Isolated frame</body></html>'; const loaded = new Promise(resolve => { frame.onload = () => resolve(true); setTimeout(() => resolve(false), 5000); }); document.body.append(frame); if (!await loaded) { frame.remove(); throw new Error('Iframe did not load'); } const result = JSON.stringify({cord: typeof frame.contentWindow.YapperCord, desktop: typeof frame.contentWindow.yapperDesktop}); frame.remove(); return result;", in: view)
+        let iframe = try await run("const frame = document.createElement('iframe'); frame.hidden = true; frame.srcdoc = '<!doctype html><html><body>Isolated frame</body></html>'; const loaded = new Promise(resolve => { frame.onload = () => resolve(true); setTimeout(() => resolve(false), 5000); }); document.body.append(frame); if (!await loaded) { frame.remove(); throw new Error('Iframe did not load'); } const result = JSON.stringify({cord: typeof frame.contentWindow.YapperCord, desktop: typeof frame.contentWindow.yapperDesktop, viewport: String(frame.contentDocument.documentElement.hasAttribute('data-yapper-ios-viewport'))}); frame.remove(); return result;", in: view)
         let frameResult = try #require(JSONSerialization.jsonObject(with: Data(iframe.utf8)) as? [String: String])
-        #expect(frameResult == ["cord": "undefined", "desktop": "undefined"])
+        #expect(frameResult == ["cord": "undefined", "desktop": "undefined", "viewport": "false"])
         #expect(client.setYapperCordEnabled(false))
         try await waitUntilLoaded(view, client: client)
         let disabled = try await run("return JSON.stringify({cord: typeof window.YapperCord, members: Object.keys(window.yapperDesktop).length});", in: view)
@@ -70,19 +75,22 @@ struct YapperCordTests {
     @Test func externalDocumentCannotReceiveTheRuntime() async throws {
         let source = try #require(YapperCordSupport.bundledSource())
         let appearance = try #require(YapperAppearanceSupport.bundledSource())
+        let viewport = TrustedDocumentScript.guardedSource(try #require(YapperViewportSupport.rawSource()))
         let config = WKWebViewConfiguration()
+        config.userContentController.addUserScript(WKUserScript(source: viewport, injectionTime: .atDocumentStart, forMainFrameOnly: true))
         config.websiteDataStore = .nonPersistent()
         config.userContentController.addUserScript(WKUserScript(source: appearance, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
         config.userContentController.addUserScript(WKUserScript(source: source, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
         let view = WKWebView(frame: .zero, configuration: config)
         view.load(URLRequest(url: URL(string: "https://example.com")!))
         try await waitUntilLoaded(view)
-        let result = try await run("return JSON.stringify({origin: location.origin, cord: typeof window.YapperCord, appearance: typeof window.YapperAppearance, desktop: typeof window.yapperDesktop});", in: view)
+        let result = try await run("return JSON.stringify({origin: location.origin, cord: typeof window.YapperCord, appearance: typeof window.YapperAppearance, desktop: typeof window.yapperDesktop, viewport: String(document.documentElement.hasAttribute('data-yapper-ios-viewport'))});", in: view)
         let actual = try #require(JSONSerialization.jsonObject(with: Data(result.utf8)) as? [String: String])
         #expect(actual["origin"] == "https://example.com")
         #expect(actual["cord"] == "undefined")
         #expect(actual["appearance"] == "undefined")
         #expect(actual["desktop"] == "undefined")
+        #expect(actual["viewport"] == "false")
     }
 
     private func waitUntilLoaded(_ view: WKWebView, client: WebClient? = nil) async throws {

@@ -191,8 +191,8 @@ function createWindow() {
       catch (error) { console.error('Profile layout rejected:', error.message); }
     }
     if (yappercord.readEnabled(path.join(app.getPath('userData'), 'yappercord.json')) && yappercord.trustedPage(wc.getURL())) {
-      try { wc.executeJavaScript(yappercord.bundleSource()).catch(error => console.error('YapperCord failed to start:', error.message)); }
-      catch (error) { console.error('YapperCord bundle rejected:', error.message); }
+      try { wc.executeJavaScript(yappercord.bundleSource()).catch(error => console.error('Yapinplugger failed to start:', error.message)); }
+      catch (error) { console.error('Yapinplugger bundle rejected:', error.message); }
     }
   });
   // Right-click in a text box: spelling suggestions, Add to dictionary, Cut / Copy / Paste. Spellcheck was on but
@@ -386,19 +386,19 @@ function createMacMenu() {
       } },
     ] },
     { role: 'windowMenu' },
-    { label: 'YapperCord', submenu: [
-      { label: 'Enable YapperCord', type: 'checkbox', checked: yappercord.readEnabled(path.join(app.getPath('userData'), 'yappercord.json')), click: item => {
+    { label: 'Yapinplugger', submenu: [
+      { label: 'Enable Yapinplugger', type: 'checkbox', checked: yappercord.readEnabled(path.join(app.getPath('userData'), 'yappercord.json')), click: item => {
         try {
           yappercord.writeEnabled(path.join(app.getPath('userData'), 'yappercord.json'), item.checked);
           if (win && !win.isDestroyed()) {
             // Remove live effects immediately, then reload with the new opt-in state.
-            win.webContents.executeJavaScript('window.YapperCord?.destroy()').catch(() => {}).finally(() => { if (win && !win.isDestroyed()) win.reload(); });
+            win.webContents.executeJavaScript('window.Yapinplugger?.destroy()').catch(() => {}).finally(() => { if (win && !win.isDestroyed()) win.reload(); });
           }
           createMacMenu();
-        } catch (error) { console.error('Could not save YapperCord preference:', error.message); createMacMenu(); }
+        } catch (error) { console.error('Could not save Yapinplugger preference:', error.message); createMacMenu(); }
       } },
       { label: 'Open Plugin Manager', accelerator: 'Command+Shift+P', enabled: yappercord.readEnabled(path.join(app.getPath('userData'), 'yappercord.json')), click: () => {
-        show(); if (win && yappercord.trustedPage(win.webContents.getURL())) win.webContents.executeJavaScript('window.YapperCord?.open()').catch(() => {});
+        show(); if (win && yappercord.trustedPage(win.webContents.getURL())) win.webContents.executeJavaScript('window.Yapinplugger?.open()').catch(() => {});
       } },
       { label: 'Source & Compatibility', click: () => shell.openExternal('https://github.com/h7sd/yapper-apple-ports/tree/main/extensions/yappercord') },
     ] },

@@ -1,14 +1,14 @@
-# YapperCord on iOS
+# Yapinplugger on iOS
 
-The iOS client can load the bundled YapperCord runtime as an optional local extension. It is **off by default**. This is a Yapper adaptation of selected plugin ideas; the desktop Vencord installer and unmodified Discord/Vencord plugins cannot run inside this iOS app.
+The iOS client can load the bundled Yapinplugger runtime as an optional local extension. It is **off by default**. This is a Yapper adaptation of selected plugin ideas; the desktop Vencord installer and unmodified Discord/Vencord plugins cannot run inside this iOS app.
 
 ## Enable or disable
 
 1. Open `yapper://app-settings` in the installed app to show App Settings.
-2. Turn on **Enable YapperCord**. The choice is saved on this device and Yapper reloads.
+2. Turn on **Enable Yapinplugger**. The choice is saved on this device and Yapper reloads.
 3. Once loading finishes, select **Open Plugin Manager** to configure the available plugins and local CSS.
 
-Turning YapperCord off calls the runtime's cleanup function, removes its document script, and reloads Yapper. The original desktop compatibility bridge remains available with its original 17 members. The native preference only controls whether the extension runtime is loaded; individual plugin choices are managed by YapperCord.
+Turning Yapinplugger off calls the runtime's cleanup function, removes its document script, and reloads Yapper. The original desktop compatibility bridge remains available with its original 17 members. The native preference only controls whether the extension runtime is loaded; individual plugin choices are managed by Yapinplugger.
 
 ## iOS boundaries
 
@@ -36,7 +36,7 @@ ios/scripts/build-ios.sh simulator
 ios/scripts/build-ios.sh archive
 ```
 
-These commands produce separate artifacts named `Yapper-1.1.0-YapperCord-0.1.0-iOS-Simulator.zip` and `Yapper-1.1.0-YapperCord-0.1.0-ios-unsigned.ipa`. They do not overwrite the original 1.1.0 artifacts.
+These commands produce separate artifacts named `Yapper-1.1.0-Yapinplugger-0.1.0-iOS-Simulator.zip` and `Yapper-1.1.0-Yapinplugger-0.1.0-ios-unsigned.ipa`. They do not overwrite the original 1.1.0 artifacts.
 
 Run the iOS suite against an available simulator:
 
@@ -48,7 +48,7 @@ The extension tests cover the default-off preference, the JavaScript origin/fram
 
 ## Enhanced profile layout
 
-The local profile/navigation appearance adapter is independent of YapperCord. It is enabled by default and reuses the profile information and controls already supplied by Yapper. **App Settings → Enhanced profile layout** can restore the original layout. Changing either native switch cleans up that feature and reloads the page without changing the other switch.
+The local profile/navigation appearance adapter is independent of Yapinplugger. It is enabled by default and reuses the profile information and controls already supplied by Yapper. **App Settings → Enhanced profile layout** can restore the original layout. Changing either native switch cleans up that feature and reloads the page without changing the other switch.
 
 The appearance adapter adds no account data, network requests, or native bridge methods. It uses the same guarded, main-frame document-end injection policy. Its source is `appearance/appearance.js`; copy it into the iOS app before building:
 
@@ -56,4 +56,10 @@ The appearance adapter adds no account data, network requests, or native bridge 
 node ios/scripts/sync-appearance.mjs
 ```
 
-The independent appearance adapter uses the MIT license. Its complete notice is embedded as `LICENSE.Appearance`, alongside YapperCord's GPL notice.
+The independent appearance adapter uses the MIT license. Its complete notice is embedded as `LICENSE.Appearance`, alongside Yapinplugger's GPL notice.
+
+## Fullscreen viewport
+
+The WebView fills the display and renders Yapper's own page background beneath the visible status bar and home indicator. A separate local `YapperViewport.js` script preserves the viewport's existing directives while adding `viewport-fit=cover`, then uses the browser's safe-area values to keep app controls, mobile navigation, dialogs, and the plugin manager clear of system chrome. It uses the same trusted-host/main-frame guard and adds no native bridge methods. Dynamic website themes remain page-owned.
+
+The fullscreen UI test runs a DEBUG-only anonymous red/teal layout fixture through the same bundled viewport script. It checks the complete native WebView frame, nonzero system safe areas, and reachable top/bottom buttons; exported screenshots are also checked for the actual theme color at both display edges. The fixture branch and environment input are absent from Release builds.

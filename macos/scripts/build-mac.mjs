@@ -122,7 +122,7 @@ for (const arch of architectures) {
     // Finder metadata is not part of the signed bundle and must not be shipped.
     execFileSync('/usr/bin/xattr', ['-cr', app], { stdio: 'inherit' });
     execFileSync('/usr/bin/codesign', ['--verify', '--deep', '--strict', '--verbose=2', app], { stdio: 'inherit' });
-    const archive = path.join(outputs, `Yapper-${manifest.version}${manifest.yappercordVersion ? '-YapperCord-' + manifest.yappercordVersion : ''}-mac-${arch}.zip`);
+    const archive = path.join(outputs, `Yapper-${manifest.version}${manifest.yappercordVersion ? '-Yapinplugger-' + manifest.yappercordVersion : ''}-mac-${arch}.zip`);
     await rm(archive, { force: true });
     execFileSync('/usr/bin/ditto', ['-c', '-k', '--keepParent', '--norsrc', '--noextattr', '--noqtn', app, archive], { stdio: 'inherit' });
     const finalPackage = path.join(outputs, path.basename(packagePath));

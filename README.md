@@ -1,6 +1,8 @@
 # Yapper Apple Ports
 
-**Experimental YapperCord extension:** [plugin manager, full upstream inventory and current compatibility](extensions/yappercord/README.md). Six limited Yapper feature adaptations are implemented; the remaining 161 public Vencord plugins are **not** compatible yet. [Native installer source](installer/README.md). This does not claim all Discord plugins work on Yapper.
+**Experimental Yapinplugger extension:** [plugin manager, full upstream inventory and current compatibility](extensions/yappercord/README.md). Six limited Yapper feature adaptations are implemented; the remaining 161 public Vencord plugins are **not** compatible yet. [Native installer source](installer/README.md). This does not claim all Discord plugins work on Yapper.
+
+**Fullscreen on iOS:** Yapper’s theme fills the display behind the status bar and home indicator; controls respect the device safe areas. [Viewport verification](docs/IOS-YAPPERCORD.md#fullscreen-viewport).
 
 **Profile layout:** [reversible account strip, profile presentation and compact mobile navigation](appearance/README.md), using the original Yapper components, theme, artwork and actions. This is a local client layout enhancement; it does not change the hosted Yapper website for other users.
 
@@ -12,10 +14,11 @@ The supplied Linux client is an Electron shell around the live **[Yapper website
 
 Published binaries, when available, are listed on the **[Releases page](https://github.com/h7sd/yapper-apple-ports/releases)**. The current integrated build produces:
 
-- `YapperCord-Setup-0.1.0-mac-arm64.zip`: self-contained installer and client for Apple Silicon Mac.
-- `YapperCord-Setup-0.1.0-mac-x64.zip`: self-contained installer and client for Intel Mac.
-- `iOS-Simulator.zip`: an application for Xcode's iOS Simulator.
-- `ios-unsigned.ipa`: an iPhone/iPad build that **must be signed with your own Apple profile before installation**.
+- `Yapinplugger-Setup-0.1.0-mac-arm64.zip`: self-contained installer and client for Apple Silicon Mac.
+- `Yapinplugger-Setup-0.1.0-mac-x64.zip`: self-contained installer and client for Intel Mac.
+- `Yapper-1.1.0-Yapinplugger-0.1.0-iOS-Simulator.zip`: an application for Xcode's iOS Simulator.
+- `Yapper-1.1.0-Yapinplugger-0.1.0-ios-unsigned.ipa`: an iPhone/iPad build that **must be signed with your own Apple profile before installation**.
+- `Yapinplugger-Installer-0.1.0-mac-universal.zip`: optional standalone installer; requires a compatible source app.
 - `SHA256SUMS.txt`: hashes of the published release assets.
 
 Mac builds are ad-hoc signed, not Apple-notarized. The iOS build is not an App Store/TestFlight release. See [macOS build instructions](macos/README.md) and [iOS build instructions](ios/README.md).
@@ -43,7 +46,7 @@ Reviewers can inspect and reproduce:
 - CI source checks, dependency-advisory reports, packaged native-binary architecture checks, code-signature verification, and SHA-256 release checksums.
 - The [security review and limitations](docs/SECURITY-REVIEW.md), [iOS review](docs/IOS-REVIEW.md), and [recorded validation](docs/VALIDATION.md).
 
-Current integrated local results: 20 Mac regression tests, 20 package checks per architecture, 14 YapperCord Electron checks, 4 native appearance checks, 14 extension Node tests (with the pinned external checkout), 3 appearance guard tests plus three-viewport fixture checks, 15 installer Swift test functions, 12 original iOS bridge tests, and 44 iOS Swift/UI case executions passed. See the [new validation scope and remaining work](docs/YAPPERCORD-VALIDATION.md). The earlier baseline results are retained as historical reports. The full npm audit reported 0 known advisories on 2026-10-30 after the runtime update. GitHub-hosted jobs did not start because of an account-level restriction; these are local results, not a claim of green hosted CI. Anonymous UI screenshots: [macOS](docs/images/macos-login.png), [iOS](docs/images/ios-login.png).
+Current integrated local results: 20 Mac regression tests, 20 package checks per architecture, 14 Yapinplugger Electron checks, 4 native appearance checks, 14 extension Node tests (with the pinned external checkout), 3 appearance guard tests plus three-viewport fixture checks, 27 installer Swift test functions, 12 original iOS bridge tests, and 45 iOS Swift/UI case executions passed. See the [new validation scope and remaining work](docs/YAPPERCORD-VALIDATION.md). The earlier baseline results are retained as historical reports. The full npm audit reported 0 known advisories on 2026-10-30 after the runtime update. GitHub-hosted jobs did not start because of an account-level restriction; these are local results, not a claim of green hosted CI. Anonymous UI screenshots: [macOS](docs/images/macos-login.png), [iOS](docs/images/ios-login.png).
 
 The source does not add a remote shell/command-execution bridge, credential-export endpoint, or arbitrary native file-reading API. That statement is limited to the inspected client code, not a claim about every dependency, remote page, or future revision.
 
