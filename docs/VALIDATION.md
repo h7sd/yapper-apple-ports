@@ -17,7 +17,12 @@ Machine-readable checks and scope are in [`reports/`](reports/). Build instructi
 - 12 JavaScript bridge tests passed, including origins/ports, malformed inputs, native rejections, and unavailable desktop features.
 - Release iOS Simulator application compiled for arm64/x86_64.
 - Generic iPhone/iPad Release archive compiled for arm64 and packaged as an unsigned IPA without a provisioning profile.
-- Swift unit/hosted WebKit and login UI checks are included. Their local execution is still being verified after an iOS 27.2 simulator launch-service stall; this record does **not** mark them passed yet. The public iOS workflow reports its actual result without converting service/runtime failures into passes.
+- Swift unit/hosted WebKit and original-login UI checks passed on an iPhone 17 Pro simulator with iOS 26.4.1: **30 passing case executions across 8 test functions**, no failures/skips/runtime warnings. This includes a real WKWebView-to-native settings roundtrip and truthful refusals for badges without consent and unsupported hotkeys.
+- The iOS 27.2 simulator initially stalled before test launch. That attempt was not counted as a pass; the same app sources were verified on the stable runtime instead.
+
+## GitHub-hosted CI status
+
+The initial GitHub-hosted jobs did not start because of an account-level restriction. Their status is visible in Actions. The recorded passing results above are **local results**; this repository does not claim a green GitHub-hosted CI run. Workflow definitions remain available so maintainers can run them when the account allows execution.
 
 ## Not exercised
 

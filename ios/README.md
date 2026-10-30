@@ -37,4 +37,6 @@ This is not a full desktop-runtime clone. Screen capture/sharing, system-audio c
 
 The UI and account backend are remotely hosted by Yapper and can change without rebuilding this app. Simulator tests do not validate physical-device microphone/camera quality, background calling, notification delivery, or distribution signing. The unsigned IPA is not an App Store/TestFlight publication.
 
+Email/username login uses the original web form. Google/external OAuth login has not been authenticated in this build; third-party restrictions or separate browser cookie stores may prevent it from returning a signed-in session to the app.
+
 See the repository's provenance, security review, and validation records for the exact scope of testing. No “malware-free” certification is claimed.

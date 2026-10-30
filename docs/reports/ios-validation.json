@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-30",
+  "toolchain": "Xcode 27.1 / Swift 6.4",
+  "deployment_target": "iOS 17.0",
+  "release_builds": {
+    "simulator": [
+      "arm64",
+      "x86_64"
+    ],
+    "device": [
+      "arm64"
+    ],
+    "device_signing": "unsigned; no provisioning profile"
+  },
+  "javascript_bridge_tests": {
+    "passed": 12,
+    "failed": 0
+  },
+  "swift_and_ui_tests": {
+    "result": "passed",
+    "case_executions": 30,
+    "test_functions": 8,
+    "failed": 0,
+    "skipped": 0,
+    "runtime_warnings": 0,
+    "runtime": "iOS 26.4.1",
+    "simulator_model": "iPhone 17 Pro",
+    "scope": [
+      "URL policy parameterized cases",
+      "Real trusted-site WKWebView to native bridge roundtrip",
+      "Badge denied without notification consent",
+      "Unsupported global hotkeys truthfully unavailable",
+      "Original live login UI and screenshot"
+    ]
+  },
+  "incomplete_attempt": "iOS 27.2 simulator launch service stalled before test execution; excluded from passing counts",
+  "physical_device_tested": false,
+  "credentials_used": false
+}

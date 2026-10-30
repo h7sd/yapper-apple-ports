@@ -1,0 +1,4 @@
+edfb00724ee76f9d47403d55db40d45f14189d81a0402d9a44fa787d88fc29b7  Yapper-1.1.0-iOS-Simulator.zip
+7e9079cfeeb7757693f3e35a04f07d5c2fa7a68710fc316d57cb5e800a64fae4  Yapper-1.1.0-ios-unsigned.ipa
+1765d872bdcddaa211d7940add88a4ec75e057ad2b521bd8edfdfb34775ea63b  Yapper-1.1.0-mac-arm64.zip
+5de92bb2d5deef8712b3ab7c9d6e766f42c07202a8307665d08c2632e7f8b169  Yapper-1.1.0-mac-x64.zip
