@@ -1,0 +1,53 @@
+name: Verify Android client
+
+on:
+  push:
+    branches: [main]
+    paths: ["android/**", "extensions/**", "appearance/**", ".github/workflows/android-verify.yml"]
+  pull_request:
+    paths: ["android/**", "extensions/**", "appearance/**", ".github/workflows/android-verify.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-verify-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    name: Build signed development APK and inspect policy
+    runs-on: macos-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+      - name: Set up Java 17
+        # Official immutable v6.1.0 release resolved on 2026-10-30.
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Build with checksum-pinned Maven and AOSP tools
+        run: python3 android/scripts/build.py --output-dir dist
+      - name: Test URL policy and native JavaScript bridge
+        run: python3 android/scripts/test.py
+      - name: Upload APK and verification reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          # The CI certificate is ephemeral and differs from public releases.
+          name: yapinplugger-android-development-${{ github.sha }}
+          path: |
+            dist/*.apk
+            android/reports/*.json
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14

@@ -19,7 +19,7 @@ function desktop(options = {}) {
   const state = {
     windows: [], timers: [], nativeLoads: 0, hookStarts: 0,
     accessibilityCalls: [], mediaRequests: [], captures: [],
-    updateChecks: 0, externalUrls: [], writes: [], loginChanges: [],
+    updateChecks: 0, externalUrls: [], writes: [], loginChanges: [], execCalls: [], executions: [],
   };
   let ready = false;
   let resolveReady;
@@ -34,6 +34,8 @@ function desktop(options = {}) {
     getLoginItemSettings: () => ({ openAtLogin: false, wasOpenedAtLogin: !!options.atLogin }),
     setLoginItemSettings: (value) => state.loginChanges.push(value),
     setAsDefaultProtocolClient: () => true,
+    setAppUserModelId: (id) => { state.appId = id; },
+    setBadgeCount() {},
     disableHardwareAcceleration() {}, quit() {}, exit() {},
     dock: { setMenu() {}, setBadge() {} },
   });
@@ -48,6 +50,7 @@ function desktop(options = {}) {
         getURL: () => this.urls.at(-1) || '',
         setWindowOpenHandler: (handler) => { this.openHandler = handler; },
         setZoomFactor() {}, send() {},
+        executeJavaScript: async (code) => { state.executions.push(code); },
         session: { addWordToSpellCheckerDictionary() {} },
       });
       state.windows.push(this);
@@ -64,8 +67,11 @@ function desktop(options = {}) {
     getMediaSourceId() { return 'window:99:0'; }
     restore() {}
     flashFrame() {}
+    setOverlayIcon() {}
+    reload() { state.reloads = (state.reloads || 0) + 1; }
   }
   class Tray extends EventEmitter {
+    constructor() { super(); if (options.trayUnavailable) throw new Error('No tray'); state.tray = this; }
     setContextMenu(menu) { this.menu = menu; }
     setToolTip() {}
   }
@@ -128,7 +134,7 @@ function desktop(options = {}) {
   const context = vm.createContext({
     __dirname: root, URL, Buffer,
     console: { warn() {}, log() {}, error() {} },
-    process: { platform: 'darwin', argv: options.argv || ['Yapper'], env: {} },
+    process: { platform: options.platform || 'darwin', argv: options.argv || ['Yapper'], env: options.env || {} },
     setTimeout: (callback, delay) => schedule('timeout', callback, delay),
     setInterval: (callback, delay) => schedule('interval', callback, delay),
     setImmediate: (callback) => schedule('immediate', callback, 0),
@@ -143,11 +149,11 @@ function desktop(options = {}) {
         writeFileSync: (...args) => state.writes.push(args),
       };
       if (name === 'node:child_process') return {
-        execFile: () => assert.fail('Unexpected child process in desktop regression test'),
+        execFile: (cmd, args, opts, callback) => { state.execCalls.push({ cmd, args, opts }); callback(null, options.processOutput || ''); },
       };
       if (name === './games') return { games: [], tools: [] };
       if (name === './mac-processes') return { listMacProcesses: async () => new Map() };
-      if (name === './yappercord') return { readEnabled: () => false, readLayoutEnabled: () => true, writeEnabled: () => {}, trustedPage: require('../yappercord').trustedPage, bundleSource: () => '', appearanceSource: () => '' };
+      if (name === './yappercord') return { readEnabled: () => !!state.pluginsEnabled, readLayoutEnabled: () => true, writeEnabled: (file, enabled) => { state.writes.push([file, JSON.stringify({ enabled })]); if (file.endsWith('yappercord.json')) state.pluginsEnabled = enabled; }, trustedPage: require('../yappercord').trustedPage, bundleSource: () => '', appearanceSource: () => '' };
       if (name === 'uiohook-napi') {
         state.nativeLoads++;
         return { uIOhook: hook, UiohookKey: { Backquote: 41, M: 50 } };
@@ -211,7 +217,7 @@ test('deep links cannot turn their path into foreign hosts or URL credentials', 
   client.app.emit('open-url', { preventDefault() {} }, 'https://attacker.example');
   assert.equal(client.window.urls.length, previous);
   client.window.openHandler({ url: 'https://user:password@www.yapper.website/invite', frameName: '' });
-  assert.equal(client.window.urls.at(-1), SITE);
+  assert.equal(client.window.urls.length, previous, 'Credential-bearing links must not navigate the privileged window');
 });
 
 test('denied Accessibility keeps native hooks unloaded and reports unavailable hotkeys', async () => {
@@ -302,4 +308,93 @@ test('Mac startup and background timers cannot initiate unsigned automatic updat
   await Promise.resolve();
   assert.equal(client.state.updateChecks, 0);
   assert.equal(await client.invoke('yapper:update-install'), false);
+});
+
+
+for (const platform of ['win32', 'linux']) {
+  test(`${platform}: menu/tray expose plugin opt-in and no updater can run`, async () => {
+    const client = desktop({ platform });
+    await client.ready();
+    assert.equal(client.autoUpdater.autoDownload, false);
+    assert.equal(client.autoUpdater.autoInstallOnAppQuit, false);
+    const plugins = client.state.menu.items.find(item => item.label === 'Yapinplugger').submenu;
+    assert.equal(plugins[0].checked, false);
+    assert.equal(plugins[1].enabled, false);
+    assert.equal(plugins[1].accelerator, 'CommandOrControl+Shift+P');
+    assert.ok(client.state.tray.menu.items.some(item => item.label === 'Yapinplugger'));
+    plugins[0].click({ checked: true });
+    await Promise.resolve(); await Promise.resolve();
+    assert.equal(client.state.pluginsEnabled, true);
+    assert.equal(client.state.menu.items.find(item => item.label === 'Yapinplugger').submenu[1].enabled, true);
+    for (const timer of client.state.timers.filter(entry => entry.active)) await timer.callback();
+    assert.equal(client.state.updateChecks, 0);
+    assert.equal(await client.invoke('yapper:update-install'), false);
+    const downloads = client.state.tray.menu.items.find(item => item.label === 'Yapinplugger downloads…');
+    await downloads.click();
+    assert.equal(client.state.externalUrls.at(-1), 'https://github.com/h7sd/yapper-apple-ports/releases');
+  });
+  test(`${platform}: native bridge denies alternate ports, credentials and foreign pages`, async () => {
+    const client = desktop({ platform });
+    await client.ready();
+    for (const url of ['https://www.yapper.website:444/', 'https://u:p@www.yapper.website/', 'https://attacker.example/']) {
+      assert.equal(await client.invoke('yapper:settings-get', undefined, url), null);
+      assert.equal(await client.permission('media', ['audio'], url), false);
+    }
+    const handler = client.state.handlers.get('yapper:settings-get');
+    assert.ok(handler({ senderFrame: { url: SITE, parent: null, frameTreeNodeId: 7 }, sender: { mainFrame: { frameTreeNodeId: 7 } } }));
+    assert.equal(handler({ senderFrame: { url: SITE, parent: null, frameTreeNodeId: 8 }, sender: { mainFrame: { frameTreeNodeId: 7 } } }), null);
+    assert.equal(handler({ senderFrame: { url: SITE, parent: {} }, sender: {} }), null);
+    assert.equal(client.state.accessibilityCalls.length, 0, 'Non-Mac must never request Mac Accessibility consent');
+  });
+}
+
+test('Windows: taskbar identity, login arguments and screen-only loopback are platform appropriate', async () => {
+  const client = desktop({ platform: 'win32' });
+  await client.ready();
+  assert.equal(client.state.appId, 'website.yapper.desktop');
+  client.invoke('yapper:settings-set', { openAtLogin: true, startMinimized: true });
+  assert.deepEqual(plain(client.state.loginChanges.at(-1)), { openAtLogin: true, args: ['--hidden'] });
+  client.invoke('yapper:screen-pick', 'screen:1:0');
+  assert.equal((await client.display()).audio, 'loopback');
+  client.invoke('yapper:screen-pick', 'window:2:0');
+  assert.equal(Object.hasOwn(await client.display(), 'audio'), false);
+});
+
+test('Linux Wayland: no global hook or enumeration dialog before a real display request', async () => {
+  const client = desktop({ platform: 'linux', env: { XDG_SESSION_TYPE: 'wayland' } });
+  await client.ready();
+  assert.deepEqual(plain(client.invoke('yapper:hotkeys', { ptt: 'Backquote' })), { ptt: false, keys: false });
+  assert.equal(client.state.nativeLoads, 0);
+  assert.deepEqual(plain(await client.invoke('yapper:screen-sources')), []);
+  assert.equal(client.invoke('yapper:screen-pick', 'screen:1:0'), false);
+  assert.equal(client.state.captures.length, 0);
+  assert.equal(Object.hasOwn(await client.display(), 'audio'), false);
+  assert.equal(client.state.captures.length, 1, 'Only real display requests enumerate through the PipeWire portal');
+  assert.equal(client.invoke('yapper:settings-get').closeToTray, false);
+  assert.equal(client.invoke('yapper:settings-get').activity, true);
+  assert.equal(client.invoke('yapper:settings-set', { openAtLogin: true, activity: false }), false);
+  assert.equal(client.invoke('yapper:settings-get').activity, true, 'Unsupported autostart must reject before any setting is changed');
+  assert.equal(client.invoke('yapper:settings-set', { startMinimized: true }), false);
+  assert.equal(client.invoke('yapper:settings-get').openAtLogin, false);
+  assert.equal(client.invoke('yapper:settings-set', { activity: false, openAtLogin: false }), true);
+  assert.equal(client.state.tray.menu.items.find(item => item.label === 'Start with Windows').visible, false);
+});
+
+test('Linux without a tray: controls stay in the application menu and closing cannot hide the app', async () => {
+  const client = desktop({ platform: 'linux', trayUnavailable: true, settings: { closeToTray: true } });
+  await client.ready();
+  assert.ok(client.state.menu.items.some(item => item.label === 'Yapinplugger'));
+  let prevented = false;
+  client.window.emit('close', { preventDefault() { prevented = true; } });
+  assert.equal(prevented, false);
+});
+
+
+test('missing tray overrides hidden startup and window menu zoom persists', async () => {
+  const client = desktop({ platform: 'linux', trayUnavailable: true, argv: ['Yapinplugger', '--hidden'] });
+  await client.ready();
+  assert.equal(client.window.visible, true);
+  const zoomIn = client.state.menu.items.find(item => item.label === 'View').submenu.find(item => item.label === 'Zoom In');
+  zoomIn.click();
+  assert.deepEqual(plain(JSON.parse(client.state.writes.at(-1)[1])), { factor: 1.1 });
 });

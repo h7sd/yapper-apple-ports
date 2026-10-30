@@ -1,0 +1,5 @@
+#!/bin/sh
+# Keep Electron's Chromium sandbox enabled; do not add --no-sandbox here.
+set -eu
+APPDIR=${APPDIR:-$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)}
+exec "$APPDIR/yapinplugger" "$@"

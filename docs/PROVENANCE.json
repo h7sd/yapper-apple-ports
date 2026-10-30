@@ -38,10 +38,16 @@
   },
   "ports": {
     "macos": "Electron shell with Mac-specific integration and dependency security update; see locked version",
-    "ios": "Native Swift/WKWebView wrapper with capability-limited compatibility bridge"
+    "ios": "Native Swift/WKWebView wrapper with capability-limited compatibility bridge",
+    "windows": "Shared Electron shell and bridge from macos/, cross-packaged for Windows x64 with local addons; community NSIS installer and portable ZIP.",
+    "linux": "Shared Electron shell and bridge from macos/, rebuilt for Linux x64 with local addons; AppImage and tarball.",
+    "android": "Native Java/Android WebView wrapper with origin-scoped main-frame messaging and capability-limited compatibility bridge."
   },
   "signing": {
     "macos": "ad-hoc, no Developer ID/notarization",
-    "ios": "unsigned device binary and simulator build; no embedded signing identity"
+    "ios": "unsigned device binary and simulator build; no embedded signing identity",
+    "windows": "No Authenticode certificate; unsigned community executable and installer.",
+    "linux": "No publisher signature; release SHA-256 checksums and pinned AppImage runtime.",
+    "android": "Self-signed persistent local project distribution certificate; private key excluded; certificate fingerprint in android/reports/verification.json."
   }
 }

@@ -1,0 +1,49 @@
+{
+  "platform": "linux",
+  "architecture": "x64",
+  "electronVersion": "45.1.0",
+  "appVersion": "1.1.0",
+  "yapinpluggerVersion": "0.1.0",
+  "buildHost": "darwin",
+  "runtimeTestedOnTarget": false,
+  "sourceHashes": {
+    "main.js": "6340b8362f90d563500d93bbbf54f7a167ef174563b9dadaf2c5c7984beabc0d",
+    "preload.js": "755085f5656689fb29656079bb3cd8145c52d88731b1a5a24ef4bd1d8686ab62",
+    "games.js": "ff51d6f52b7ca30ca1404dd139f31d83c5a5ebcdfeac53d8d6b9181bda0b809e",
+    "mac-processes.js": "34038411d72e8abdedba977a939024e6c19b068cbb9c623863a6f1e74c522e2c",
+    "yappercord.js": "d2db82da29f1c38cf5383e8de4b63880449bdc90eb6c9a418bc07f24b3acde09",
+    "yappercord/bundle.js": "de53f573bfa5fb3fdbcd8d35e710ef5805bae60284603a519c7c3850ab28e2a7",
+    "yappercord/bundle.sha256": "22ed53d0f918f1c498c9854b1c6a33597b345655162eae056de4a383f662a21a",
+    "yappercord/LICENSE.Vencord": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+    "yappercord/UPSTREAM.md": "39612de9941f538d180ac93b9f234b9d13906c30d93ff2db2f42cb2a24cef323",
+    "appearance/bundle.js": "52c19429daee71e0eda97b95b9605aaf8090367626569df101ce19a2f4a3fdf6",
+    "appearance/bundle.sha256": "f9a6f110de125ab412dda2bf6fe9b277e00277bb607856ad8577b51d36855f9e",
+    "appearance/LICENSE": "f9046e05df9221647c73268b51e8dfded4b7d1978ab9efb28c8a81af3e94f3ee",
+    "build/icon.png": "75c5a651577e58fbd988af3f25abf26bc8de54ed53339438cc1921a9df581182"
+  },
+  "appImageRuntime": {
+    "repository": "AppImage/type2-runtime",
+    "commit": "fedfad51acc2860b2916a1eef32ba4a500ff31ef",
+    "assetId": 657374641,
+    "url": "https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-x86_64",
+    "sha256": "617aa77314d57c8b8e4fae9c3f0b35af7b30d5529cb69e98f64f92510ed98a46",
+    "offset": 944632
+  },
+  "artifacts": [
+    {
+      "name": "Yapinplugger-1.1.0-plugins-0.1.0-linux-x64.tar.gz",
+      "bytes": 124724806,
+      "sha256": "f398addacc6bbdd941fc09b8305c4f6440ad2097f52b01861eef2c0ffaac4b77"
+    },
+    {
+      "name": "Yapinplugger-1.1.0-plugins-0.1.0-linux-x64.AppImage",
+      "bytes": 101538296,
+      "sha256": "240df0f4cff3a2e0e613653aa995117a94b3213364fbf25b76041744b15fa4ce"
+    }
+  ],
+  "limitations": [
+    "Cross-compiled on macOS/Linux; no target desktop execution or hardware call test.",
+    "Windows binaries are unsigned; no publisher certificate is supplied.",
+    "Chromium sandbox remains enabled; Linux user-namespace policy and system libraries must support Electron."
+  ]
+}

@@ -10,6 +10,8 @@ Six independent feature adaptations are implemented. The other 161 public upstre
 
 ## Local results
 
+The Linux/Windows/Android addition has a separate [multiplatform validation record](MULTIPLATFORM-VALIDATION.md). The Apple results below remain scoped to their published builds; they do not claim target-device execution for the new platforms.
+
 - **14 Node tests passed, none skipped**, when explicitly pointed at the pinned Vencord checkout. This includes independent Git-tree inventory coverage, exact catalog regeneration, safe literal parsing, URL cleaning, settings validation, CSS validation and nonrecursive replacements. Without `VENCORD_SOURCE`, the external-checkout test intentionally skips; the other 13 run from this repository alone.
 - **20 Mac regression tests passed**, including the existing permission/bridge tests and new opt-in/configuration/bundle-integrity checks.
 - **14 Electron checks passed** in the real packaged Apple Silicon app. Live anonymous Yapper login and the manager were checked; semantic draft transformations and image zoom used a synthetic, explicitly routed HTML fixture. Keyboard focus survives toggling, disabled effects are removed, retained APIs cannot restart them, iframe execution is rejected, and native disabling reloads without the extension. [Machine-readable results](reports/yappercord-live-checks.json).

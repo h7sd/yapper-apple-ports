@@ -1,0 +1,63 @@
+{
+  "date": "2026-10-30",
+  "source": "shared desktop source and native Android source",
+  "desktopRegressionTests": {
+    "passed": 28,
+    "failed": 0,
+    "skipped": 0
+  },
+  "desktopSourceChecks": {
+    "passed": 18
+  },
+  "desktopPackageChecks": {
+    "passed": 55
+  },
+  "androidTests": {
+    "schemaVersion": 1,
+    "urlPolicy": {
+      "framework": "JUnit 4.13.2",
+      "passed": 7,
+      "failed": 0
+    },
+    "nativeBridge": {
+      "framework": "node:test",
+      "passed": 11,
+      "failed": 0
+    },
+    "scope": "Executed JVM origin/navigation/deep-link tests and JS compatibility/origin/consent/lifecycle tests. This is not an Android runtime or physical-device test."
+  },
+  "androidCertificateSha256": "47ca83f0de4587d2a2b9de9c8196a8473bac649b3c2c2df4b2efa1fc9d3780fe",
+  "runtimeExecution": {
+    "linux": false,
+    "windows": false,
+    "android": false
+  },
+  "assets": [
+    {
+      "name": "Yapinplugger-1.1.0-plugins-0.1.0-linux-x64.tar.gz",
+      "bytes": 124724806,
+      "sha256": "f398addacc6bbdd941fc09b8305c4f6440ad2097f52b01861eef2c0ffaac4b77"
+    },
+    {
+      "name": "Yapinplugger-1.1.0-plugins-0.1.0-linux-x64.AppImage",
+      "bytes": 101538296,
+      "sha256": "240df0f4cff3a2e0e613653aa995117a94b3213364fbf25b76041744b15fa4ce"
+    },
+    {
+      "name": "Yapinplugger-1.1.0-plugins-0.1.0-windows-x64.zip",
+      "bytes": 159189149,
+      "sha256": "09a6505085e04ab6a0e64d703f0500f9e890dcb43e4e4aec4f29349161518570"
+    },
+    {
+      "name": "Yapinplugger-1.1.0-plugins-0.1.0-windows-x64-Setup.exe",
+      "bytes": 113603514,
+      "sha256": "47896b88f6bfbcd1332f0afda849e2b9e9a0e63999c3c3a69fab8f48469f9843"
+    },
+    {
+      "name": "Yapper-1.1.0-Yapinplugger-0.1.0-android.apk",
+      "bytes": 230564,
+      "sha256": "b9be70c1408cb6098f5f5ffe0deb7746828b27bbc833ffc0ec2191f446c46896"
+    }
+  ],
+  "privateSigningMaterialPublished": false
+}

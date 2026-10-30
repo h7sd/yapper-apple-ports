@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "urlPolicy": {
+    "framework": "JUnit 4.13.2",
+    "passed": 7,
+    "failed": 0
+  },
+  "nativeBridge": {
+    "framework": "node:test",
+    "passed": 11,
+    "failed": 0
+  },
+  "scope": "Executed JVM origin/navigation/deep-link tests and JS compatibility/origin/consent/lifecycle tests. This is not an Android runtime or physical-device test."
+}

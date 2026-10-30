@@ -10,7 +10,7 @@ Six separately implemented, limited feature adaptations are available. All start
 
 - **CharacterCounter** — counts characters in semantic Yapper message fields. Only shows a limit when the actual field supplies one.
 - **ClearURLs** — explicitly cleans common tracking query parameters in a textarea draft or text workbench. Does not implement Vencord's full provider rules or intercept message sending. Review signed or otherwise sensitive links before sending.
-- **ImageZoom** — Shift-click a loaded large image on Mac, or use the manager's image gallery on iOS. Does not retrieve message history.
+- **ImageZoom** — Shift-click a loaded large image on desktop, or use the manager's image gallery on iOS/Android. Does not retrieve message history.
 - **PictureInPicture** — requests the system's video feature when supported. Video, browser and OS restrictions still apply. A successful picture-in-picture session has not been verified on a physical iPhone.
 - **NoF1** — intercepts F1 while this page has focus; no global keyboard hook.
 - **TextReplace** — manually applies saved literal replacement rules. Does not intercept messages or run regular expressions.
@@ -32,6 +32,14 @@ The native enable flag is `yappercord.json` (`{"schemaVersion":1,"enabled":true}
 ## Enable on iOS
 
 In native app settings enable **Yapinplugger**, then open the plugin manager. The initial state is off. Only the bundled script is installed into trusted main-frame Yapper pages. Disabling removes it and reloads the page. The Mac installer cannot install plugins into an iOS app; install your own signed build of the integrated iOS app instead. See [iOS integration](../../docs/IOS-YAPPERCORD.md).
+
+## Enable on Windows and Linux
+
+Install or extract a [compatible desktop build](../../desktop/README.md). Choose **Yapinplugger → Enable Yapinplugger**, then **Open Plugin Manager** (Ctrl+Shift+P). The window menu and tray expose the same controls; the window menu remains available when a Linux desktop has no tray. These builds use a separate Yapinplugger profile and do not patch an installed official client.
+
+## Enable on Android
+
+Install the [signed APK](../../android/README.md). Open native App Settings from the launcher shortcut, `yapper://app-settings`, or the Back action on the initial page. Enable Yapinplugger, save, then choose **Open Plugin Manager** in App Settings. The native plugin flag starts off; the independent appearance layout starts on. Only the bundled scripts run on trusted main-frame app pages.
 
 ## Build and inspect
 

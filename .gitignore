@@ -1,5 +1,6 @@
 .DS_Store
 node_modules/
+.cache/
 dist/
 .build/
 DerivedData/
@@ -17,4 +18,12 @@ xcuserdata/
 *.app/
 *.zip
 *.AppImage
+*.apk
+*.aab
+*.jks
+*.keystore
+.gradle/
+local.properties
+android/build/
+android/.tools/
 macos/build/icon.icns

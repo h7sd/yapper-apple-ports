@@ -1,0 +1,5 @@
+240df0f4cff3a2e0e613653aa995117a94b3213364fbf25b76041744b15fa4ce  Yapinplugger-1.1.0-plugins-0.1.0-linux-x64.AppImage
+f398addacc6bbdd941fc09b8305c4f6440ad2097f52b01861eef2c0ffaac4b77  Yapinplugger-1.1.0-plugins-0.1.0-linux-x64.tar.gz
+47896b88f6bfbcd1332f0afda849e2b9e9a0e63999c3c3a69fab8f48469f9843  Yapinplugger-1.1.0-plugins-0.1.0-windows-x64-Setup.exe
+09a6505085e04ab6a0e64d703f0500f9e890dcb43e4e4aec4f29349161518570  Yapinplugger-1.1.0-plugins-0.1.0-windows-x64.zip
+b9be70c1408cb6098f5f5ffe0deb7746828b27bbc833ffc0ec2191f446c46896  Yapper-1.1.0-Yapinplugger-0.1.0-android.apk

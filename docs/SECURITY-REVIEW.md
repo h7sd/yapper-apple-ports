@@ -1,6 +1,6 @@
 # Security review and verification limits
 
-This document records a bounded review of the macOS desktop shell and the checks this repository can reproduce. It does not certify that Yapper, its upstream AppImage, third-party packages, or its live website is malware-free. It cannot guarantee the absence of a remote-access trojan, a vulnerability, malicious future server content, or a compromised dependency.
+This document records the macOS baseline review and the shared desktop changes for Windows/Linux. The Android section below describes its separate native boundary. It does not certify that Yapper, its upstream AppImage, third-party packages, or its live website is malware-free. It cannot guarantee the absence of a remote-access trojan, a vulnerability, malicious future server content, or a compromised dependency.
 
 ## What was reviewed
 
@@ -11,7 +11,7 @@ The initial Electron 38.8.6 Apple Silicon app was smoke-tested for startup, live
 ## Native capabilities and data exposed to the website
 
 - **Remote content and authentication:** the main window loads `https://www.yapper.website`. The service, account flows, messages, and renderer JavaScript remain controlled by the upstream service and can change without a new desktop binary.
-- **Trust-host checks:** navigation, most IPC handlers, and permission checks accept HTTPS URLs on `www.yapin.gg`, `yapin.gg`, `www.yapper.website`, `yapper.website`, `rt.yapper.website`, and `lk.yapper.website`. This is a hostname check; it does not constrain HTTPS ports. It is not a network egress allowlist: permitted pages can load external resources and make their own network requests.
+- **Trust-host checks:** the current shared desktop source accepts HTTPS URLs on `www.yapin.gg`, `yapin.gg`, `www.yapper.website`, `yapper.website`, `rt.yapper.website`, and `lk.yapper.website`, on port 443 without URL credentials. Privileged IPC additionally requires the main frame. This tightens the original Mac baseline's hostname-only check. It is not a network egress allowlist: permitted pages can load external resources and make their own network requests. The locally bundled addons use the four app hosts, excluding `rt` and `lk`.
 - **Renderer separation:** the main window and Discord-import popup declare `sandbox: true`, `contextIsolation: true`, and `nodeIntegration: false`. The preload exposes named `yapperDesktop` methods rather than a generic shell, filesystem, or arbitrary IPC execution API. The version IPC returns the application version without an origin gate; the more privileged handlers use `fromYapper`.
 - **Microphone, camera, and notifications:** trusted pages can request them. macOS media permission is requested for the device the page names. Once OS consent exists, the website controls use through the allowed web APIs. Trusted-host permission checks also permit display capture, clipboard read/sanitized write, and fullscreen.
 - **Screens and window thumbnails:** trusted pages can enumerate sources and receive window/screen names, thumbnails, and icons. A selected source lasts for one request within 30 seconds. The display-capture handler falls back to the first available screen if there is no valid fresh selection, disables the system picker, and does not independently require `req.userGesture`. Therefore, OS screen-recording permission is a significant trust grant; the desktop code does not enforce a new native confirmation for every capture request. Mac system-audio loopback remains disabled after the runtime update.
@@ -23,7 +23,7 @@ The initial Electron 38.8.6 Apple Silicon app was smoke-tested for startup, live
 
 ## Updates, signatures, and dependencies
 
-Automatic binary downloads and background update checks are disabled on macOS because this port has no signed Mac update feed. The shipped `electron-updater` dependency remains pinned for provenance, and manual downloads open the upstream site. This does not freeze the live website or prevent the website from changing its desktop-bridge calls.
+Automatic binary downloads and background update checks are disabled on all community desktop builds because this project has no compatible signed update feed. The shared source has no update-check calls; the install-update bridge returns false. The pinned `electron-updater` dependency remains for provenance. Native download-menu actions open this repository's releases so the official updater cannot replace the modified Windows/Linux client. This does not freeze the live website or prevent the website from changing its desktop-bridge calls.
 
 The public release pins Electron **`45.1.0`**, `@electron/packager` `20.3.0`, `electron-updater` `6.8.9`, and `uiohook-napi` `1.5.5` with an npm lockfile. The recovered upstream runtime was Electron `38.8.6`; its identity remains in provenance. The public port deliberately updates that runtime before release. `npm ci` downloads dependencies and runs their lifecycle scripts, including Electron acquisition. npm integrity hashes help identify package bytes but do not prove package intent or safety. The CI advisory report must be inspected separately from build/test success; advisory databases can be incomplete or unavailable.
 
@@ -42,6 +42,18 @@ Builds use ad-hoc signatures and hardened-runtime entitlements for Electron, cam
 After a build, `node scripts/verify-macos.mjs --arch=arm64` or `--arch=x64` extracts the archive into temporary non-synced staging, verifies nested code signatures and executable/native-module architecture, compares packaged source bytes to the current source, checks excluded development files, and writes an archive checksum and a sanitized JSON report. It does not launch the app or grant native permissions.
 
 The macOS workflow uses commit-pinned official GitHub Actions, read-only repository permissions, no release publication, no signing secrets, and no `pull_request_target` execution. It uploads builds, checksums, reports, and advisory results as temporary CI artifacts. A green workflow means its selected checks passed. Review the exact commit, build logs, advisory output, and limitations before deciding whether to run a build or grant native access.
+
+## Windows and Linux packages
+
+The cross-platform builder copies the current shared desktop source, exact local addon bytes, integrity files, license notices and the target-specific x64 hotkey binary. Packaging checks inspect actual PE/ELF headers, extract the archives and AppImage filesystem, compare ASAR source bytes, and call both bundled integrity loaders. Source-level tests exercise Windows/Linux menu access, disabled updates, denied native IPC origins/frames, Windows login settings and Wayland fallbacks. These checks do not execute the Windows/Linux desktop runtimes or their OS installers.
+
+The Windows NSIS installer requests current-user access, registers its own uninstaller and `yapper://` handler, and preserves the separate Yapinplugger profile when removed. Windows executables are not Authenticode-signed. Linux supplies an optional user-local desktop registration script, leaves Chromium's sandbox enabled, and does not change system namespace/security settings. Global hooks and the custom source picker are unavailable on Wayland; screen sharing uses the portal path. Linux login autostart is not implemented. See [desktop behavior, reports and build instructions](../desktop/README.md).
+
+## Android boundary
+
+Android uses a separate native Java/WebView shell. The message listener validates the exact app HTTPS origins and main frame before accepting a small named method set. It does not expose a general `addJavascriptInterface`, filesystem API or command runner. The original desktop compatibility API reports unsupported screen sharing, system audio, global hooks, process enumeration, background push and executable updates as unavailable.
+
+Camera, microphone and notification features require native user consent. File upload uses the system picker. SSL failures are cancelled, cleartext traffic and WebView debugging are disabled, and app backup is disabled. Shared scripts and license notices are bundled locally; the plugin extension starts off. Persistent website storage stays local to the app. The self-signed APK's distribution certificate fingerprint and bounded package verification are published, while the signing key and password remain private. Its Java URL-policy/JavaScript-bridge tests and signature/manifest/resource checks do not establish behavior on a physical Android device. See [Android build, signing, permissions and limits](../android/README.md).
 
 ## Remaining review gaps
 

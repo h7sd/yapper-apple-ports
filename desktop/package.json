@@ -1,0 +1,24 @@
+{
+  "name": "yapinplugger-desktop",
+  "productName": "Yapinplugger",
+  "version": "1.1.0",
+  "yappercordVersion": "0.1.0",
+  "yapinpluggerVersion": "0.1.0",
+  "description": "Yapinplugger community client for Linux and Windows, based on the supplied official Yapper Linux AppImage.",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "build:linux": "node scripts/build-desktop.mjs --platform=linux",
+    "build:windows": "node scripts/build-desktop.mjs --platform=win32",
+    "build:all": "node scripts/build-desktop.mjs --platform=all",
+    "verify": "node scripts/verify-desktop.mjs"
+  },
+  "dependencies": {
+    "electron-updater": "6.8.9",
+    "uiohook-napi": "1.5.5"
+  },
+  "devDependencies": {
+    "@electron/packager": "20.3.0",
+    "electron": "45.1.0"
+  }
+}

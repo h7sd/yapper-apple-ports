@@ -1,0 +1,36 @@
+Yapinplugger Android — third-party notices
+
+AndroidX WebKit 1.18.0
+Copyright The Android Open Source Project (2017–2026).
+https://android.googlesource.com/platform/frameworks/support/+/androidx-webkit-release/webkit/
+Licensed under the Apache License, Version 2.0. See LICENSE.Apache-2.0.
+The unmodified classes.jar from the official Google Maven artifact is bundled.
+
+AndroidX Core 1.1.0 — minimal WebKit runtime dependency
+Copyright The Android Open Source Project.
+https://android.googlesource.com/platform/frameworks/support/
+Licensed under the Apache License, Version 2.0. See LICENSE.Apache-2.0.
+Only unmodified androidx.core.util.Pair, ObjectsCompat and
+androidx.core.content.pm.PackageInfoCompat classes are bundled.
+
+Yapper Appearance 0.1.0
+Copyright (c) 2026 Yapper Apple Ports contributors.
+MIT license. See LICENSE.Appearance.
+
+Yapinplugger runtime and bundled Vencord plugin catalogue
+GPL-3.0-or-later. See LICENSE.Vencord.
+Vencord catalogue pinned source:
+https://github.com/Vendicated/Vencord/tree/644434941b515a2626a2161e219653cb36e723e7
+Six independent Yapper adaptations are provided; 161 public plugins remain unported.
+
+Corresponding port source and build instructions:
+https://github.com/h7sd/yapper-apple-ports/tree/main/android
+
+Yapper's live website, account backend and original artwork belong to their
+respective rights holders. This client is an unofficial port of the official
+Yapper 1.1.0 Linux AppImage, not an official Android release from Yapper.
+
+The AOSP framework compile jar, JDK, R8, AAPT2, apksig, annotations, Kotlin
+compile annotations, JUnit and Hamcrest are build/test dependencies only.
+They are not bundled application executables. See android/BUILD-DEPENDENCIES.md
+and dependencies.lock.json in the corresponding source for pinned provenance.

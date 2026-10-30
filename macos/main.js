@@ -10,6 +10,8 @@ const { games: GAMES, tools: TOOLS } = require('./games');
 const { listMacProcesses } = require('./mac-processes');
 const yappercord = require('./yappercord');
 const IS_MAC = process.platform === 'darwin';
+const IS_WAYLAND = process.platform === 'linux' && process.env.XDG_SESSION_TYPE === 'wayland';
+const RELEASES = 'https://github.com/h7sd/yapper-apple-ports/releases';
 
 const SITE = 'https://www.yapper.website';
 const ALLOWED = new Set(['www.yapin.gg', 'yapin.gg', 'www.yapper.website', 'yapper.website', 'rt.yapper.website', 'lk.yapper.website']);
@@ -20,7 +22,7 @@ if (!app.requestSingleInstanceLock()) { app.quit(); }
 
 // Settings the site can change (Settings -> Desktop app), kept in settings.json next to zoom.json.
 const DEFAULTS = {
-  closeToTray: true,     // closing the window keeps Yapin' in the tray (off: closing quits)
+  closeToTray: process.platform !== 'linux',     // closing the window keeps Yapin' in the tray (off: closing quits)
   startMinimized: false, // with "start with Windows": start in the tray
   hwAccel: true,         // graphics card drawing (off helps some PCs with black screens or stutter; needs a restart)
   activity: true,        // "Playing X"
@@ -155,7 +157,7 @@ function loadSite(url) {
   // Whatever calls this, only our own pages load in this window (it carries the desktop bridge).
   try {
     const u = new URL(url);
-    if (u.protocol !== 'https:' || !ALLOWED.has(u.hostname) || u.username || u.password) url = SITE;
+    if (!ownUrl(u.href)) url = SITE;
   } catch { url = SITE; }
   lastUrl = url;
   win.loadURL(url).catch(() => undefined); // failures land in did-fail-load
@@ -316,7 +318,7 @@ function createWindow() {
   // "Close to tray" off in Settings -> Desktop app. The first time, a small notice says where it went.
   win.on('close', (e) => {
     if (quitting) return;
-    if (!settings.closeToTray) { quitting = true; app.quit(); return; }
+    if (!settings.closeToTray || !tray) { quitting = true; app.quit(); return; }
     e.preventDefault();
     win.hide();
     if (!settings.trayNoticeShown && Notification.isSupported()) {
@@ -336,6 +338,7 @@ function setLoginItem(openAtLogin, startMinimized) {
   app.setLoginItemSettings(IS_MAC ? { openAtLogin: !!openAtLogin } : { openAtLogin: !!openAtLogin, args: startMinimized ? ['--hidden'] : [] });
 }
 function openAtLogin() {
+  if (process.platform === 'linux') return false;
   try { return !!app.getLoginItemSettings().openAtLogin; } catch { return false; }
 }
 
@@ -344,7 +347,9 @@ function trayMenu() {
     { label: 'Open Yapin’', click: show },
     { type: 'separator' },
     ...(updateReady ? [{ label: `Restart to update (${updateReady})`, click: () => { quitting = true; setImmediate(() => autoUpdater.quitAndInstall(true, true)); } }] : []),
-    IS_MAC ? { label: 'Yapper downloads…', click: () => shell.openExternal(`${SITE}/download`) } : { label: 'Check for updates', click: () => autoUpdater.checkForUpdatesAndNotify().catch(() => undefined) },
+    { label: 'Yapinplugger downloads…', click: () => shell.openExternal(RELEASES) },
+    { label: 'Yapinplugger', submenu: pluginMenuItems() },
+    layoutMenuItem(),
     { label: IS_MAC ? 'Open at Login' : 'Start with Windows', type: 'checkbox', checked: openAtLogin(), visible: IS_MAC || process.platform === 'win32',
       click: (item) => setLoginItem(item.checked, settings.startMinimized) },
     { type: 'separator' },
@@ -353,11 +358,52 @@ function trayMenu() {
 }
 function createTray() {
   const img = nativeImage.createFromPath(ICON).resize({ width: 16, height: 16 });
-  tray = new Tray(img);
+  try { tray = new Tray(img); } catch (error) { console.warn('Tray unavailable:', error.message); return; }
   tray.setToolTip('Yapin’');
   tray.setContextMenu(trayMenu());
   tray.on('click', show);
   tray.on('double-click', show);
+}
+
+// Keep opt-in controls reachable from the window menu even on desktops with no tray.
+function refreshMenus() {
+  if (IS_MAC) createMacMenu(); else createDesktopMenu();
+  tray?.setContextMenu(trayMenu());
+}
+function preferenceItem(label, filename, readEnabled, destroy) {
+  const file = path.join(app.getPath('userData'), filename);
+  return { label, type: 'checkbox', checked: readEnabled(file), click: item => {
+    try {
+      yappercord.writeEnabled(file, item.checked);
+      if (win && !win.isDestroyed()) win.webContents.executeJavaScript(destroy).catch(() => {}).finally(() => { if (win && !win.isDestroyed()) win.reload(); });
+    } catch (error) { console.error('Could not save preference:', error.message); }
+    refreshMenus();
+  } };
+}
+function layoutMenuItem() {
+  return preferenceItem('Enhanced Profile Layout', 'appearance.json', yappercord.readLayoutEnabled, 'window.YapperAppearance?.destroy()');
+}
+function pluginMenuItems() {
+  return [
+    preferenceItem('Enable Yapinplugger', 'yappercord.json', yappercord.readEnabled, 'window.Yapinplugger?.destroy()'),
+    { label: 'Open Plugin Manager', accelerator: 'CommandOrControl+Shift+P', enabled: yappercord.readEnabled(path.join(app.getPath('userData'), 'yappercord.json')), click: () => {
+      show(); if (win && yappercord.trustedPage(win.webContents.getURL())) win.webContents.executeJavaScript('window.Yapinplugger?.open()').catch(() => {});
+    } },
+    { label: 'Source & Compatibility', click: () => shell.openExternal('https://github.com/h7sd/yapper-apple-ports/tree/main/extensions/yappercord') },
+  ];
+}
+function createDesktopMenu() {
+  Menu.setApplicationMenu(Menu.buildFromTemplate([
+    { label: 'File', submenu: [{ label: 'Open Yapper', click: show }, { type: 'separator' }, { role: 'quit' }] },
+    { role: 'editMenu' },
+    { label: 'View', submenu: [{ role: 'reload' },
+      { label: 'Actual Size', accelerator: 'Control+0', click: () => setZoom(1) },
+      { label: 'Zoom In', accelerator: 'Control+Plus', click: () => setZoom(zoom + 0.1) },
+      { label: 'Zoom Out', accelerator: 'Control+-', click: () => setZoom(zoom - 0.1) },
+      { role: 'togglefullscreen' }, { type: 'separator' }, layoutMenuItem()] },
+    { label: 'Yapinplugger', submenu: pluginMenuItems() },
+    { role: 'help', submenu: [{ label: 'Yapper website', click: () => shell.openExternal(SITE) }, { label: 'Yapinplugger downloads…', click: () => shell.openExternal(RELEASES) }] },
+  ]));
 }
 
 // Standard Mac commands keep editing, closing, hiding and quitting available from the keyboard.
@@ -377,31 +423,10 @@ function createMacMenu() {
       { label: 'Zoom Out', accelerator: 'Command+-', click: () => setZoom(zoom - 0.1) },
       { type: 'separator' }, { role: 'togglefullscreen' },
       { type: 'separator' },
-      { label: 'Enhanced Profile Layout', type: 'checkbox', checked: yappercord.readLayoutEnabled(path.join(app.getPath('userData'), 'appearance.json')), click: item => {
-        try {
-          yappercord.writeEnabled(path.join(app.getPath('userData'), 'appearance.json'), item.checked);
-          if (win && !win.isDestroyed()) win.webContents.executeJavaScript('window.YapperAppearance?.destroy()').catch(() => {}).finally(() => { if (win && !win.isDestroyed()) win.reload(); });
-          createMacMenu();
-        } catch (error) { console.error('Could not save layout preference:', error.message); createMacMenu(); }
-      } },
+      layoutMenuItem(),
     ] },
     { role: 'windowMenu' },
-    { label: 'Yapinplugger', submenu: [
-      { label: 'Enable Yapinplugger', type: 'checkbox', checked: yappercord.readEnabled(path.join(app.getPath('userData'), 'yappercord.json')), click: item => {
-        try {
-          yappercord.writeEnabled(path.join(app.getPath('userData'), 'yappercord.json'), item.checked);
-          if (win && !win.isDestroyed()) {
-            // Remove live effects immediately, then reload with the new opt-in state.
-            win.webContents.executeJavaScript('window.Yapinplugger?.destroy()').catch(() => {}).finally(() => { if (win && !win.isDestroyed()) win.reload(); });
-          }
-          createMacMenu();
-        } catch (error) { console.error('Could not save Yapinplugger preference:', error.message); createMacMenu(); }
-      } },
-      { label: 'Open Plugin Manager', accelerator: 'Command+Shift+P', enabled: yappercord.readEnabled(path.join(app.getPath('userData'), 'yappercord.json')), click: () => {
-        show(); if (win && yappercord.trustedPage(win.webContents.getURL())) win.webContents.executeJavaScript('window.Yapinplugger?.open()').catch(() => {});
-      } },
-      { label: 'Source & Compatibility', click: () => shell.openExternal('https://github.com/h7sd/yapper-apple-ports/tree/main/extensions/yappercord') },
-    ] },
+    { label: 'Yapinplugger', submenu: pluginMenuItems() },
     { role: 'help', submenu: [
       { label: 'Yapper website', click: () => shell.openExternal(SITE) },
       { label: 'Yapper downloads…', click: () => shell.openExternal(`${SITE}/download`) },
@@ -563,11 +588,14 @@ let pendingPick = null;
  *  goes through this, so a plain-http copy of the site (someone on the network answering before the redirect to
  *  https) never gets the desktop bridge. */
 function ownUrl(url) {
-  try { const u = new URL(url); return u.protocol === 'https:' && ALLOWED.has(u.hostname); } catch { return false; }
+  try { const u = new URL(url); return u.protocol === 'https:' && ALLOWED.has(u.hostname) && !u.username && !u.password && (!u.port || u.port === '443'); } catch { return false; }
 }
 /** Only the Yapper site itself may list or pick screens. */
 function fromYapper(e) {
-  return ownUrl(e.senderFrame?.url ?? '');
+  const frame = e.senderFrame;
+  const main = e.sender?.mainFrame;
+  const isMain = !main || frame === main || (Number.isInteger(frame?.frameTreeNodeId) && frame.frameTreeNodeId === main.frameTreeNodeId);
+  return !!frame && !frame.parent && isMain && ownUrl(frame.url);
 }
 function takePick(req) {
   const p = pendingPick;
@@ -629,8 +657,9 @@ app.whenReady().then(() => {
 
   createWindow();
   createTray();
+  if (!tray && startHidden) show();
   if (IS_MAC) createMacMenu();
-  else Menu.setApplicationMenu(null);
+  else createDesktopMenu();
 
   // Only the Yapper site itself may use the bridge: a page the window ended up on must not set badges or make notifications.
   // The preload draws the little red number (it has a canvas, this process doesn't) and sends it along as a PNG.
@@ -655,6 +684,9 @@ app.whenReady().then(() => {
   });
   ipcMain.handle('yapper:settings-set', (e, p) => {
     if (!fromYapper(e) || !p || typeof p !== 'object') return false;
+    // Linux login integration is not implemented; do not report a successful
+    // change that cannot take effect if a future remote UI sends this request.
+    if (process.platform === 'linux' && (p.openAtLogin === true || p.startMinimized === true)) return false;
     const patch = {};
     for (const k of ['closeToTray', 'hwAccel', 'activity']) if (typeof p[k] === 'boolean') patch[k] = p[k];
     if (Array.isArray(p.customGames)) {
@@ -696,7 +728,7 @@ app.whenReady().then(() => {
 
   // The screen picker's list: screens and app windows with small live thumbnails (not our own window).
   ipcMain.handle('yapper:screen-sources', async (e) => {
-    if (!fromYapper(e)) return [];
+    if (!fromYapper(e) || IS_WAYLAND) return [];
     const own = ownWindowKey();
     const sources = await desktopCapturer.getSources({ types: ['screen', 'window'], thumbnailSize: { width: 320, height: 180 }, fetchWindowIcons: true });
     return sources
@@ -711,33 +743,19 @@ app.whenReady().then(() => {
       }));
   });
   ipcMain.handle('yapper:screen-pick', (e, id) => {
-    if (!fromYapper(e) || typeof id !== 'string' || !SOURCE_ID.test(id)) { pendingPick = null; return false; }
+    if (!fromYapper(e) || IS_WAYLAND || typeof id !== 'string' || !SOURCE_ID.test(id)) { pendingPick = null; return false; }
     pendingPick = { id, at: Date.now() };
     return true;
   });
 
-  // Updates: check at start and every 4 hours; installs when you quit, or right away from the site's
-  // "Restart to update" bar (people keep the app in the tray and rarely quit, so updates sat waiting).
-  // The supplied feed publishes Linux/Windows builds. A Mac port has no signed Mac update feed.
-  autoUpdater.autoDownload = !IS_MAC;
-  autoUpdater.autoInstallOnAppQuit = !IS_MAC;
-  autoUpdater.on('update-downloaded', (info) => {
-    updateReady = String(info?.version || 'new');
-    win?.webContents.send('yapper:update-ready', updateReady);
-    tray?.setContextMenu(trayMenu()); // "Restart to update" in the tray too
-  });
+  // Update bridge compatibility is retained, but these community builds use manual downloads.
+  // This modified community client has no compatible signed update feed. Never
+  // download an upstream executable that would replace these reviewed resources.
+  autoUpdater.autoDownload = false;
+  autoUpdater.autoInstallOnAppQuit = false;
+  // No update-downloaded listener is registered while automatic updates are disabled.
   ipcMain.on('yapper:update-ask', (e) => { if (fromYapper(e) && updateReady) e.sender.send('yapper:update-ready', updateReady); });
-  ipcMain.handle('yapper:update-install', (e) => {
-    if (!fromYapper(e) || !updateReady) return false;
-    quitting = true;
-    setImmediate(() => autoUpdater.quitAndInstall(true, true)); // silent install, then start again
-    return true;
-  });
-  const check = () => autoUpdater.checkForUpdatesAndNotify().catch(() => undefined);
-  if (!IS_MAC) {
-    setTimeout(check, 10_000);
-    setInterval(check, 4 * 3600_000);
-  }
+  ipcMain.handle('yapper:update-install', () => false);
 
   openDeepLink(pendingDeepLink || process.argv.find((a) => a.startsWith('yapper://')));
 });

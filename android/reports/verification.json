@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "artifact": "Yapper-1.1.0-Yapinplugger-0.1.0-android.apk",
+  "sha256": "b9be70c1408cb6098f5f5ffe0deb7746828b27bbc833ffc0ec2191f446c46896",
+  "bytes": 230564,
+  "applicationId": "website.yapper.android",
+  "versionCode": 11004,
+  "versionName": "1.1.0-yapinplugger.0.1.0",
+  "minimumAndroidApi": 29,
+  "targetAndroidApi": 35,
+  "debuggable": false,
+  "signing": {
+    "verified": true,
+    "v1": true,
+    "v2": true,
+    "v3": true,
+    "certificateSha256": "47ca83f0de4587d2a2b9de9c8196a8473bac649b3c2c2df4b2efa1fc9d3780fe",
+    "warnings": 0,
+    "identity": "Self-signed local project distribution certificate; not a Google Play identity.",
+    "privateKeyPublished": false,
+    "persistentKeyReused": true
+  },
+  "packageChecks": [
+    "AAPT2 manifest/package/minSDK/targetSDK",
+    "no debuggable flag",
+    "no native binaries",
+    "no test fixtures or private keys",
+    "all bundled asset bytes match source",
+    "APK ZIP CRC and uncompressed-entry alignment",
+    "official apksig v2/v3 signature verification"
+  ],
+  "assetsSha256": {
+    "AndroidViewport.js": "bac4f624cbd8feea9b54c0ff7f3d8ee3ad2d42a6f4f7e639c987d26bdb0a3225",
+    "LICENSE.Apache-2.0": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "LICENSE.Appearance": "f9046e05df9221647c73268b51e8dfded4b7d1978ab9efb28c8a81af3e94f3ee",
+    "LICENSE.Vencord": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+    "NativeBridge.js": "b05208d29446ea9e6cd8bc95c3cc4acef2b8a909ab6b44e094a1df29a498aaab",
+    "THIRD_PARTY_NOTICES.txt": "e50829635dff5d899c7ccd54f86a2642addcb2933f0fa3d474266740a9680bad",
+    "YapperAppearance.js": "52c19429daee71e0eda97b95b9605aaf8090367626569df101ce19a2f4a3fdf6",
+    "YapperCord.js": "de53f573bfa5fb3fdbcd8d35e710ef5805bae60284603a519c7c3850ab28e2a7"
+  },
+  "runtimeVerification": {
+    "installedOrLaunched": false,
+    "reason": "No Android emulator or physical Android device was attached to this build host."
+  },
+  "permissions": [
+    "android.permission.INTERNET",
+    "android.permission.CAMERA",
+    "android.permission.RECORD_AUDIO",
+    "android.permission.MODIFY_AUDIO_SETTINGS",
+    "android.permission.POST_NOTIFICATIONS"
+  ],
+  "pluginCoverage": {
+    "independentAdaptations": 6,
+    "unportedPublicVencordPlugins": 161,
+    "enabledByDefault": false
+  },
+  "limits": [
+    "Remote Yapper UI/backend can change independently.",
+    "No background push, screen sharing, system audio, global hotkeys or process enumeration.",
+    "Physical Android media/file-picker/notification/keyboard/edge-to-edge behavior still requires device verification.",
+    "External OAuth import is not authenticated in automated verification."
+  ]
+}

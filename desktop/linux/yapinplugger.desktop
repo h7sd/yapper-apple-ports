@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Yapinplugger
+Comment=Community Yapper client with optional local plugins
+Exec=AppRun %u
+Icon=yapinplugger
+Terminal=false
+Categories=Network;InstantMessaging;
+MimeType=x-scheme-handler/yapper;
+StartupWMClass=Yapinplugger

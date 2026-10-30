@@ -1,4 +1,4 @@
-# Yapper Apple Ports
+# Yapper clients with Yapinplugger
 
 **Experimental Yapinplugger extension:** [plugin manager, full upstream inventory and current compatibility](extensions/yappercord/README.md). Six limited Yapper feature adaptations are implemented; the remaining 161 public Vencord plugins are **not** compatible yet. [Native installer source](installer/README.md). This does not claim all Discord plugins work on Yapper.
 
@@ -6,13 +6,21 @@
 
 **Profile layout:** [reversible account strip, profile presentation and compact mobile navigation](appearance/README.md), using the original Yapper components, theme, artwork and actions. This is a local client layout enhancement; it does not change the hosted Yapper website for other users.
 
-**Unofficial macOS and iOS ports based on Yapper's official Linux AppImage.** This project is not affiliated with, endorsed by, or published by Yapper/Yapin’. The upstream names, artwork, and service belong to their respective owners.
+**Unofficial macOS, iOS, Windows, Linux and Android clients based on Yapper's official Linux AppImage.** This project is not affiliated with, endorsed by, or published by Yapper/Yapin’. The upstream names, artwork, and service belong to their respective owners. The repository keeps its original `yapper-apple-ports` address so existing links continue to work.
 
-The supplied Linux client is an Electron shell around the live **[Yapper website](https://www.yapper.website)**. The macOS port preserves that shell and desktop bridge; the iOS port uses native Swift and WKWebView to show the same responsive website. This repository contains the native client source, upstream shell references, build scripts, tests, and verification records. It does not contain the website's server-side source.
+The supplied Linux client is an Electron shell around the live **[Yapper website](https://www.yapper.website)**. The desktop clients preserve that shell and desktop bridge. iOS uses native Swift/WKWebView; Android uses a native Java/WebView shell. All show the same live Yapper website with the locally bundled Yapinplugger and profile-layout adapters. This repository contains the native client source, upstream shell references, build scripts, tests, and verification records. It does not contain the website's server-side source.
 
 ## Downloads
 
-Use [v1.1.0-apple.3 for the corrected iOS packages](https://github.com/h7sd/yapper-apple-ports/releases/tag/v1.1.0-apple.3) and [v1.1.0-apple.2 for the unchanged macOS Setup packages](https://github.com/h7sd/yapper-apple-ports/releases/tag/v1.1.0-apple.2). Each release includes its own asset checksums. All versions appear on the **[Releases page](https://github.com/h7sd/yapper-apple-ports/releases)**. The current integrated build produces:
+Use [the multiplatform release for Linux, Windows and Android](https://github.com/h7sd/yapper-apple-ports/releases/tag/v1.1.0-multiplatform.1), [v1.1.0-apple.3 for the corrected iOS packages](https://github.com/h7sd/yapper-apple-ports/releases/tag/v1.1.0-apple.3) and [v1.1.0-apple.2 for the unchanged macOS Setup packages](https://github.com/h7sd/yapper-apple-ports/releases/tag/v1.1.0-apple.2). Each release includes its own asset checksums. All versions appear on the **[Releases page](https://github.com/h7sd/yapper-apple-ports/releases)**.
+
+New platform packages:
+
+- **Linux x64:** `Yapinplugger-1.1.0-plugins-0.1.0-linux-x64.AppImage`, plus an extractable `.tar.gz` alternative. The tarball includes a user-local desktop/protocol registration script. [Build and usage](desktop/README.md).
+- **Windows x64:** `Yapinplugger-1.1.0-plugins-0.1.0-windows-x64-Setup.exe` installs for the current user; the `.zip` alternative can run after extraction. [Build and usage](desktop/README.md).
+- **Android 10+:** `Yapper-1.1.0-Yapinplugger-0.1.0-android.apk` is a signed, directly sideloadable APK. Its local project certificate is separate from Yapper's official identity; the private key is not published. [Build, signing and capabilities](android/README.md).
+
+Apple packages:
 
 - `Yapinplugger-Setup-0.1.0-mac-arm64.zip`: self-contained installer and client for Apple Silicon Mac.
 - `Yapinplugger-Setup-0.1.0-mac-x64.zip`: self-contained installer and client for Intel Mac.
@@ -22,6 +30,10 @@ Use [v1.1.0-apple.3 for the corrected iOS packages](https://github.com/h7sd/yapp
 - `SHA256SUMS.txt`: hashes of the published release assets.
 
 Mac builds are ad-hoc signed, not Apple-notarized. The iOS build is not an App Store/TestFlight release. See [macOS build instructions](macos/README.md) and [iOS build instructions](ios/README.md).
+
+The new Windows/Linux clients are cross-packaged and inspected on macOS; native installation, calls and target-desktop execution have not been verified. Windows binaries are not Authenticode-signed. Android verification distinguishes policy/bridge tests and APK signature/manifest inspection from device execution. The same six optional feature adaptations are included; adding platforms does not make the remaining 161 Vencord plugins compatible.
+
+The new platform build passed **28 shared desktop regressions, 18 desktop source checks, 55 desktop package checks and 18 Android policy/bridge tests**. The APK signatures, manifest and bundled resource bytes were verified separately. See [multiplatform results and execution limits](docs/MULTIPLATFORM-VALIDATION.md).
 
 ## Provenance: official Linux package, unofficial ports
 
@@ -46,7 +58,7 @@ Reviewers can inspect and reproduce:
 - CI source checks, dependency-advisory reports, packaged native-binary architecture checks, code-signature verification, and SHA-256 release checksums.
 - The [security review and limitations](docs/SECURITY-REVIEW.md), [iOS review](docs/IOS-REVIEW.md), and [recorded validation](docs/VALIDATION.md).
 
-Current integrated local results: 20 Mac regression tests, 20 package checks per architecture, 14 Yapinplugger Electron checks, 4 native appearance checks, 14 extension Node tests (with the pinned external checkout), 3 appearance guard tests plus three-viewport fixture checks, 28 installer Swift test functions, 12 original iOS bridge tests, and 45 iOS Swift/UI case executions passed. See the [new validation scope and remaining work](docs/YAPPERCORD-VALIDATION.md). The earlier baseline results are retained as historical reports. The full npm audit reported 0 known advisories on 2026-10-30 after the runtime update. GitHub-hosted jobs did not start because of an account-level restriction; these are local results, not a claim of green hosted CI. Anonymous UI screenshots: [macOS](docs/images/macos-login.png), [iOS](docs/images/ios-login.png).
+Apple release baseline results: 20 Mac regression tests, 20 package checks per architecture, 14 Yapinplugger Electron checks, 4 native appearance checks, 14 extension Node tests (with the pinned external checkout), 3 appearance guard tests plus three-viewport fixture checks, 28 installer Swift test functions, 12 original iOS bridge tests, and 45 iOS Swift/UI case executions passed. See the [new validation scope and remaining work](docs/YAPPERCORD-VALIDATION.md). The earlier baseline results are retained as historical reports. The full npm audit reported 0 known advisories on 2026-10-30 after the runtime update. GitHub-hosted jobs did not start because of an account-level restriction; these are local results, not a claim of green hosted CI. Anonymous UI screenshots: [macOS](docs/images/macos-login.png), [iOS](docs/images/ios-login.png).
 
 The source does not add a remote shell/command-execution bridge, credential-export endpoint, or arbitrary native file-reading API. That statement is limited to the inspected client code, not a claim about every dependency, remote page, or future revision.
 

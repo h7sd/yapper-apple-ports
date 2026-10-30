@@ -88,9 +88,10 @@ await check('all declared webPreferences retain sandbox and isolation', () => {
   assert.doesNotMatch(main, /setCertificateVerifyProc|['"]certificate-error['"]/);
 });
 
-await check('native bridge retains its HTTPS hostname guard', () => {
+await check('native bridge retains its HTTPS origin and main-frame guard', () => {
   assert.match(main, /return u\.protocol === 'https:' && ALLOWED\.has\(u\.hostname\)/);
-  assert.match(main, /return ownUrl\(e\.senderFrame\?\.url \?\? ''\)/);
+  assert.ok(main.includes('!u.username && !u.password && (!u.port || u.port === \'443\')'), 'Trusted native pages must use the standard HTTPS port without URL credentials');
+  assert.ok(main.includes('!frame.parent') && main.includes('ownUrl(frame.url)'), 'Native IPC must reject subframes before validating the sender origin');
   assert.match(main, /if \(!ownUrl\(req\.frame\?\.url \|\| req\.securityOrigin\)\) return cb\(\{\}\)/);
   assert.match(main, /ownUrl\(details\.requestingUrl \|\| wc\.getURL\(\)\) && OWN_PERMISSIONS\.includes\(permission\)/);
   const expected = "new Set(['www.yapin.gg', 'yapin.gg', 'www.yapper.website', 'yapper.website', 'rt.yapper.website', 'lk.yapper.website'])";
@@ -107,10 +108,11 @@ await check('preload exposes the named bridge without a generic IPC or execution
   ].sort(), 'Review the native capability list whenever a handler is added');
 });
 
-await check('Mac binary updates remain disabled', () => {
-  assert.match(main, /autoUpdater\.autoDownload = !IS_MAC;/);
-  assert.match(main, /autoUpdater\.autoInstallOnAppQuit = !IS_MAC;/);
-  assert.match(main, /if \(!IS_MAC\) \{\s*setTimeout\(check, 10_000\);\s*setInterval\(check, 4 \* 3600_000\);/);
+await check('unofficial desktop binary updates remain disabled on every platform', () => {
+  assert.match(main, /autoUpdater\.autoDownload = false;/);
+  assert.match(main, /autoUpdater\.autoInstallOnAppQuit = false;/);
+  assert.match(main, /ipcMain\.handle\('yapper:update-install', \(\) => false\);/);
+  assert.doesNotMatch(main, /autoUpdater\.checkForUpdates(?:AndNotify)?\s*\(/);
 });
 
 await check('runtime and packaging dependencies remain pinned', async () => {

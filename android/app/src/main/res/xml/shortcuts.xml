@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut android:shortcutId="app_settings" android:enabled="true" android:icon="@drawable/yapper_mark" android:shortcutShortLabel="@string/app_settings" android:shortcutLongLabel="@string/app_settings_long">
+        <intent android:action="website.yapper.android.SETTINGS" android:targetPackage="website.yapper.android" android:targetClass="website.yapper.android.MainActivity" />
+    </shortcut>
+</shortcuts>
