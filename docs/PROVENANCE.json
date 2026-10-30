@@ -1,0 +1,47 @@
+{
+  "upstream": {
+    "filename": "Yapper-Setup.AppImage",
+    "bytes": 117342908,
+    "sha256": "e54f1d3f638caeae0302c6e56bbcf5c272a774862aecafd3d4959bb8e5095b12",
+    "application": "Yapper",
+    "version": "1.1.0",
+    "electron": "38.8.6"
+  },
+  "official_download_verification": {
+    "date": "2026-10-30",
+    "stable_endpoint": "https://www.yapper.website/download/linux",
+    "download_page": "https://www.yapper.website/download",
+    "sha256_matches_supplied_artifact": true,
+    "sha256": "e54f1d3f638caeae0302c6e56bbcf5c272a774862aecafd3d4959bb8e5095b12",
+    "comparison": "Fresh HTTPS download hashed locally; no claim of publisher-signature verification"
+  },
+  "static_analysis": {
+    "tool": "rea-agents",
+    "version": "6.5.0",
+    "evidence_id": "ev_0f16c07674f1b813c3c3f2bd23b75475c4cd45cdad7b30cb3b2fb7098256d573",
+    "scope": {
+      "requested_paths": [
+        "package.json",
+        "main.js",
+        "preload.js",
+        "games.js"
+      ],
+      "unselected_files": 256
+    },
+    "limitations": "Application-owned sources inspected statically. Linux target not executed. Dependencies and remote service not proven safe. Raw evidence excluded from public repository because it contains workstation paths."
+  },
+  "upstream_source_sha256": {
+    "preload.js": "755085f5656689fb29656079bb3cd8145c52d88731b1a5a24ef4bd1d8686ab62",
+    "games.js": "ff51d6f52b7ca30ca1404dd139f31d83c5a5ebcdfeac53d8d6b9181bda0b809e",
+    "main.js": "1fe870332839656d1ecb3e042dc427c3f0ee4da320fb369a128f57ff4ff6d3f3",
+    "package.json": "905e371a0826ccae284a2c59fd55109b5776087b7e3c222675996c0ee7ddde92"
+  },
+  "ports": {
+    "macos": "Electron shell with Mac-specific integration and dependency security update; see locked version",
+    "ios": "Native Swift/WKWebView wrapper with capability-limited compatibility bridge"
+  },
+  "signing": {
+    "macos": "ad-hoc, no Developer ID/notarization",
+    "ios": "unsigned device binary and simulator build; no embedded signing identity"
+  }
+}

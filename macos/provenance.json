@@ -1,0 +1,67 @@
+{
+  "input": {
+    "filename": "Yapper-Setup.AppImage",
+    "bytes": 117342908,
+    "sha256": "e54f1d3f638caeae0302c6e56bbcf5c272a774862aecafd3d4959bb8e5095b12"
+  },
+  "application": {
+    "name": "Yapper",
+    "version": "1.1.0",
+    "electron": "38.8.6",
+    "electron_version_evidence": "Literal Electron/38.8.6 recovered from the Linux ELF runtime; no target execution"
+  },
+  "rea": {
+    "version": "6.5.0",
+    "evidence_id": "ev_0f16c07674f1b813c3c3f2bd23b75475c4cd45cdad7b30cb3b2fb7098256d573",
+    "operation": "analyze_javascript_application",
+    "source_selection": {
+      "requested_paths": [
+        "package.json",
+        "main.js",
+        "preload.js",
+        "games.js"
+      ],
+      "unselected_files": 256
+    },
+    "statistics": {
+      "relevant_files": 260,
+      "nested_asar_containers": 0,
+      "text_bytes_read": 51342,
+      "invalid_utf8_files": 0,
+      "parsed_javascript_files": 3,
+      "visited_ast_nodes": 6163,
+      "findings": 66,
+      "modules": 0,
+      "parse_failures": 0
+    },
+    "evidence_file": "evidence/README.md",
+    "interpretation": "Static observations only; selected app-owned sources analyzed. Third-party dependencies and remote website code were not analyzed by REA.",
+    "evidence_publication": "Sanitized scope summary only. Raw local JSON omitted because it contains workstation-specific paths."
+  },
+  "upstream_files": {
+    "preload.js": "755085f5656689fb29656079bb3cd8145c52d88731b1a5a24ef4bd1d8686ab62",
+    "games.js": "ff51d6f52b7ca30ca1404dd139f31d83c5a5ebcdfeac53d8d6b9181bda0b809e",
+    "main.js": "1fe870332839656d1ecb3e042dc427c3f0ee4da320fb369a128f57ff4ff6d3f3",
+    "package.json": "905e371a0826ccae284a2c59fd55109b5776087b7e3c222675996c0ee7ddde92"
+  },
+  "unchanged_port_files": {
+    "preload.js": "755085f5656689fb29656079bb3cd8145c52d88731b1a5a24ef4bd1d8686ab62",
+    "games.js": "ff51d6f52b7ca30ca1404dd139f31d83c5a5ebcdfeac53d8d6b9181bda0b809e",
+    "icon.png": "75c5a651577e58fbd988af3f25abf26bc8de54ed53339438cc1921a9df581182"
+  },
+  "build": {
+    "bundle_id": "website.yapper.desktop",
+    "architectures": [
+      "arm64",
+      "x64"
+    ],
+    "signing": "ad-hoc",
+    "notarized": false,
+    "electron": "45.1.0"
+  },
+  "port_runtime": {
+    "electron": "45.1.0",
+    "upstream_electron": "38.8.6",
+    "reason": "Runtime upgraded before public release after npm audit reported known Electron and extract-zip advisories in the recovered runtime dependency tree."
+  }
+}

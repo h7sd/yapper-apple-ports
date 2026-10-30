@@ -1,0 +1,5 @@
+node_modules/
+build/icon.icns
+build/*.iconset/
+.DS_Store
+npm-debug.log*

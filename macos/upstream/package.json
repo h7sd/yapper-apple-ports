@@ -1,0 +1,15 @@
+{
+  "name": "yapper-desktop",
+  "productName": "Yapper",
+  "version": "1.1.0",
+  "description": "Yapin’ for Windows and Linux",
+  "main": "main.js",
+  "desktopName": "yapper-desktop.desktop",
+  "private": true,
+  "author": "Yapper",
+  "homepage": "https://www.yapper.website",
+  "dependencies": {
+    "electron-updater": "^6.6.2",
+    "uiohook-napi": "^1.5.5"
+  }
+}

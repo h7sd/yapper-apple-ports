@@ -1,0 +1,161 @@
+name: Verify iOS port
+
+on:
+  push:
+    branches: [main]
+    paths: ["ios/**", ".github/workflows/ios-verify.yml"]
+  pull_request:
+    paths: ["ios/**", ".github/workflows/ios-verify.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-verify-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Build and test on an available iPhone simulator
+    runs-on: macos-latest
+    timeout-minutes: 35
+    steps:
+      # Reuse the official action commits verified for macos-verify.yml.
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+      - name: Record public toolchain versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist/ios-verification
+          xcodebuild -version | tee dist/ios-verification/xcode-version.txt
+          xcrun --sdk iphonesimulator --show-sdk-version | tee dist/ios-verification/simulator-sdk-version.txt
+          node --version | tee dist/ios-verification/node-version.txt
+      - name: Test bridge origins, denied requests, and unsupported capabilities
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test ios/tests/native-bridge.test.cjs 2>&1 | tee dist/ios-verification/native-bridge-tests.log
+      - name: Build unsigned Release simulator application
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild build \
+            -project ios/Yapper.xcodeproj \
+            -scheme Yapper \
+            -configuration Release \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/yapper-ios-release" \
+            -resultBundlePath dist/ios-verification/release-build.xcresult \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO DEVELOPMENT_TEAM= \
+            2>&1 | tee dist/ios-verification/release-build.log
+      - name: Package simulator app and record checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          ditto -c -k --keepParent \
+            "$RUNNER_TEMP/yapper-ios-release/Build/Products/Release-iphonesimulator/Yapper.app" \
+            dist/ios-verification/Yapper-iOS-Simulator.zip
+          shasum -a 256 dist/ios-verification/Yapper-iOS-Simulator.zip > dist/ios-verification/SHA256SUMS.txt
+      - name: Select an iPhone on the latest available iOS runtime
+        id: simulator
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcrun simctl list runtimes --json > "$RUNNER_TEMP/yapper-ios-runtimes.json"
+          xcrun simctl list devices available --json > "$RUNNER_TEMP/yapper-ios-devices.json"
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          temporary = Path(os.environ["RUNNER_TEMP"])
+          runtimes = json.loads((temporary / "yapper-ios-runtimes.json").read_text())["runtimes"]
+          devices = json.loads((temporary / "yapper-ios-devices.json").read_text())["devices"]
+
+          def version(runtime):
+              return tuple(int(part) for part in runtime["version"].split("."))
+
+          available = sorted(
+              (runtime for runtime in runtimes
+               if ".iOS-" in runtime["identifier"] and runtime.get("isAvailable", False)
+               and version(runtime) >= (17,)),
+              key=version,
+              reverse=True,
+          )
+          selected = next(
+              ((runtime, device)
+               for runtime in available
+               for device in devices.get(runtime["identifier"], [])
+               if device.get("isAvailable", False) and device["name"].startswith("iPhone")),
+              None,
+          )
+          if selected is None:
+              raise SystemExit("No available iPhone simulator with an iOS 17+ runtime. Tests cannot run.")
+          runtime, device = selected
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              output.write(f"udid={device['udid']}\n")
+              output.write(f"booted={str(device['state'] == 'Booted').lower()}\n")
+          print(f"Selected {device['name']} on {runtime['name']}.")
+          Path("dist/ios-verification/simulator-runtime.json").write_text(json.dumps({
+              "device": device["name"],
+              "runtime": runtime["name"],
+              "runtimeVersion": runtime["version"],
+          }, indent=2) + "\n")
+          PY
+      - name: Boot selected simulator
+        shell: bash
+        env:
+          SIMULATOR_UDID: ${{ steps.simulator.outputs.udid }}
+          SIMULATOR_BOOTED: ${{ steps.simulator.outputs.booted }}
+        run: |
+          set -euo pipefail
+          if [ "$SIMULATOR_BOOTED" != true ]; then
+            xcrun simctl boot "$SIMULATOR_UDID"
+          fi
+          xcrun simctl bootstatus "$SIMULATOR_UDID" -b
+      - name: Test URL policy, hosted WebKit bridge, and original live login UI
+        # These integration/UI checks require the public Yapper service.
+        # A service failure remains a test failure; no account or secret is used.
+        shell: bash
+        env:
+          SIMULATOR_UDID: ${{ steps.simulator.outputs.udid }}
+        run: |
+          set -euo pipefail
+          xcodebuild test \
+            -project ios/Yapper.xcodeproj \
+            -scheme Yapper \
+            -configuration Debug \
+            -destination "platform=iOS Simulator,id=$SIMULATOR_UDID" \
+            -destination-timeout 120 \
+            -parallel-testing-enabled NO \
+            -test-timeouts-enabled YES \
+            -default-test-execution-time-allowance 90 \
+            -maximum-test-execution-time-allowance 180 \
+            -derivedDataPath "$RUNNER_TEMP/yapper-ios-tests" \
+            -resultBundlePath dist/ios-verification/ios-tests.xcresult \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO DEVELOPMENT_TEAM= \
+            2>&1 | tee dist/ios-verification/ios-tests.log
+      - name: Shut down selected simulator
+        if: always() && steps.simulator.outcome == 'success'
+        shell: bash
+        env:
+          SIMULATOR_UDID: ${{ steps.simulator.outputs.udid }}
+        run: xcrun simctl shutdown "$SIMULATOR_UDID" || true
+      - name: Upload simulator build, result bundles, and logs
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: yapper-ios-${{ github.sha }}
+          path: dist/ios-verification/
+          if-no-files-found: warn
+          compression-level: 0
+          retention-days: 14

@@ -1,0 +1,122 @@
+{
+  "startedAt": "2026-10-30T00:29:23.190Z",
+  "checks": [
+    {
+      "name": "packaged Apple Silicon client loads the original live service",
+      "passed": true,
+      "detail": {
+        "version": "1.1.0",
+        "electron": "45.1.0",
+        "arch": "arm64",
+        "url": "https://www.yapper.website/",
+        "size": [
+          1200,
+          800
+        ],
+        "visible": true,
+        "webPreferences": {
+          "contextIsolation": true,
+          "sandbox": true,
+          "nodeIntegration": false
+        },
+        "menus": [
+          "Yapper",
+          "File",
+          "Edit",
+          "View",
+          "Window",
+          "Help"
+        ]
+      }
+    },
+    {
+      "name": "original desktop bridge and renderer isolation",
+      "passed": true,
+      "detail": {
+        "platform": "darwin",
+        "version": "1.1.0",
+        "keys": [
+          "version",
+          "platform",
+          "setBadge",
+          "notify",
+          "onActivity",
+          "screenPicker",
+          "screenSources",
+          "pickScreenSource",
+          "onUpdateReady",
+          "installUpdate",
+          "setHotkeys",
+          "onPtt",
+          "onHotkey",
+          "onSystemIdle",
+          "getSettings",
+          "setSettings",
+          "listPrograms"
+        ],
+        "nodeAvailable": "undefined"
+      }
+    },
+    {
+      "name": "desktop settings persist and read back",
+      "passed": true,
+      "detail": {
+        "platform": "darwin",
+        "closeToTray": true
+      }
+    },
+    {
+      "name": "native Mac application enumeration",
+      "passed": true,
+      "detail": {
+        "count": 11
+      }
+    },
+    {
+      "name": "idle hotkeys and unavailable Mac updater return safely",
+      "passed": true,
+      "detail": {}
+    },
+    {
+      "name": "Dock unread badge",
+      "passed": true,
+      "detail": {
+        "set": "7",
+        "cleared": true
+      }
+    },
+    {
+      "name": "Mac native zoom commands and accelerator registration",
+      "passed": true,
+      "detail": {
+        "zoomOut": 0.9,
+        "reset": 1,
+        "accelerators": {
+          "zoomOut": "Command+-",
+          "reset": "Command+0"
+        }
+      }
+    },
+    {
+      "name": "close to menu bar and Dock reopen",
+      "passed": true,
+      "detail": {}
+    },
+    {
+      "name": "yapper protocol invite routing",
+      "passed": true,
+      "detail": {
+        "path": "/invite/mac-port-smoke"
+      }
+    },
+    {
+      "name": "load failure screen and retry restore the live interface",
+      "passed": true,
+      "detail": {}
+    }
+  ],
+  "visibleText": "Yapin\u2019\nWelcome back\n\nGood to see you yapping again.\n\nWeiter mit Google\nOR\nLog in with a passkey\nOR\nEMAIL OR USERNAME\nForgot which email?\nPASSWORD\nForgot password?\nLog in\nNew here? Create an account\nTerms \u00b7 Privacy \u00b7 Guidelines \u00b7 Bugs",
+  "passed": true,
+  "finishedAt": "2026-10-30T00:29:55.202Z",
+  "scope": "Anonymous foreground live-site checks. No credentials, private chats, calls, microphone/camera recording, notification delivery, or screen capture exercised."
+}
