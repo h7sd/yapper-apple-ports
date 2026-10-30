@@ -1,0 +1,3 @@
+826a23056e5e659db9fad7a0052bae85ebc2015a4bc53027e3855fc94a46b47b  Yapper-1.1.0-Yapinplugger-0.1.0-iOS-Simulator.zip
+3363f9114e719597f30423c36f9ef608d3498274c25899eb899905f238cd22c9  Yapper-1.1.0-Yapinplugger-0.1.0-ios-unsigned.ipa
+001fcd00a1b8f3cee87e49fe86ea9b892268e9fb499afe472c34bf113a2409ba  Yapper-1.1.0-Yapinplugger-0.1.0-android.apk

@@ -3,6 +3,7 @@
   "viewports": [
     {
       "viewport": "desktop",
+      "look": "original",
       "width": 1280,
       "height": 900,
       "preservedNodesAndActions": true,
@@ -12,6 +13,7 @@
     },
     {
       "viewport": "tablet",
+      "look": "original",
       "width": 834,
       "height": 1112,
       "preservedNodesAndActions": true,
@@ -20,22 +22,298 @@
       "networkRequests": 0
     },
     {
+      "viewport": "compact-phone",
+      "look": "original",
+      "width": 320,
+      "height": 667,
+      "preservedNodesAndActions": true,
+      "safeGeometry": true,
+      "centeredAccount": true,
+      "verticallyAlignedIdentityAndActions": true,
+      "longNameEllipsis": true,
+      "fixedMenuWithinViewport": true,
+      "reversible": true,
+      "networkRequests": 0,
+      "accountInsets": {
+        "left": 12,
+        "right": 12
+      },
+      "maximumChildCenterError": 0.0078125
+    },
+    {
       "viewport": "phone",
+      "look": "original",
       "width": 390,
       "height": 844,
       "preservedNodesAndActions": true,
       "safeGeometry": true,
+      "centeredAccount": true,
+      "verticallyAlignedIdentityAndActions": true,
+      "longNameEllipsis": true,
+      "fixedMenuWithinViewport": true,
+      "reversible": true,
+      "networkRequests": 0,
+      "accountInsets": {
+        "left": 12,
+        "right": 12
+      },
+      "maximumChildCenterError": 0.0078125
+    },
+    {
+      "viewport": "phone-402",
+      "look": "original",
+      "width": 402,
+      "height": 874,
+      "preservedNodesAndActions": true,
+      "safeGeometry": true,
+      "centeredAccount": true,
+      "verticallyAlignedIdentityAndActions": true,
+      "longNameEllipsis": true,
+      "fixedMenuWithinViewport": true,
+      "reversible": true,
+      "networkRequests": 0,
+      "accountInsets": {
+        "left": 12,
+        "right": 12
+      },
+      "maximumChildCenterError": 0.0078125
+    },
+    {
+      "viewport": "phone-414",
+      "look": "original",
+      "width": 414,
+      "height": 896,
+      "preservedNodesAndActions": true,
+      "safeGeometry": true,
+      "centeredAccount": true,
+      "verticallyAlignedIdentityAndActions": true,
+      "longNameEllipsis": true,
+      "fixedMenuWithinViewport": true,
+      "reversible": true,
+      "networkRequests": 0,
+      "accountInsets": {
+        "left": 17,
+        "right": 17
+      },
+      "maximumChildCenterError": 0.0078125
+    },
+    {
+      "viewport": "phone-428",
+      "look": "original",
+      "width": 428,
+      "height": 926,
+      "preservedNodesAndActions": true,
+      "safeGeometry": true,
+      "centeredAccount": true,
+      "verticallyAlignedIdentityAndActions": true,
+      "longNameEllipsis": true,
+      "fixedMenuWithinViewport": true,
+      "reversible": true,
+      "networkRequests": 0,
+      "accountInsets": {
+        "left": 24,
+        "right": 24
+      },
+      "maximumChildCenterError": 0.0078125
+    },
+    {
+      "viewport": "phone-430",
+      "look": "original",
+      "width": 430,
+      "height": 932,
+      "preservedNodesAndActions": true,
+      "safeGeometry": true,
+      "centeredAccount": true,
+      "verticallyAlignedIdentityAndActions": true,
+      "longNameEllipsis": true,
+      "fixedMenuWithinViewport": true,
+      "reversible": true,
+      "networkRequests": 0,
+      "accountInsets": {
+        "left": 25,
+        "right": 25
+      },
+      "maximumChildCenterError": 0.0078125
+    },
+    {
+      "viewport": "pro-max",
+      "look": "original",
+      "width": 440,
+      "height": 956,
+      "preservedNodesAndActions": true,
+      "safeGeometry": true,
+      "centeredAccount": true,
+      "verticallyAlignedIdentityAndActions": true,
+      "longNameEllipsis": true,
+      "fixedMenuWithinViewport": true,
+      "reversible": true,
+      "networkRequests": 0,
+      "accountInsets": {
+        "left": 30,
+        "right": 30
+      },
+      "maximumChildCenterError": 0.0078125
+    },
+    {
+      "viewport": "desktop",
+      "look": "new-look",
+      "width": 1280,
+      "height": 900,
+      "preservedNodesAndActions": true,
+      "safeGeometry": true,
       "reversible": true,
       "networkRequests": 0
+    },
+    {
+      "viewport": "tablet",
+      "look": "new-look",
+      "width": 834,
+      "height": 1112,
+      "preservedNodesAndActions": true,
+      "safeGeometry": true,
+      "reversible": true,
+      "networkRequests": 0
+    },
+    {
+      "viewport": "compact-phone",
+      "look": "new-look",
+      "width": 320,
+      "height": 667,
+      "preservedNodesAndActions": true,
+      "safeGeometry": true,
+      "centeredAccount": true,
+      "verticallyAlignedIdentityAndActions": true,
+      "longNameEllipsis": true,
+      "fixedMenuWithinViewport": true,
+      "reversible": true,
+      "networkRequests": 0,
+      "accountInsets": {
+        "left": 12,
+        "right": 12
+      },
+      "maximumChildCenterError": 0.0078125
+    },
+    {
+      "viewport": "phone",
+      "look": "new-look",
+      "width": 390,
+      "height": 844,
+      "preservedNodesAndActions": true,
+      "safeGeometry": true,
+      "centeredAccount": true,
+      "verticallyAlignedIdentityAndActions": true,
+      "longNameEllipsis": true,
+      "fixedMenuWithinViewport": true,
+      "reversible": true,
+      "networkRequests": 0,
+      "accountInsets": {
+        "left": 12,
+        "right": 12
+      },
+      "maximumChildCenterError": 0.0078125
+    },
+    {
+      "viewport": "phone-402",
+      "look": "new-look",
+      "width": 402,
+      "height": 874,
+      "preservedNodesAndActions": true,
+      "safeGeometry": true,
+      "centeredAccount": true,
+      "verticallyAlignedIdentityAndActions": true,
+      "longNameEllipsis": true,
+      "fixedMenuWithinViewport": true,
+      "reversible": true,
+      "networkRequests": 0,
+      "accountInsets": {
+        "left": 12,
+        "right": 12
+      },
+      "maximumChildCenterError": 0.0078125
+    },
+    {
+      "viewport": "phone-414",
+      "look": "new-look",
+      "width": 414,
+      "height": 896,
+      "preservedNodesAndActions": true,
+      "safeGeometry": true,
+      "centeredAccount": true,
+      "verticallyAlignedIdentityAndActions": true,
+      "longNameEllipsis": true,
+      "fixedMenuWithinViewport": true,
+      "reversible": true,
+      "networkRequests": 0,
+      "accountInsets": {
+        "left": 17,
+        "right": 17
+      },
+      "maximumChildCenterError": 0.0078125
+    },
+    {
+      "viewport": "phone-428",
+      "look": "new-look",
+      "width": 428,
+      "height": 926,
+      "preservedNodesAndActions": true,
+      "safeGeometry": true,
+      "centeredAccount": true,
+      "verticallyAlignedIdentityAndActions": true,
+      "longNameEllipsis": true,
+      "fixedMenuWithinViewport": true,
+      "reversible": true,
+      "networkRequests": 0,
+      "accountInsets": {
+        "left": 24,
+        "right": 24
+      },
+      "maximumChildCenterError": 0.0078125
+    },
+    {
+      "viewport": "phone-430",
+      "look": "new-look",
+      "width": 430,
+      "height": 932,
+      "preservedNodesAndActions": true,
+      "safeGeometry": true,
+      "centeredAccount": true,
+      "verticallyAlignedIdentityAndActions": true,
+      "longNameEllipsis": true,
+      "fixedMenuWithinViewport": true,
+      "reversible": true,
+      "networkRequests": 0,
+      "accountInsets": {
+        "left": 25,
+        "right": 25
+      },
+      "maximumChildCenterError": 0.0078125
+    },
+    {
+      "viewport": "pro-max",
+      "look": "new-look",
+      "width": 440,
+      "height": 956,
+      "preservedNodesAndActions": true,
+      "safeGeometry": true,
+      "centeredAccount": true,
+      "verticallyAlignedIdentityAndActions": true,
+      "longNameEllipsis": true,
+      "fixedMenuWithinViewport": true,
+      "reversible": true,
+      "networkRequests": 0,
+      "accountInsets": {
+        "left": 30,
+        "right": 30
+      },
+      "maximumChildCenterError": 0.0078125
     }
   ],
   "anonymousAPI": true,
   "adapterVersion": "0.1.0",
-  "sourceSha256": "52c19429daee71e0eda97b95b9605aaf8090367626569df101ce19a2f4a3fdf6",
+  "sourceSha256": "f0b43c97bf075cbb056ceac54dc0dacafa6e12a5f30fca0fe6bf8b8bdac94739",
   "nodeGuardTests": {
     "passed": 3,
     "failed": 0
   },
-  "designDetectorFindings": 0,
-  "scope": "Headless synthetic fixtures only; no logged-in live account/device flow asserted."
+  "scope": "18 headless synthetic public-structure cases: nine widths in original and new-look variants; no logged-in live account or physical-device flow asserted."
 }

@@ -4,7 +4,7 @@
 
 **Fullscreen on iOS:** Yapper’s theme fills the display behind the status bar and home indicator; controls respect the device safe areas. The [iOS fullscreen hotfix](https://github.com/h7sd/yapper-apple-ports/releases/tag/v1.1.0-apple.3) also removes duplicated mobile header/navigation insets. [Viewport verification](docs/IOS-YAPPERCORD.md#fullscreen-viewport).
 
-**Profile layout:** [reversible account strip, profile presentation and compact mobile navigation](appearance/README.md), using the original Yapper components, theme, artwork and actions. This is a local client layout enhancement; it does not change the hosted Yapper website for other users.
+**Profile layout:** [reversible account strip, profile presentation and compact mobile navigation](appearance/README.md), using the original Yapper components, theme, artwork and actions. The [mobile centering update](https://github.com/h7sd/yapper-apple-ports/releases/tag/v1.1.0-mobile.1) keeps the account card centered on wider phones, including Pro Max widths, while retaining the existing account menu and controls. This is a local client layout enhancement; it does not change the hosted Yapper website for other users.
 
 **Unofficial macOS, iOS, Windows, Linux and Android clients based on Yapper's official Linux AppImage.** This project is not affiliated with, endorsed by, or published by Yapper/Yapin’. The upstream names, artwork, and service belong to their respective owners. The repository keeps its original `yapper-apple-ports` address so existing links continue to work.
 
@@ -12,7 +12,7 @@ The supplied Linux client is an Electron shell around the live **[Yapper website
 
 ## Downloads
 
-Use [the multiplatform release for Linux, Windows and Android](https://github.com/h7sd/yapper-apple-ports/releases/tag/v1.1.0-multiplatform.1), [v1.1.0-apple.3 for the corrected iOS packages](https://github.com/h7sd/yapper-apple-ports/releases/tag/v1.1.0-apple.3) and [v1.1.0-apple.2 for the unchanged macOS Setup packages](https://github.com/h7sd/yapper-apple-ports/releases/tag/v1.1.0-apple.2). Each release includes its own asset checksums. All versions appear on the **[Releases page](https://github.com/h7sd/yapper-apple-ports/releases)**.
+Use [v1.1.0-mobile.1 for the centered iOS IPA, Simulator ZIP and Android APK](https://github.com/h7sd/yapper-apple-ports/releases/tag/v1.1.0-mobile.1), [the multiplatform release for unchanged Linux and Windows packages](https://github.com/h7sd/yapper-apple-ports/releases/tag/v1.1.0-multiplatform.1), and [v1.1.0-apple.2 for unchanged macOS Setup packages](https://github.com/h7sd/yapper-apple-ports/releases/tag/v1.1.0-apple.2). Each release includes its own asset checksums. All versions appear on the **[Releases page](https://github.com/h7sd/yapper-apple-ports/releases)**.
 
 New platform packages:
 
@@ -33,7 +33,9 @@ Mac builds are ad-hoc signed, not Apple-notarized. The iOS build is not an App S
 
 The new Windows/Linux clients are cross-packaged and inspected on macOS; native installation, calls and target-desktop execution have not been verified. Windows binaries are not Authenticode-signed. Android verification distinguishes policy/bridge tests and APK signature/manifest inspection from device execution. The same six optional feature adaptations are included; adding platforms does not make the remaining 161 Vencord plugins compatible.
 
-The new platform build passed **28 shared desktop regressions, 18 desktop source checks, 55 desktop package checks and 18 Android policy/bridge tests**. The APK signatures, manifest and bundled resource bytes were verified separately. See [multiplatform results and execution limits](docs/MULTIPLATFORM-VALIDATION.md).
+For the mobile centering update, **two focused native iOS fixture tests** passed on iPhone 17 Pro Max (440-point width) and iPhone 17 Pro (402-point width), alongside **18 browser fixture cases** covering nine widths in both original and new-look layouts, plus three appearance guard tests. These checks cover card centering, vertical alignment, long names and the existing menu; they do not claim physical-device coverage. Anonymous native evidence: [Pro Max](docs/images/ios-account-centering-pro-max-440.png), [Pro](docs/images/ios-account-centering-pro-402.png). macOS, Windows and Linux packages were not rebuilt or rerun for this mobile update; their earlier reports remain historical.
+
+The earlier multiplatform build passed **28 shared desktop regressions, 18 desktop source checks, 55 desktop package checks and 18 Android policy/bridge tests**. The APK signatures, manifest and bundled resource bytes were verified separately. See [multiplatform results and execution limits](docs/MULTIPLATFORM-VALIDATION.md).
 
 ## Provenance: official Linux package, unofficial ports
 

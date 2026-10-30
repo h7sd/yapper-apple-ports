@@ -18,7 +18,7 @@
     const CSS = `
 /* Geometry is local; paint, artwork, typography and state come from Yapper. */
 html[data-yapper-appearance] [data-ypa-account]:not(.top){
-  min-height:72px;height:auto;padding:10px 12px;gap:8px;border-radius:18px;
+  box-sizing:border-box;min-height:72px;height:auto;padding:10px 12px;gap:8px;border-radius:18px;
   background:var(--bg-side-solid,var(--bg-side));border:1px solid var(--border);
   color:var(--text);isolation:isolate;flex-shrink:0;
 }
@@ -112,7 +112,7 @@ html[data-yapper-appearance] :is([data-ypa-account],[data-ypa-profile-shell],[da
   html[data-yapper-appearance] [data-ypa-nav]>.nl-tab>span:not(.nl-tab-badge){font-size:11px;font-weight:600;}
   html[data-yapper-appearance] .app.mobile-nav:not(.chat-open) [data-ypa-account]:not(.top){
     position:fixed;left:12px;right:12px;bottom:calc(88px + env(safe-area-inset-bottom));
-    width:min(380px,calc(100vw - 24px));max-width:calc(100vw - 24px);margin:0;z-index:20;
+    width:min(380px,calc(100vw - 24px));max-width:calc(100vw - 24px);margin:0 auto;z-index:20;
   }
   html[data-yapper-appearance] .app.mobile-nav:not(.chat-open) [data-ypa-account]>.status-menu.me-pop{
     position:fixed;left:12px;right:auto;bottom:calc(172px + env(safe-area-inset-bottom));

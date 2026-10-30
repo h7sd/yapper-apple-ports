@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-30T16:48:19.017594+00:00",
+  "generatedAt": "2026-10-30T17:41:23.737961+00:00",
   "product": {
     "name": "Yapper",
     "baseVersion": "1.1.0",
@@ -237,7 +237,7 @@
       "skipped": 0,
       "source": "tests/native-bridge.test.cjs"
     },
-    "sourceScope": "The last full 45-case suite passed before the final mobile top-spacing normalization. Final sources are covered by the focused base/new-look check below; the full suite was not rerun for these three CSS overrides."
+    "sourceScope": "Earlier full45 suite and final top-inset focused check are baselines for unchanged native/security/viewport code. The final appearance account-centering patch is verified by the two-device native focused matrix below; the full suite was not rerun for these two CSS declarations."
   },
   "earlierAttempts": [
     {
@@ -296,7 +296,7 @@
       "Yapper/resources/LICENSE.Appearance": "f9046e05df9221647c73268b51e8dfded4b7d1978ab9efb28c8a81af3e94f3ee",
       "Yapper/resources/LICENSE.Vencord": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
       "Yapper/resources/NativeBridge.js": "0dedd00a5aa704bb115b79b9b8d440c93d511ffe3e19306d5d26f6821a4dc002",
-      "Yapper/resources/YapperAppearance.js": "52c19429daee71e0eda97b95b9605aaf8090367626569df101ce19a2f4a3fdf6",
+      "Yapper/resources/YapperAppearance.js": "f0b43c97bf075cbb056ceac54dc0dacafa6e12a5f30fca0fe6bf8b8bdac94739",
       "Yapper/resources/YapperCord.js": "de53f573bfa5fb3fdbcd8d35e710ef5805bae60284603a519c7c3850ab28e2a7",
       "Yapper/resources/YapperViewport.js": "eaec7b9ae495be007fbb2e3678becb88a96820dbc024a1ccf60a05245cbd3276",
       "Yapper.xcodeproj/project.pbxproj": "7e42b6bc8630676160fac9b0f6c1675032e8248277fc0301055c4ff51036be38",
@@ -304,7 +304,7 @@
       "YapperTests/URLPolicyTests.swift": "c7d067f51bf314c28d52b86aa1067dd630d3dd889f0026b5f3d1e337f7d6a5bb",
       "YapperTests/YapperAppearanceTests.swift": "fee2efe44bf9c4f7ac7c21fba2c0d4db8f8c8cce8d52d6ae83206ec3827ac13c",
       "YapperTests/YapperCordTests.swift": "b1d1987210f8256e3c6c289e3eb16464932fae428775eee6134326202a1d3a43",
-      "YapperUITests/YapperUITests.swift": "d73fb3c8c58b3d8540d76e112dd9df3c0ffb3f380fc705d7ac0989e7d5445432",
+      "YapperUITests/YapperUITests.swift": "71b824d589eec0777962b335bbd4a0fbf4c961e286753c9141857869ee145cd8",
       "scripts/build-ios.sh": "76a25bbf37b4e4516c6c42ed290914c043f99342873a0059ae0056016cfa4e3b",
       "scripts/sync-appearance.mjs": "f3020be712bf6bc2e4562dbf942c573e9420149702bb9cbd0ca752997cde3871",
       "scripts/sync-yappercord.mjs": "0908d6067700871dd959b44b6560f38ec6609ca71133623eb9526b00391c0ea1",
@@ -314,16 +314,16 @@
   "sharedSourceHashes": {
     "extensions/yappercord/bundle.js": "de53f573bfa5fb3fdbcd8d35e710ef5805bae60284603a519c7c3850ab28e2a7",
     "extensions/yappercord/LICENSE.Vencord": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
-    "appearance/appearance.js": "52c19429daee71e0eda97b95b9605aaf8090367626569df101ce19a2f4a3fdf6",
+    "appearance/appearance.js": "f0b43c97bf075cbb056ceac54dc0dacafa6e12a5f30fca0fe6bf8b8bdac94739",
     "appearance/LICENSE": "f9046e05df9221647c73268b51e8dfded4b7d1978ab9efb28c8a81af3e94f3ee"
   },
   "artifacts": {
     "Yapper-1.1.0-Yapinplugger-0.1.0-iOS-Simulator.zip": {
-      "sha256": "9381e8c321d1e91b2c0426510d90eb14f3656be44b1c6a677a00cf7ad16e3675",
-      "sizeBytes": 553875,
+      "sha256": "826a23056e5e659db9fad7a0052bae85ebc2015a4bc53027e3855fc94a46b47b",
+      "sizeBytes": 553889,
       "embeddedFiles": {
         "YapperCord.js": "de53f573bfa5fb3fdbcd8d35e710ef5805bae60284603a519c7c3850ab28e2a7",
-        "YapperAppearance.js": "52c19429daee71e0eda97b95b9605aaf8090367626569df101ce19a2f4a3fdf6",
+        "YapperAppearance.js": "f0b43c97bf075cbb056ceac54dc0dacafa6e12a5f30fca0fe6bf8b8bdac94739",
         "YapperViewport.js": "eaec7b9ae495be007fbb2e3678becb88a96820dbc024a1ccf60a05245cbd3276",
         "LICENSE.Vencord": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
         "LICENSE.Appearance": "f9046e05df9221647c73268b51e8dfded4b7d1978ab9efb28c8a81af3e94f3ee",
@@ -333,11 +333,11 @@
       "debugFixtureBranchIncluded": false
     },
     "Yapper-1.1.0-Yapinplugger-0.1.0-ios-unsigned.ipa": {
-      "sha256": "2998f782248bef9257fc5373b92be69fc9419299f250b2be37eb13a2ee0aa5de",
-      "sizeBytes": 376908,
+      "sha256": "3363f9114e719597f30423c36f9ef608d3498274c25899eb899905f238cd22c9",
+      "sizeBytes": 376922,
       "embeddedFiles": {
         "YapperCord.js": "de53f573bfa5fb3fdbcd8d35e710ef5805bae60284603a519c7c3850ab28e2a7",
-        "YapperAppearance.js": "52c19429daee71e0eda97b95b9605aaf8090367626569df101ce19a2f4a3fdf6",
+        "YapperAppearance.js": "f0b43c97bf075cbb056ceac54dc0dacafa6e12a5f30fca0fe6bf8b8bdac94739",
         "YapperViewport.js": "eaec7b9ae495be007fbb2e3678becb88a96820dbc024a1ccf60a05245cbd3276",
         "LICENSE.Vencord": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
         "LICENSE.Appearance": "f9046e05df9221647c73268b51e8dfded4b7d1978ab9efb28c8a81af3e94f3ee",
@@ -370,6 +370,16 @@
       "sha256": "28616cc2f353930caa106e6d84c231da6564f07c3548848a1c74ebedd52491f6",
       "sizeBytes": 163207,
       "content": "Anonymous synthetic new-look viewport fixture; final top-spacing check."
+    },
+    "Yapinplugger-iOS-account-ProMax-fixture.png": {
+      "sha256": "d75371ab1dd270342c97403a691847128a9291eb541ad45db0df9c2e646d5492",
+      "sizeBytes": 223825,
+      "content": "Anonymous synthetic account-centering fixture rendered in native WKWebView at440pt logical width."
+    },
+    "Yapinplugger-iOS-account-Pro-fixture.png": {
+      "sha256": "fd31eb28f9aae59797bc5d45dbf70723040115a194b044a8959acc2316b3dc74",
+      "sizeBytes": 204037,
+      "content": "Anonymous synthetic account-centering fixture rendered in native WKWebView at402pt logical width."
     }
   },
   "coverageLimits": [
@@ -517,5 +527,74 @@
         "sha256": "28616cc2f353930caa106e6d84c231da6564f07c3548848a1c74ebedd52491f6"
       }
     }
+  },
+  "accountCenteringVerification": {
+    "result": "passed",
+    "testName": "testFloatingAccountStripCenteredAndAligned",
+    "testFunctions": 1,
+    "caseExecutions": 2,
+    "failed": 0,
+    "skipped": 0,
+    "passesPerDevice": 1,
+    "fixture": "Synthetic account DOM with original width100% floating-strip conflict, real bundled adapter on a trusted base URL, ephemeral WebKit store. No native production/test-loader code changed.",
+    "runs": [
+      {
+        "model": "iPhone17ProMax",
+        "os": "iOS26.4.1 Simulator",
+        "logicalWidth": 440,
+        "result": "passed",
+        "durationSeconds": 5.726,
+        "xcresultRecordedRuntimeWarnings": 0,
+        "geometry": {
+          "ready": true,
+          "origin": "https://www.yapper.website",
+          "viewportWidth": 440,
+          "left": 30,
+          "right": 30,
+          "width": 380,
+          "barCenter": 798,
+          "avatarCenter": 798,
+          "avatarWidth": 44,
+          "avatarHeight": 44,
+          "textCenter": 798,
+          "settingsCenter": 798,
+          "logoutCenter": 798,
+          "safeTop": 62,
+          "safeBottom": 34
+        },
+        "screenshot": "Yapinplugger-iOS-account-ProMax-fixture.png"
+      },
+      {
+        "model": "iPhone17Pro",
+        "os": "iOS26.4.1 Simulator",
+        "logicalWidth": 402,
+        "result": "passed",
+        "durationSeconds": 6.878,
+        "xcresultRecordedRuntimeWarnings": 0,
+        "geometry": {
+          "ready": true,
+          "origin": "https://www.yapper.website",
+          "viewportWidth": 402,
+          "left": 12,
+          "right": 12,
+          "width": 378,
+          "barCenter": 716,
+          "avatarCenter": 716,
+          "avatarWidth": 44,
+          "avatarHeight": 44,
+          "textCenter": 716,
+          "settingsCenter": 716,
+          "logoutCenter": 716,
+          "safeTop": 62,
+          "safeBottom": 34
+        },
+        "screenshot": "Yapinplugger-iOS-account-Pro-fixture.png"
+      }
+    ],
+    "checks": [
+      "Account bar has equal left/right display insets and fits within viewport minus24pt.",
+      "Avatar is44\u00d744pt; avatar, combined name/status and both action centers match the account bar center within1pt.",
+      "Real status/home safe areas remain nonzero, controls hittable, native WebView full display."
+    ]
   }
 }

@@ -112,6 +112,56 @@ final class YapperUITests: XCTestCase {
         add(attachment)
     }
 
+    @MainActor func testFloatingAccountStripCenteredAndAligned() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--yapper-uitest-ephemeral-session", "--yapper-uitest-edge-fixture", "-enhancedProfileLayoutEnabled", "YES", "-yapperCordEnabled", "NO"]
+        app.launchEnvironment["YAPPER_EDGE_FIXTURE_HTML"] = Self.accountFixture
+        app.launch()
+        let webView = app.webViews.firstMatch
+        let metrics = webView.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Account metrics ")).firstMatch
+        XCTAssertTrue(metrics.waitForExistence(timeout: 15))
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label CONTAINS %@", "\"ready\":true"), object: metrics)
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 8), .completed, "The real bundled appearance adapter must mark the trusted fixture after safe-area layout settles.")
+        let data = try XCTUnwrap(metrics.label.dropFirst("Account metrics ".count).data(using: .utf8))
+        let geometry = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        func value(_ key: String) throws -> Double { try XCTUnwrap(geometry[key] as? Double) }
+        let width = try value("viewportWidth")
+        XCTAssertEqual(width, app.frame.width, accuracy: 1)
+        XCTAssertTrue([402, 440].contains(Int(width)), "Run this regression on the iPhone 17 Pro and Pro Max matrix.")
+        XCTAssertEqual(try value("left"), try value("right"), accuracy: 1)
+        XCTAssertGreaterThanOrEqual(try value("left"), 12 - 1)
+        XCTAssertLessThanOrEqual(try value("width"), width - 24 + 1)
+        XCTAssertGreaterThan(try value("safeTop"), 20)
+        XCTAssertGreaterThan(try value("safeBottom"), 0)
+        for key in ["avatarCenter", "textCenter", "settingsCenter", "logoutCenter"] {
+            XCTAssertEqual(try value(key), try value("barCenter"), accuracy: 1, "Avatar, combined name/status block and actions must align vertically.")
+        }
+        XCTAssertEqual(try value("avatarWidth"), 44, accuracy: 1)
+        XCTAssertEqual(try value("avatarHeight"), 44, accuracy: 1)
+        XCTAssertTrue(webView.buttons["Fixture account"].isHittable)
+        XCTAssertTrue(webView.buttons["Fixture settings"].isHittable)
+        XCTAssertTrue(webView.buttons["Fixture log out"].isHittable)
+        XCTAssertEqual(webView.frame.minY, 0, accuracy: 1)
+        XCTAssertEqual(webView.frame.height, app.frame.height, accuracy: 1)
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = "Centered account strip — anonymous \(Int(width))pt native fixture"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+        let measurement = XCTAttachment(string: metrics.label)
+        measurement.name = "Anonymous account geometry \(Int(width))pt"
+        measurement.lifetime = .keepAlways
+        add(measurement)
+    }
+
+    private static let accountFixture = #"""
+    <!doctype html><html class="new-look"><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+    :root{--bg-main:#692736;--bg-side:#512632;--bg-side-solid:#512632;--bg-rail:#41202a;--bg-active:#733c4b;--border:#ffffff33;--text:white;--text-muted:#e0cbd0;--accent:#ff6b4a;color-scheme:dark}*{box-sizing:border-box}html,body{margin:0;background:#101114;color:var(--text);font:15px -apple-system}button{font:inherit;color:inherit;border:0;background:none}button[hidden]{display:none}.app{height:100dvh;display:flex;flex-direction:column;background:var(--bg-main)}.stage-row{display:flex;flex:1;min-height:0}.sidebar{display:flex;flex-direction:column;flex:1;min-width:0}.sidebar-scroll{padding:16px}h1{font-size:21px}#accountMetrics{font-size:11px;overflow-wrap:anywhere}
+    .user-bar{display:flex;align-items:center;gap:8px;padding:0 8px}.user-bar.floating{width:100%;height:66px;position:fixed;left:8px;bottom:8px;margin:0;border-radius:16px}.user-bar .who{display:flex;flex:1;align-items:center;gap:8px;min-width:0;text-align:left;padding:4px}.who .uname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px;font-weight:600}.who .status{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}.avatar{width:40px;height:40px;position:relative;display:grid;place-items:center;flex-shrink:0;border-radius:50%;background:#a65d72}.status-dot{width:12px;height:12px;position:absolute;bottom:0;right:0;border-radius:50%;background:#3fcf82}.icon-btn{display:grid;place-items:center;width:32px;height:32px;padding:4px}.status-menu[hidden]{display:none}.nl-tabbar{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:space-around;align-items:center;height:calc(56px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:var(--bg-rail)}.nl-tab{display:flex;flex-direction:column;align-items:center;justify-content:center}
+    </style></head><body><div class="app mobile-nav"><div class="stage-row"><aside class="sidebar"><div class="sidebar-scroll"><h1>Account layout verification</h1><p>Anonymous component fixture</p><p id="accountMetrics" aria-live="polite">Account metrics {}</p></div><div class="user-bar floating"><button class="who" aria-label="Fixture account"><div class="avatar"><span>EX</span><span class="status-dot"></span></div><div class="identity"><div class="uname">Example member</div><div class="status">Available</div></div></button><div class="status-menu me-pop" hidden></div><button class="icon-btn" aria-label="Fixture settings">⚙</button><button class="icon-btn" aria-label="Fixture log out">↪</button></div></aside></div><nav class="nl-tabbar"><button class="nl-tab"><span>Home</span></button><button class="nl-tab"><span>Servers</span></button><button class="nl-tab"><span>You</span></button></nav></div><div id="probe" style="position:absolute;visibility:hidden;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)"></div><script>
+    const account=document.querySelector('.user-bar'),probe=document.getElementById('probe');function report(){const b=account.getBoundingClientRect(),a=account.querySelector('.avatar').getBoundingClientRect(),s=getComputedStyle(probe),center=q=>{const r=document.querySelector(q).getBoundingClientRect();return r.top+r.height/2};const g={ready:account.hasAttribute('data-ypa-account')&&parseFloat(s.paddingTop)>0&&parseFloat(s.paddingBottom)>0,origin:location.origin,viewportWidth:innerWidth,left:b.left,right:innerWidth-b.right,width:b.width,barCenter:b.top+b.height/2,avatarCenter:a.top+a.height/2,avatarWidth:a.width,avatarHeight:a.height,textCenter:center('.identity'),settingsCenter:center('[aria-label="Fixture settings"]'),logoutCenter:center('[aria-label="Fixture log out"]'),safeTop:parseFloat(s.paddingTop),safeBottom:parseFloat(s.paddingBottom)};document.getElementById('accountMetrics').textContent='Account metrics '+JSON.stringify(g)}const sizes=new ResizeObserver(report);for(const n of [account,probe,account.querySelector('.who')])sizes.observe(n,{box:'border-box'});new MutationObserver(()=>requestAnimationFrame(report)).observe(account,{attributes:true,attributeFilter:['data-ypa-account']});requestAnimationFrame(()=>requestAnimationFrame(report));window.addEventListener('resize',report);window.visualViewport?.addEventListener('resize',report);
+    </script></body></html>
+    """#
+
     private func metric(_ name: String, in label: String) throws -> Double {
         let parts = label.split(separator: " ")
         let index = try XCTUnwrap(parts.firstIndex(of: Substring(name)))

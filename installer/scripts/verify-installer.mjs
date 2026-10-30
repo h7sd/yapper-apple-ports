@@ -90,7 +90,7 @@ try {
     report.checks.push('Bundled client version marker, architecture, portable links, signatures, and reviewed runtime bundle checksum');
     for (const [directory, expected] of [
       ['yappercord', 'de53f573bfa5fb3fdbcd8d35e710ef5805bae60284603a519c7c3850ab28e2a7'],
-      ['appearance', '52c19429daee71e0eda97b95b9605aaf8090367626569df101ce19a2f4a3fdf6']
+      ['appearance', 'f0b43c97bf075cbb056ceac54dc0dacafa6e12a5f30fca0fe6bf8b8bdac94739']
     ]) {
       const bytes = await packedMember(path.join(bundled, 'Contents', 'Resources', 'app.asar'), `${directory}/bundle.js`);
       const hash = createHash('sha256').update(bytes).digest('hex');

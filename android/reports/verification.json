@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "artifact": "Yapper-1.1.0-Yapinplugger-0.1.0-android.apk",
-  "sha256": "b9be70c1408cb6098f5f5ffe0deb7746828b27bbc833ffc0ec2191f446c46896",
+  "sha256": "001fcd00a1b8f3cee87e49fe86ea9b892268e9fb499afe472c34bf113a2409ba",
   "bytes": 230564,
   "applicationId": "website.yapper.android",
   "versionCode": 11004,
@@ -36,7 +36,7 @@
     "LICENSE.Vencord": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
     "NativeBridge.js": "b05208d29446ea9e6cd8bc95c3cc4acef2b8a909ab6b44e094a1df29a498aaab",
     "THIRD_PARTY_NOTICES.txt": "e50829635dff5d899c7ccd54f86a2642addcb2933f0fa3d474266740a9680bad",
-    "YapperAppearance.js": "52c19429daee71e0eda97b95b9605aaf8090367626569df101ce19a2f4a3fdf6",
+    "YapperAppearance.js": "f0b43c97bf075cbb056ceac54dc0dacafa6e12a5f30fca0fe6bf8b8bdac94739",
     "YapperCord.js": "de53f573bfa5fb3fdbcd8d35e710ef5805bae60284603a519c7c3850ab28e2a7"
   },
   "runtimeVerification": {
