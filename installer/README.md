@@ -16,7 +16,9 @@ The installer has no network downloader, privileged helper, updater, or Discord 
 
 The installer checks the bundle ID, packed ASAR `package.json` marker, nested code signatures, relative bundle links, and the built-in runtime checksum against the reviewed 0.1.0 hash. It copies to staging and validates that copy before moving an existing destination into a same-volume recovery folder. It preserves quarantine metadata and never re-signs, patches, or launches Yapper.
 
-An older destination affected only by Finder metadata/resource forks can still be backed up. The installer removes those two attributes from an isolated temporary copy and requires full strict signature verification plus matching ASAR bytes. The actual old app, its quarantine, other attributes, and original signatures remain unchanged in its backup and after restoration. Content tampering still fails validation. New source apps always require strict verification without this metadata handling.
+A compatible source affected by Finder metadata/resource forks is validated using an isolated temporary copy. Only `com.apple.FinderInfo` and `com.apple.ResourceFork` are removed from that copy; its full strict signature, ASAR bytes, runtime version, and reviewed bundle checksum must match. The original source stays unchanged. Installation removes those same two attributes from its own staged copy and requires that staged app to pass strict signature verification directly before it becomes the installed app. Quarantine and other attributes are retained; no app is re-signed.
+
+An older destination affected only by that metadata can also be backed up after strict verification of an isolated copy. The actual old app, its quarantine, other attributes, and original signatures remain unchanged in its backup and after restoration. Changed signed content fails validation for both new sources and older destinations.
 
 Only `yappercord.json` in the selected Yapper profile is changed. Standard Yapper uses `~/Library/Application Support/Yapper`; this follows its `productName: "Yapper"`. If you launch Yapper with a custom `--user-data-dir`, select that same profile. The contract is a JSON object with `schemaVersion: 1` and `enabled: true` or `false`; existing plugin and unknown keys are preserved. Invalid or future-schema settings are refused rather than overwritten.
 
@@ -30,7 +32,7 @@ Recovery validates an older installed app against its recorded ASAR digest and s
 
 Open the self-contained **Yapinplugger Setup** download for your Mac, then choose **Use bundled client**. A normal older Yapper copy does not contain the plugin runtime and cannot be used as the source. The setup copies its already-compatible client; an existing Yapper copy belongs at the destination, where it can be backed up after explicit replacement is allowed.
 
-The reported preview failure was reproduced with an older source app: macOS rejected its signature because of Finder metadata/resource forks, and its manifest contained no plugin-runtime version marker. The new error identifies this metadata problem and points to the bundled client. It leaves that app untouched. If validation instead rejects an existing destination, choose another empty destination; the installer does not silently replace an invalid app.
+The reported preview failures were reproduced with an older source app containing no plugin-runtime marker and with Finder metadata on a compatible bundled copy. The installer now checks compatibility before signature metadata, gives an older source a direct **Use bundled client** remedy, and safely validates a compatible metadata-affected source through the isolated-copy process above. The selected app stays unchanged. If validation instead rejects changed signed content at an existing destination, choose another empty destination; the installer does not silently replace an invalid app.
 
 ## Restore, uninstall, and interrupted operations
 

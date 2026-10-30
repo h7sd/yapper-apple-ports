@@ -112,7 +112,7 @@ import Testing
         // Initial codesign may report content damage before metadata. Exercise
         // the isolated-copy verifier too, so its full signature check is required.
         do {
-            try fixture.engine.verifyPreviousAppWithMetadata(fixture.paths.defaultDestination)
+            try fixture.engine.verifyAppWithMetadata(fixture.paths.defaultDestination, requireYapperCord: false)
             Issue.record("The isolated metadata-validation copy accepted changed signed contents")
         } catch let failure as InstallerFailure {
             #expect(failure.localizedDescription.contains("code-signature verification"))
@@ -136,19 +136,63 @@ import Testing
         #expect(!manager.fileExists(atPath: fixture.paths.defaultDestination.deletingLastPathComponent().appendingPathComponent(".YapperCord-Backups").path))
     }
 
-    @Test func `metadata affected new sources remain strictly rejected`() throws {
+    @Test func `compatible metadata affected source installs a clean signed app without changing the source`() throws {
         let fixture = try Fixture(); defer { fixture.cleanup() }
         let source = try fixture.app("Source", canonical: "0.1.0")
         try addSignedNestedHelper(to: source)
         try addMetadata(to: source)
         let originalMetadata = try metadata(in: source)
+        let originalArchive = try Data(contentsOf: source.appendingPathComponent("Contents/Resources/app.asar"))
+        let originalSeal = try Data(contentsOf: source.appendingPathComponent("Contents/_CodeSignature/CodeResources"))
+        let quarantine = try InstallerEngine.run("/usr/bin/xattr", ["-px", "com.apple.quarantine", source.path])
+        let custom = try InstallerEngine.run("/usr/bin/xattr", ["-px", "dev.yapper.metadata-fixture", source.path])
+        #expect(try fixture.engine.inspect(source).runtimeBundleSHA256 == InstallerEngine.runtimeBundleSHA256)
+
+        _ = try fixture.engine.install(source: source, destination: fixture.paths.defaultDestination)
+
+        _ = try InstallerEngine.run("/usr/bin/codesign", ["--verify", "--deep", "--strict", fixture.paths.defaultDestination.path])
+        #expect(try fixture.engine.inspect(fixture.paths.defaultDestination).runtimeBundleSHA256 == InstallerEngine.runtimeBundleSHA256)
+        #expect(try metadata(in: source) == originalMetadata)
+        #expect(try Data(contentsOf: source.appendingPathComponent("Contents/Resources/app.asar")) == originalArchive)
+        #expect(try Data(contentsOf: source.appendingPathComponent("Contents/_CodeSignature/CodeResources")) == originalSeal)
+        #expect(try Data(contentsOf: fixture.paths.defaultDestination.appendingPathComponent("Contents/Resources/app.asar")) == originalArchive)
+        #expect(try Data(contentsOf: fixture.paths.defaultDestination.appendingPathComponent("Contents/_CodeSignature/CodeResources")) == originalSeal)
+        #expect(try InstallerEngine.run("/usr/bin/xattr", ["-px", "com.apple.quarantine", fixture.paths.defaultDestination.path]) == quarantine)
+        #expect(try InstallerEngine.run("/usr/bin/xattr", ["-px", "dev.yapper.metadata-fixture", fixture.paths.defaultDestination.path]) == custom)
+        for (relativePath, name) in attributes where name == "com.apple.FinderInfo" || name == "com.apple.ResourceFork" {
+            let file = relativePath.isEmpty ? fixture.paths.defaultDestination : fixture.paths.defaultDestination.appendingPathComponent(relativePath)
+            #expect(throws: (any Error).self) { try InstallerEngine.run("/usr/bin/xattr", ["-p", name, file.path]) }
+        }
+        #expect(try fixture.config()["enabled"] as? Bool == true)
+    }
+
+    @Test func `metadata does not hide signed content tampering in a compatible new source`() throws {
+        let fixture = try Fixture(); defer { fixture.cleanup() }
+        let source = try fixture.app("Source", canonical: "0.1.0")
+        try addSignedNestedHelper(to: source)
+        try addMetadata(to: source)
+        let archive = source.appendingPathComponent("Contents/Resources/app.asar")
+        let file = try FileHandle(forWritingTo: archive)
+        try file.seekToEnd(); try file.write(contentsOf: Data("signed resource tampering".utf8)); try file.close()
+        let originalMetadata = try metadata(in: source)
+        let tamperedArchive = try Data(contentsOf: archive)
+
+        do {
+            try fixture.engine.verifyAppWithMetadata(source, requireYapperCord: true)
+            Issue.record("The compatible temporary copy accepted changed signed contents")
+        } catch let failure as InstallerFailure {
+            #expect(failure.localizedDescription.contains("code-signature verification"))
+        }
 
         do {
             _ = try fixture.engine.install(source: source, destination: fixture.paths.defaultDestination)
-            Issue.record("Metadata-affected new source was accepted")
-        } catch InstallerFailure.metadataSignature {}
+            Issue.record("Changed signed contents were accepted as a new source")
+        } catch let failure as InstallerFailure {
+            #expect(failure.localizedDescription.contains("signature"))
+        }
 
         #expect(try metadata(in: source) == originalMetadata)
+        #expect(try Data(contentsOf: archive) == tamperedArchive)
         #expect(!FileManager.default.fileExists(atPath: fixture.paths.defaultDestination.path))
         #expect(!FileManager.default.fileExists(atPath: fixture.paths.defaultUserData.path))
         #expect(!FileManager.default.fileExists(atPath: fixture.paths.state.path))

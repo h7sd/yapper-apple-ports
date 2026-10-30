@@ -11,5 +11,5 @@
     "No installer GUI interaction or real installation is performed.",
     "Ad-hoc signatures do not identify a trusted publisher; these checks are not a malware-free guarantee."
   ],
-  "archiveSHA256": "2b5a0238e0df8207288ed98995b21a94fc65ca3d174481b728a4ca2af34a7d3f"
+  "archiveSHA256": "1ceb8d62b7e7a0879482032e61507ecd0cad6f8dca712dd3c847275d454e8170"
 }

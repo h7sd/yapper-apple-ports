@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "passed": true,
+  "standaloneArchiveSHA256": "1ceb8d62b7e7a0879482032e61507ecd0cad6f8dca712dd3c847275d454e8170",
+  "checks": [
+    "Final packaged CLI validates the actual metadata-affected bundled source",
+    "Selected older markerless source receives Use bundled client guidance",
+    "Both actual source metadata snapshots remain unchanged"
+  ],
+  "compatibleSource": {
+    "appVersion": "1.1.0",
+    "asarSHA256": "b472a2632b6fb1fc042fae3798bd3b530f2bcfa34b35ab08bffd5d2f03d7427d",
+    "runtimeBundleSHA256": "de53f573bfa5fb3fdbcd8d35e710ef5805bae60284603a519c7c3850ab28e2a7",
+    "yapinpluggerVersion": "0.1.0",
+    "yappercordVersion": "0.1.0"
+  },
+  "olderSourceGuidance": "This Yapper build does not contain Yapinplugger 0.1.0. Open Yapinplugger Setup for your Mac and choose Use bundled client, or select the compatible Yapper.app from that release. Existing older apps can be backed up at the installation destination.",
+  "realUserProfileOrDestinationChanged": false,
+  "clientLaunched": false
+}

@@ -99,12 +99,19 @@ public struct InstallerEngine: Sendable {
               info["CFBundleExecutable"] as? String == "Yapper" else {
             throw InstallerFailure.invalid("Choose a Yapper.app with bundle identifier website.yapper.desktop.")
         }
+        // Read only bounded packed files first, so an older source gets the
+        // compatible-client action even when Finder has added bundle metadata.
+        let inspection = try manifestInspection(app, requireYapperCord: requireYapperCord)
         do {
             _ = try Self.run("/usr/bin/codesign", ["--verify", "--deep", "--strict", app.path])
         } catch let failure as InstallerFailure {
-            guard !requireYapperCord, case .metadataSignature = failure else { throw failure }
-            try verifyPreviousAppWithMetadata(app)
+            guard case .metadataSignature = failure else { throw failure }
+            try verifyAppWithMetadata(app, requireYapperCord: requireYapperCord)
         }
+        return inspection
+    }
+
+    private func manifestInspection(_ app: URL, requireYapperCord: Bool) throws -> AppInspection {
         let asar = app.appendingPathComponent("Contents/Resources/app.asar")
         let manifest = try ASARManifest.read(from: asar)
         guard manifest["productName"] as? String == "Yapper" else {
@@ -127,8 +134,8 @@ public struct InstallerEngine: Sendable {
         return AppInspection(path: app.path, appVersion: manifest["version"] as? String ?? "unknown", yapinpluggerVersion: cordVersion, yappercordVersion: cordVersion, asarSHA256: try Self.hashFile(asar), runtimeBundleSHA256: runtimeHash)
     }
 
-    /// Only previous/backup apps may use this path. The selected app is never modified.
-    func verifyPreviousAppWithMetadata(_ app: URL) throws {
+    /// The selected app is never modified. New sources also require the reviewed runtime.
+    func verifyAppWithMetadata(_ app: URL, requireYapperCord: Bool) throws {
         let manager = FileManager.default
         let temporary = manager.temporaryDirectory.resolvingSymlinksInPath().appendingPathComponent("Yapinplugger-LegacyValidation-\(UUID().uuidString)")
         defer { try? manager.removeItem(at: temporary) }
@@ -140,28 +147,31 @@ public struct InstallerEngine: Sendable {
             let originalHash = try Self.hashFile(originalASAR)
             _ = try Self.run("/usr/bin/ditto", ["--rsrc", "--extattr", "--qtn", app.path, copy.path])
             try validatePortableLinks(copy)
-            try Self.removeSignatureMetadataFromCopy(copy)
+            try Self.removeSignatureMetadataFromCopy(copy, preservingQuarantineFrom: app)
             do {
                 _ = try Self.run("/usr/bin/codesign", ["--verify", "--deep", "--strict", copy.path])
             } catch {
-                throw InstallerFailure.invalid("The previous app failed full code-signature verification after Finder metadata was removed from a temporary copy. Its signed contents may have changed. The original app was left unchanged.")
+                throw InstallerFailure.invalid("The app failed full code-signature verification after Finder metadata was removed from a temporary copy. Its signed contents may have changed. The original app was left unchanged.")
             }
-            guard try Self.hashFile(copy.appendingPathComponent("Contents/Resources/app.asar")) == originalHash,
+            let checkedCopy = try manifestInspection(copy, requireYapperCord: requireYapperCord)
+            guard checkedCopy.asarSHA256 == originalHash,
                   try Self.hashFile(originalASAR) == originalHash else {
-                throw InstallerFailure.invalid("The previous app changed during metadata validation. It was left unchanged by the installer.")
+                throw InstallerFailure.invalid("The app changed during metadata validation. It was left unchanged by the installer.")
             }
         } catch let failure as InstallerFailure {
             throw failure
         } catch {
-            throw InstallerFailure.invalid("The previous app could not be checked in an isolated temporary copy. Check available disk space and file access. The original app was left unchanged.")
+            throw InstallerFailure.invalid("The app could not be checked in an isolated temporary copy. Check available disk space and file access. The original app was left unchanged.")
         }
     }
 
-    private static func removeSignatureMetadataFromCopy(_ app: URL) throws {
+    private static func removeSignatureMetadataFromCopy(_ app: URL, preservingQuarantineFrom original: URL) throws {
         let manager = FileManager.default
-        var pending = [app]
-        while let entry = pending.popLast() {
+        var pending = [(copy: app, original: original)]
+        while let pair = pending.popLast() {
+            let entry = pair.copy
             let type = try manager.attributesOfItem(atPath: entry.path)[.type] as? FileAttributeType
+            try preserveQuarantine(from: pair.original, to: entry)
             for name in ["com.apple.FinderInfo", "com.apple.ResourceFork"] {
                 let result = entry.path.withCString { path in
                     name.withCString { attribute in removexattr(path, attribute, XATTR_NOFOLLOW) }
@@ -171,8 +181,44 @@ public struct InstallerEngine: Sendable {
                 }
             }
             if type == .typeDirectory {
-                pending.append(contentsOf: try manager.contentsOfDirectory(at: entry, includingPropertiesForKeys: nil))
+                let children = try manager.contentsOfDirectory(at: entry, includingPropertiesForKeys: nil)
+                pending.append(contentsOf: children.map { (copy: $0, original: pair.original.appendingPathComponent($0.lastPathComponent)) })
             }
+        }
+    }
+
+    /// ditto can omit quarantine values it does not parse. Preserve their exact
+    /// bytes rather than clearing or interpreting the original's security metadata.
+    private static func preserveQuarantine(from original: URL, to copy: URL) throws {
+        let name = "com.apple.quarantine"
+        let (size, readError) = original.path.withCString { path in
+            name.withCString { attribute in
+                let result = getxattr(path, attribute, nil, 0, 0, XATTR_NOFOLLOW)
+                return (result, errno)
+            }
+        }
+        if size < 0, readError == ENOATTR { return }
+        guard size >= 0, size <= 1_048_576 else {
+            throw InstallerFailure.invalid("Quarantine metadata could not be read from the original app. Check file access. The original app was left unchanged.")
+        }
+        var data = Data(count: size)
+        let read = data.withUnsafeMutableBytes { bytes in
+            original.path.withCString { path in
+                name.withCString { attribute in getxattr(path, attribute, bytes.baseAddress, bytes.count, 0, XATTR_NOFOLLOW) }
+            }
+        }
+        guard read == size else {
+            throw InstallerFailure.invalid("Quarantine metadata changed while the app was being copied. The original app was left unchanged.")
+        }
+        let written = data.withUnsafeBytes { bytes in
+            copy.path.withCString { path in
+                name.withCString { attribute in
+                    setxattr(path, attribute, bytes.baseAddress, bytes.count, 0, XATTR_NOFOLLOW)
+                }
+            }
+        }
+        guard written == 0 else {
+            throw InstallerFailure.invalid("Quarantine metadata could not be preserved on the temporary app copy. Check file access. The original app was left unchanged.")
         }
     }
 
@@ -209,6 +255,10 @@ public struct InstallerEngine: Sendable {
             var hasReceipt = false
             defer { if !hasReceipt { try? manager.removeItem(at: stage) } }
             _ = try Self.run("/usr/bin/ditto", ["--rsrc", "--extattr", "--qtn", source.path, stage.path])
+            try Self.removeSignatureMetadataFromCopy(stage, preservingQuarantineFrom: source)
+            // This direct check must pass on the actual install stage; inspect's
+            // temporary-copy validation is insufficient for the installed app.
+            _ = try Self.run("/usr/bin/codesign", ["--verify", "--deep", "--strict", stage.path])
             let staged = try inspect(stage)
             guard staged.asarSHA256 == inspected.asarSHA256 else { throw InstallerFailure.invalid("Staged app differs from the selected source.") }
             try refuseRunning([source, destination])

@@ -1,5 +1,5 @@
-2b5a0238e0df8207288ed98995b21a94fc65ca3d174481b728a4ca2af34a7d3f  Yapinplugger-Installer-0.1.0-mac-universal.zip
-b107a3d1934a3a1e0db2a82fc07b3bb559ae1ff51b9aa620afbb1b722b19e20f  Yapinplugger-Setup-0.1.0-mac-arm64.zip
-e896a0c51a129865e50f38599b2531bff84460632eb353d3a7fe1b22df1a9e26  Yapinplugger-Setup-0.1.0-mac-x64.zip
+1ceb8d62b7e7a0879482032e61507ecd0cad6f8dca712dd3c847275d454e8170  Yapinplugger-Installer-0.1.0-mac-universal.zip
+d8b6684ea99b085fa45751bc06181b57fe6256d0508a7c489061cf28cf5424fb  Yapinplugger-Setup-0.1.0-mac-arm64.zip
+c83ef160b7f9cefb37baaea82b2a27f5a10429f735586d2d90317bd2f0f38c40  Yapinplugger-Setup-0.1.0-mac-x64.zip
 9a1849672dfefec39532901ce3281949ef902b122a24dfeb2e78490d0c0baafd  Yapper-1.1.0-Yapinplugger-0.1.0-iOS-Simulator.zip
 94b6045aaf9f17e0aced55380efa4859a3ef37d41be84d8946e88b635f7c568e  Yapper-1.1.0-Yapinplugger-0.1.0-ios-unsigned.ipa

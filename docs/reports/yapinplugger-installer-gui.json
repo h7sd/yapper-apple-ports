@@ -28,7 +28,8 @@
     "No end-to-end GUI installation on a real user profile was performed",
     "No screenshots containing local paths are published"
   ],
-  "scope": "GUI selection/reset was observed before a final recovery-only core correction; GUI source remains unchanged. Final rebuilt archives are independently verified.",
+  "scope": "GUI selection/reset was observed before subsequent core metadata/recovery corrections; GUI source remains unchanged. Final rebuilt archives and actual sources are independently verified.",
   "uiSourceSHA256": "04a474f002189417670f9db577c430d34d39d6408d8d50e79cc41f27ceba33fd",
-  "finalArtifactVerification": "verified-arm64.json"
+  "finalArtifactVerification": "verified-arm64.json",
+  "actualSourceVerification": "actual-source-checks.json"
 }

@@ -105,15 +105,15 @@ struct Fixture {
         #expect(InstallerSourceSelection.bundledApp(resourceDirectory: nil) == nil)
     }
 
-    @Test func `Finder metadata rejection gives the bundled setup recovery action`() throws {
+    @Test func `older source with Finder metadata gives the bundled setup recovery action`() throws {
         let fixture = try Fixture(); defer { fixture.cleanup() }
-        let source = try fixture.app("Source")
+        let source = try fixture.app("Source", cord: nil)
         _ = try InstallerEngine.run("/usr/bin/xattr", ["-wx", "com.apple.FinderInfo", "0000000000000000000100000000000000000000000000000000000000000000", source.path])
         do {
             _ = try fixture.engine.inspect(source)
-            Issue.record("Finder metadata was accepted")
+            Issue.record("Older source was accepted")
         } catch let error as InstallerFailure {
-            #expect(error.localizedDescription.contains("Finder metadata"))
+            #expect(error.localizedDescription.contains("does not contain Yapinplugger"))
             #expect(error.localizedDescription.contains("Use bundled client"))
             #expect(!error.localizedDescription.contains(fixture.home.path))
         }
