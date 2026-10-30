@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "passed": true,
+  "checks": [
+    "Native-only source: YapperNative/Core/Models.swift",
+    "No private material: YapperNative/Core/Models.swift",
+    "Native-only source: YapperNative/Core/NativeAPI.swift",
+    "No private material: YapperNative/Core/NativeAPI.swift",
+    "Native-only source: YapperNative/Core/NativeStore.swift",
+    "No private material: YapperNative/Core/NativeStore.swift",
+    "Native-only source: YapperNative/Core/RealtimeClient.swift",
+    "No private material: YapperNative/Core/RealtimeClient.swift",
+    "Native-only source: YapperNative/Core/SessionVault.swift",
+    "No private material: YapperNative/Core/SessionVault.swift",
+    "Native-only source: YapperNative/UI/NativeConversationView.swift",
+    "No private material: YapperNative/UI/NativeConversationView.swift",
+    "Native-only source: YapperNative/UI/NativeRootView.swift",
+    "No private material: YapperNative/UI/NativeRootView.swift",
+    "Native-only source: YapperNative/UI/YapperTheme.swift",
+    "No private material: YapperNative/UI/YapperTheme.swift",
+    "Native-only source: YapperNative/YapperNativeApp.swift",
+    "No private material: YapperNative/YapperNativeApp.swift",
+    "Bundled Supabase key is the public anonymous role",
+    "Native app uses its separate bundle identifier",
+    "Native preview version is 0.1.0",
+    "No arbitrary insecure transport exception",
+    "No unused capture or contacts permission prompts",
+    "Required-reason privacy manifest packaged",
+    "No tracking declared by the native app",
+    "Executable does not directly link a web or JavaScript UI runtime",
+    "Application embeds no website or JavaScript application resources",
+    "Debug fixture marker excluded from Release: --native-ui-fixtures",
+    "Debug fixture marker excluded from Release: --native-ui-login-fixture",
+    "Debug fixture marker excluded from Release: fixture-chat",
+    "Debug fixture marker excluded from Release: fixture-password",
+    "Debug fixture marker excluded from Release: demo@example.invalid",
+    "ZIP member integrity: Yapinplugger-Native-0.1.0-iOS-Simulator.zip",
+    "No test bundles packaged: Yapinplugger-Native-0.1.0-iOS-Simulator.zip",
+    "No signing credentials packaged: Yapinplugger-Native-0.1.0-iOS-Simulator.zip",
+    "ZIP member integrity: Yapinplugger-Native-0.1.0-ios-unsigned.ipa",
+    "No test bundles packaged: Yapinplugger-Native-0.1.0-ios-unsigned.ipa",
+    "No signing credentials packaged: Yapinplugger-Native-0.1.0-ios-unsigned.ipa",
+    "IPA bundle identity matches native application"
+  ],
+  "artifacts": [
+    {
+      "name": "Yapinplugger-Native-0.1.0-iOS-Simulator.zip",
+      "bytes": 1212774,
+      "sha256": "fd7100a21f822e8097e970f8659465eed6558d674b4062b032fc6420c162cf8a"
+    },
+    {
+      "name": "Yapinplugger-Native-0.1.0-ios-unsigned.ipa",
+      "bytes": 493919,
+      "sha256": "99a0d0ff49095f85ca3184951dbd1fd460fae526b72f3d9c5799ebabb3628a7c"
+    }
+  ],
+  "sourceSHA256": {
+    "YapperNative/Core/Models.swift": "e2d46843f9b8d41e51e60c6e9110a7d5c2c7722814b8644e6ffe1627c4dc93b0",
+    "YapperNative/Core/NativeAPI.swift": "d1d00191f2550f03d4e19d39aa5199e73b41f276e44640907be02c172072954d",
+    "YapperNative/Core/NativeStore.swift": "1ade65bfe15fb798facf1786445484c4cdad554851974d7f9d14647b82f57dc7",
+    "YapperNative/Core/RealtimeClient.swift": "157c7436f1eea6264cc7f77cf4f2b03f27869a79609c4bdf11e57450bda55632",
+    "YapperNative/Core/SessionVault.swift": "f50db51f4a42266160b3240871a59dfd33bdae79d46d9661f7edf753e9e58111",
+    "YapperNative/UI/NativeConversationView.swift": "2ea10ae36d6c6ec5b8f0b18c8bd44e0f104b2f40924c6233766b0698d07dd24c",
+    "YapperNative/UI/NativeRootView.swift": "182680902d195be99f392d0119c62e506dbccb334e44c8ae7730ed215ec313cd",
+    "YapperNative/UI/YapperTheme.swift": "26d4ae97d3ab5b978df394cb9859af0d938362fb7c68504238e185a57221632d",
+    "YapperNative/YapperNativeApp.swift": "0840c0d6a6a3d5898631cbe19de376bd25255e166b67ad159293246933f779a7"
+  },
+  "verificationLimits": {
+    "realAccountSignIn": false,
+    "liveMessageSend": false,
+    "physicalDevice": false,
+    "serverCaptchaEnforcement": "unknown",
+    "testResults": "See separate native test report; package inspection is not a runtime test."
+  }
+}

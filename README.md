@@ -1,5 +1,7 @@
 # Yapper clients with Yapinplugger
 
+**Native iOS preview:** [SwiftUI client without a WebView](ios-native/README.md), built as a separate app with native sign-in, direct/group messages, history and text sending. [Preview downloads](https://github.com/h7sd/yapper-apple-ports/releases/tag/v0.1.0-native-preview.1). Protocol and UI tests use mocked/synthetic data; a real account login and live message delivery have not been verified. Yapper's Turnstile requirement may need operator support for a native sign-in flow. This early milestone does not replace the existing full website client or its JavaScript plugins.
+
 **Experimental Yapinplugger extension:** [plugin manager, full upstream inventory and current compatibility](extensions/yappercord/README.md). Six limited Yapper feature adaptations are implemented; the remaining 161 public Vencord plugins are **not** compatible yet. [Native installer source](installer/README.md). This does not claim all Discord plugins work on Yapper.
 
 **Fullscreen on iOS:** Yapper’s theme fills the display behind the status bar and home indicator; controls respect the device safe areas. The [iOS fullscreen hotfix](https://github.com/h7sd/yapper-apple-ports/releases/tag/v1.1.0-apple.3) also removes duplicated mobile header/navigation insets. [Viewport verification](docs/IOS-YAPPERCORD.md#fullscreen-viewport).

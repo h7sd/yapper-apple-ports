@@ -1,0 +1,643 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		26E73B6B2040F5EBF7E0DEFE /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 25980C3C6C637E534005AC99 /* Foundation.framework */; };
+		3093399AFBF65B50B681AB29 /* NativeConversationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1F7E96CA6F70EF9F6534BAC /* NativeConversationView.swift */; };
+		3DE47BFFD6A1CC345C1A811E /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22DEAA49B9A631673A4AAFB7 /* Models.swift */; };
+		4A6B0D2EE40234CB1DD22FFC /* RealtimeClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = E88DE941C1D6D3CAF9FF53F7 /* RealtimeClient.swift */; };
+		4ED05E19C44CB7595FFBE919 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 25980C3C6C637E534005AC99 /* Foundation.framework */; };
+		5345C76C35E6298B5BD848A9 /* SessionVault.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23704EEFBAF21AC0F1521E30 /* SessionVault.swift */; };
+		59DB6CFB2DC2BD389894798D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CF18A12C3AB10BE5C5AEAD62 /* Assets.xcassets */; };
+		61C3AF9FDCD3B3B14F437130 /* NativeCoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0F6BD898BE1B78E1E99FC54 /* NativeCoreTests.swift */; };
+		6268ACE1EA7116F19D796B65 /* NativeFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADC758DEA40792C11C76EA50 /* NativeFlowTests.swift */; };
+		689C3402687FB338F1CF62C5 /* YapperTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9E9CA401289202696DC959 /* YapperTheme.swift */; };
+		A690E6F63570683B153EA0F9 /* NativeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56F64251DF6842AAC11C6AE4 /* NativeStore.swift */; };
+		AA6B54D8926BC56BEBE53F48 /* YapperNativeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CBE19E277931F7A1945FEC1 /* YapperNativeApp.swift */; };
+		BC266A5E0745C4CCC947ED10 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 25980C3C6C637E534005AC99 /* Foundation.framework */; };
+		E28700A26A5A31911EFDBA4A /* NativeAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 615E393D0558DB28BF39AFCA /* NativeAPI.swift */; };
+		E45199FBE1CCBF56A76E7542 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 4E0458EFD53C43873E5373BA /* PrivacyInfo.xcprivacy */; };
+		FBFB4098C32F3CFC1B6F0079 /* NativeRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81D2BAFDDA759BB6C90431E6 /* NativeRootView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		8CB44B5A88212AEBEE9E0A45 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 37131EB864C76FBE075E098C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 91C8C7634AFB17234FD438C8;
+			remoteInfo = YapperNative;
+		};
+		F37089100B2845386C3D7445 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 37131EB864C76FBE075E098C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 91C8C7634AFB17234FD438C8;
+			remoteInfo = YapperNative;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		22DEAA49B9A631673A4AAFB7 /* Models.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Models.swift; path = Core/Models.swift; sourceTree = "<group>"; };
+		23704EEFBAF21AC0F1521E30 /* SessionVault.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SessionVault.swift; path = Core/SessionVault.swift; sourceTree = "<group>"; };
+		25980C3C6C637E534005AC99 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		3DBC21ED4A076DAC53BA53A4 /* YapperNativeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = YapperNativeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4E0458EFD53C43873E5373BA /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		56F64251DF6842AAC11C6AE4 /* NativeStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NativeStore.swift; path = Core/NativeStore.swift; sourceTree = "<group>"; };
+		5D088C9CA7FF7CD07B80778A /* YapperNative.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = YapperNative.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		615E393D0558DB28BF39AFCA /* NativeAPI.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NativeAPI.swift; path = Core/NativeAPI.swift; sourceTree = "<group>"; };
+		81D2BAFDDA759BB6C90431E6 /* NativeRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NativeRootView.swift; path = UI/NativeRootView.swift; sourceTree = "<group>"; };
+		8CBE19E277931F7A1945FEC1 /* YapperNativeApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = YapperNativeApp.swift; sourceTree = "<group>"; };
+		A1F7E96CA6F70EF9F6534BAC /* NativeConversationView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NativeConversationView.swift; path = UI/NativeConversationView.swift; sourceTree = "<group>"; };
+		ADC758DEA40792C11C76EA50 /* NativeFlowTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NativeFlowTests.swift; sourceTree = "<group>"; };
+		BC9E9CA401289202696DC959 /* YapperTheme.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = YapperTheme.swift; path = UI/YapperTheme.swift; sourceTree = "<group>"; };
+		C871F299B8C2E4B706DA6357 /* YapperNativeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = YapperNativeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CF18A12C3AB10BE5C5AEAD62 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		E88DE941C1D6D3CAF9FF53F7 /* RealtimeClient.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RealtimeClient.swift; path = Core/RealtimeClient.swift; sourceTree = "<group>"; };
+		F0F6BD898BE1B78E1E99FC54 /* NativeCoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NativeCoreTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		1F53E3D0E977E235F7EF0DDF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BC266A5E0745C4CCC947ED10 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		81B7BD37E37C508F5FAAA3D2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4ED05E19C44CB7595FFBE919 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D5D6273460895007B4E70B7C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				26E73B6B2040F5EBF7E0DEFE /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		01CDC75B1E5FA6F7B304D927 /* YapperNativeUITests */ = {
+			isa = PBXGroup;
+			children = (
+				ADC758DEA40792C11C76EA50 /* NativeFlowTests.swift */,
+			);
+			name = YapperNativeUITests;
+			path = YapperNativeUITests;
+			sourceTree = "<group>";
+		};
+		3BD27E96C866D92D4AF6452D /* YapperNative */ = {
+			isa = PBXGroup;
+			children = (
+				22DEAA49B9A631673A4AAFB7 /* Models.swift */,
+				615E393D0558DB28BF39AFCA /* NativeAPI.swift */,
+				56F64251DF6842AAC11C6AE4 /* NativeStore.swift */,
+				E88DE941C1D6D3CAF9FF53F7 /* RealtimeClient.swift */,
+				23704EEFBAF21AC0F1521E30 /* SessionVault.swift */,
+				A1F7E96CA6F70EF9F6534BAC /* NativeConversationView.swift */,
+				81D2BAFDDA759BB6C90431E6 /* NativeRootView.swift */,
+				BC9E9CA401289202696DC959 /* YapperTheme.swift */,
+				8CBE19E277931F7A1945FEC1 /* YapperNativeApp.swift */,
+				CF18A12C3AB10BE5C5AEAD62 /* Assets.xcassets */,
+				4E0458EFD53C43873E5373BA /* PrivacyInfo.xcprivacy */,
+			);
+			name = YapperNative;
+			path = YapperNative;
+			sourceTree = "<group>";
+		};
+		4497CA0A2AB99B66BAF0865D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				5D088C9CA7FF7CD07B80778A /* YapperNative.app */,
+				3DBC21ED4A076DAC53BA53A4 /* YapperNativeTests.xctest */,
+				C871F299B8C2E4B706DA6357 /* YapperNativeUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		62F0CA2439A571B7CEA0FC01 = {
+			isa = PBXGroup;
+			children = (
+				4497CA0A2AB99B66BAF0865D /* Products */,
+				BA62DA5D19F2E4607B97B858 /* Frameworks */,
+				3BD27E96C866D92D4AF6452D /* YapperNative */,
+				AD3C89C9FE5690A750B3E67D /* YapperNativeTests */,
+				01CDC75B1E5FA6F7B304D927 /* YapperNativeUITests */,
+			);
+			sourceTree = "<group>";
+		};
+		8A24130C47E4FEAE2B3AC9E1 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				25980C3C6C637E534005AC99 /* Foundation.framework */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
+		AD3C89C9FE5690A750B3E67D /* YapperNativeTests */ = {
+			isa = PBXGroup;
+			children = (
+				F0F6BD898BE1B78E1E99FC54 /* NativeCoreTests.swift */,
+			);
+			name = YapperNativeTests;
+			path = YapperNativeTests;
+			sourceTree = "<group>";
+		};
+		BA62DA5D19F2E4607B97B858 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				8A24130C47E4FEAE2B3AC9E1 /* iOS */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		19C8A7768798530AC35B5500 /* YapperNativeTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C2FAD5D76FB63D8D2CC28566 /* Build configuration list for PBXNativeTarget "YapperNativeTests" */;
+			buildPhases = (
+				7F731C2A60E4F5E8F8459D19 /* Sources */,
+				1F53E3D0E977E235F7EF0DDF /* Frameworks */,
+				B45415F74D9C23E4AAF8F35F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B55C3657D2C70DFA05347F7F /* PBXTargetDependency */,
+			);
+			name = YapperNativeTests;
+			productName = YapperNativeTests;
+			productReference = 3DBC21ED4A076DAC53BA53A4 /* YapperNativeTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		91C8C7634AFB17234FD438C8 /* YapperNative */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A0A11410A15A8CCC10B7D4C5 /* Build configuration list for PBXNativeTarget "YapperNative" */;
+			buildPhases = (
+				E990CDD5B6CCEC17A2C65D6A /* Sources */,
+				81B7BD37E37C508F5FAAA3D2 /* Frameworks */,
+				D29F05EC4FB2C373A71C5DFA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = YapperNative;
+			productName = YapperNative;
+			productReference = 5D088C9CA7FF7CD07B80778A /* YapperNative.app */;
+			productType = "com.apple.product-type.application";
+		};
+		C3044E28F2DEFCDF2FEB3E7F /* YapperNativeUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CAE912EA8F83AED1DFBCB255 /* Build configuration list for PBXNativeTarget "YapperNativeUITests" */;
+			buildPhases = (
+				C59C115B7FDBA82CE2EC6383 /* Sources */,
+				D5D6273460895007B4E70B7C /* Frameworks */,
+				9D9D9AB8006CAC95099D370B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				8DECA2D74118DD931644F3D2 /* PBXTargetDependency */,
+			);
+			name = YapperNativeUITests;
+			productName = YapperNativeUITests;
+			productReference = C871F299B8C2E4B706DA6357 /* YapperNativeUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		37131EB864C76FBE075E098C /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 2600;
+			};
+			buildConfigurationList = 3E404042C5523D6240C4F287 /* Build configuration list for PBXProject "YapperNative" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 62F0CA2439A571B7CEA0FC01;
+			minimizedProjectReferenceProxies = 0;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 4497CA0A2AB99B66BAF0865D /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				91C8C7634AFB17234FD438C8 /* YapperNative */,
+				19C8A7768798530AC35B5500 /* YapperNativeTests */,
+				C3044E28F2DEFCDF2FEB3E7F /* YapperNativeUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		9D9D9AB8006CAC95099D370B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B45415F74D9C23E4AAF8F35F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D29F05EC4FB2C373A71C5DFA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				59DB6CFB2DC2BD389894798D /* Assets.xcassets in Resources */,
+				E45199FBE1CCBF56A76E7542 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		7F731C2A60E4F5E8F8459D19 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				61C3AF9FDCD3B3B14F437130 /* NativeCoreTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C59C115B7FDBA82CE2EC6383 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6268ACE1EA7116F19D796B65 /* NativeFlowTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E990CDD5B6CCEC17A2C65D6A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3DE47BFFD6A1CC345C1A811E /* Models.swift in Sources */,
+				E28700A26A5A31911EFDBA4A /* NativeAPI.swift in Sources */,
+				A690E6F63570683B153EA0F9 /* NativeStore.swift in Sources */,
+				4A6B0D2EE40234CB1DD22FFC /* RealtimeClient.swift in Sources */,
+				5345C76C35E6298B5BD848A9 /* SessionVault.swift in Sources */,
+				3093399AFBF65B50B681AB29 /* NativeConversationView.swift in Sources */,
+				FBFB4098C32F3CFC1B6F0079 /* NativeRootView.swift in Sources */,
+				689C3402687FB338F1CF62C5 /* YapperTheme.swift in Sources */,
+				AA6B54D8926BC56BEBE53F48 /* YapperNativeApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		8DECA2D74118DD931644F3D2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = YapperNative;
+			target = 91C8C7634AFB17234FD438C8 /* YapperNative */;
+			targetProxy = 8CB44B5A88212AEBEE9E0A45 /* PBXContainerItemProxy */;
+		};
+		B55C3657D2C70DFA05347F7F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = YapperNative;
+			target = 91C8C7634AFB17234FD438C8 /* YapperNative */;
+			targetProxy = F37089100B2845386C3D7445 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		11A98CA2E65545AAC6ECD4C5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = YapperNative/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = website.yapper.native.ios;
+				SDKROOT = iphoneos;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_UPCOMING_FEATURE_NONISOLATED_NONSENDING_BY_DEFAULT = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		11D4ABF21E89FA1F1A6E026A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = YapperNative/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = website.yapper.native.ios;
+				SDKROOT = iphoneos;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_UPCOMING_FEATURE_NONISOLATED_NONSENDING_BY_DEFAULT = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		39C00C92B75F9D55CEB98EE8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = website.yapper.native.ios.YapperNativeUITests;
+				SDKROOT = iphoneos;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_UPCOMING_FEATURE_NONISOLATED_NONSENDING_BY_DEFAULT = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = YapperNative;
+			};
+			name = Debug;
+		};
+		59564E08B0A0C1F3A3D0F9BD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		7FC9BB35134454DFF1155AE5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = website.yapper.native.ios.YapperNativeTests;
+				SDKROOT = iphoneos;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_UPCOMING_FEATURE_NONISOLATED_NONSENDING_BY_DEFAULT = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/YapperNative.app/YapperNative";
+				TEST_TARGET_NAME = YapperNative;
+			};
+			name = Debug;
+		};
+		DBD2DB3B8BEAD000475B5D4E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = website.yapper.native.ios.YapperNativeUITests;
+				SDKROOT = iphoneos;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_UPCOMING_FEATURE_NONISOLATED_NONSENDING_BY_DEFAULT = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = YapperNative;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		EF329611C5F435737BAEB0A8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		F4AAAC5B6D673A64FEF714D8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = website.yapper.native.ios.YapperNativeTests;
+				SDKROOT = iphoneos;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_UPCOMING_FEATURE_NONISOLATED_NONSENDING_BY_DEFAULT = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/YapperNative.app/YapperNative";
+				TEST_TARGET_NAME = YapperNative;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		3E404042C5523D6240C4F287 /* Build configuration list for PBXProject "YapperNative" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EF329611C5F435737BAEB0A8 /* Debug */,
+				59564E08B0A0C1F3A3D0F9BD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A0A11410A15A8CCC10B7D4C5 /* Build configuration list for PBXNativeTarget "YapperNative" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				11D4ABF21E89FA1F1A6E026A /* Release */,
+				11A98CA2E65545AAC6ECD4C5 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C2FAD5D76FB63D8D2CC28566 /* Build configuration list for PBXNativeTarget "YapperNativeTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F4AAAC5B6D673A64FEF714D8 /* Release */,
+				7FC9BB35134454DFF1155AE5 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CAE912EA8F83AED1DFBCB255 /* Build configuration list for PBXNativeTarget "YapperNativeUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DBD2DB3B8BEAD000475B5D4E /* Release */,
+				39C00C92B75F9D55CEB98EE8 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 37131EB864C76FBE075E098C /* Project object */;
+}

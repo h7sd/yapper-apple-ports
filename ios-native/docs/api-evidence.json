@@ -1,0 +1,339 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-30",
+  "scope": "Public shipped JavaScript; public unauthenticated GET; no account sessions or live mutations",
+  "reaEvidence": {
+    "id": "ev_e2e4db31d9121e7e40e757b4238ff70e4ca225058492b006cc473d233b1d4622",
+    "rootArtifactSHA256": "c754f07311551ac8d21f53e3a58a7c32399e1f40d75f43e4971b14b4d1c3bb78",
+    "cli": "rea-agents@6.5.0",
+    "inertAnalysis": true,
+    "limitations": [
+      "Graph/AST coverage is incomplete. Static analysis does not establish live authenticated behavior. Four HTML inline scripts were not analyzed.",
+      "Missing MCP registration; CLI fallback used without configuration edits."
+    ]
+  },
+  "freshness": [
+    {
+      "file": "1b5f2lvdqu1w3.js",
+      "url": "https://yapin.gg/_next/static/chunks/1b5f2lvdqu1w3.js",
+      "httpSuccess": true,
+      "sha256": "0a991d079cbd118acb7f9a28e9c8b1880783e79eb9bb5c6d70e077fc8a51a4c0",
+      "matchesPrior": true
+    },
+    {
+      "file": "0-lokdq9a6g34.js",
+      "url": "https://yapin.gg/_next/static/chunks/0-lokdq9a6g34.js",
+      "httpSuccess": true,
+      "sha256": "d4bb548e8b656b0347e5639362f7e4eb9d5a447ca7c3a731fde0e4ecf3f6058a",
+      "matchesPrior": true
+    },
+    {
+      "file": "0yj8cn3x9eql7.js",
+      "url": "https://yapin.gg/_next/static/chunks/0yj8cn3x9eql7.js",
+      "httpSuccess": true,
+      "sha256": "e6898bc405fc81fa9224bb6f2a45e0e41776cd58ca31dcf3002d18037a83f131",
+      "matchesPrior": true
+    },
+    {
+      "file": "29mti5o2r3n9b.js",
+      "url": "https://yapin.gg/_next/static/chunks/29mti5o2r3n9b.js",
+      "httpSuccess": true,
+      "sha256": "d184ba50d425db5c432e14dd36c94cc0ef44f6dbca72272feafb448f9937b080",
+      "matchesPrior": true
+    },
+    {
+      "file": "1hu0uktie-cf6.js",
+      "url": "https://yapin.gg/_next/static/chunks/1hu0uktie-cf6.js",
+      "httpSuccess": true,
+      "sha256": "9d8d4fb59fa45e350e36ff04c7c46177c86122c9ec0787779ac495654af94fb7",
+      "matchesPrior": true
+    },
+    {
+      "file": "1vg2hz3k_4ur7.js",
+      "url": "https://yapin.gg/_next/static/chunks/1vg2hz3k_4ur7.js",
+      "httpSuccess": true,
+      "sha256": "b341bef4f85b943bf02e450a33e40681d58d0e167d552ccbcb2387f8d1bfe813",
+      "matchesPrior": true
+    },
+    {
+      "file": "3-qb3kp9rydmi.js",
+      "url": "https://yapin.gg/_next/static/chunks/3-qb3kp9rydmi.js",
+      "httpSuccess": true,
+      "sha256": "23c344f8483022e8f09c2401333f4746db8bb07238b9078dad52201d1cb23453",
+      "matchesPrior": true
+    }
+  ],
+  "findings": [
+    {
+      "id": "configuration",
+      "evidenceType": "observed-static-consumer",
+      "file": "1b5f2lvdqu1w3.js",
+      "url": "https://yapin.gg/_next/static/chunks/1b5f2lvdqu1w3.js",
+      "sha256": "0a991d079cbd118acb7f9a28e9c8b1880783e79eb9bb5c6d70e077fc8a51a4c0",
+      "unicodeOffset": 2422,
+      "line": 1,
+      "column": 2423,
+      "needle": "https://dnfkuqzddwvtdojzgmdm.supabase.co"
+    },
+    {
+      "id": "api-routing",
+      "evidenceType": "observed-static-consumer",
+      "file": "1b5f2lvdqu1w3.js",
+      "url": "https://yapin.gg/_next/static/chunks/1b5f2lvdqu1w3.js",
+      "sha256": "0a991d079cbd118acb7f9a28e9c8b1880783e79eb9bb5c6d70e077fc8a51a4c0",
+      "unicodeOffset": 26817,
+      "line": 1,
+      "column": 26818,
+      "needle": "let k=(0,r.z)"
+    },
+    {
+      "id": "email-login-sdk",
+      "evidenceType": "observed-static-consumer",
+      "file": "1b5f2lvdqu1w3.js",
+      "url": "https://yapin.gg/_next/static/chunks/1b5f2lvdqu1w3.js",
+      "sha256": "0a991d079cbd118acb7f9a28e9c8b1880783e79eb9bb5c6d70e077fc8a51a4c0",
+      "unicodeOffset": 73944,
+      "line": 1,
+      "column": 73945,
+      "needle": "async signInWithPassword("
+    },
+    {
+      "id": "username-login",
+      "evidenceType": "observed-static-consumer",
+      "file": "0-lokdq9a6g34.js",
+      "url": "https://yapin.gg/_next/static/chunks/0-lokdq9a6g34.js",
+      "sha256": "d4bb548e8b656b0347e5639362f7e4eb9d5a447ca7c3a731fde0e4ecf3f6058a",
+      "unicodeOffset": 12534,
+      "line": 1,
+      "column": 12535,
+      "needle": "fetch(\"/api/login\""
+    },
+    {
+      "id": "captcha-widget",
+      "evidenceType": "observed-static-consumer",
+      "file": "0-lokdq9a6g34.js",
+      "url": "https://yapin.gg/_next/static/chunks/0-lokdq9a6g34.js",
+      "sha256": "d4bb548e8b656b0347e5639362f7e4eb9d5a447ca7c3a731fde0e4ecf3f6058a",
+      "unicodeOffset": 3885,
+      "line": 1,
+      "column": 3886,
+      "needle": "token:()=>{if(!p.G)"
+    },
+    {
+      "id": "refresh",
+      "evidenceType": "observed-static-consumer",
+      "file": "0-lokdq9a6g34.js",
+      "url": "https://yapin.gg/_next/static/chunks/0-lokdq9a6g34.js",
+      "sha256": "d4bb548e8b656b0347e5639362f7e4eb9d5a447ca7c3a731fde0e4ecf3f6058a",
+      "unicodeOffset": 27127,
+      "line": 1,
+      "column": 27128,
+      "needle": "grant_type=refresh_token"
+    },
+    {
+      "id": "auth-user",
+      "evidenceType": "observed-static-consumer",
+      "file": "1b5f2lvdqu1w3.js",
+      "url": "https://yapin.gg/_next/static/chunks/1b5f2lvdqu1w3.js",
+      "sha256": "0a991d079cbd118acb7f9a28e9c8b1880783e79eb9bb5c6d70e077fc8a51a4c0",
+      "unicodeOffset": 94359,
+      "line": 14,
+      "column": 15641,
+      "needle": "async _getUser("
+    },
+    {
+      "id": "totp-challenge",
+      "evidenceType": "observed-static-consumer",
+      "file": "1b5f2lvdqu1w3.js",
+      "url": "https://yapin.gg/_next/static/chunks/1b5f2lvdqu1w3.js",
+      "sha256": "0a991d079cbd118acb7f9a28e9c8b1880783e79eb9bb5c6d70e077fc8a51a4c0",
+      "unicodeOffset": 119345,
+      "line": 14,
+      "column": 40627,
+      "needle": "async _challenge(e)"
+    },
+    {
+      "id": "totp-verify",
+      "evidenceType": "observed-static-consumer",
+      "file": "1b5f2lvdqu1w3.js",
+      "url": "https://yapin.gg/_next/static/chunks/1b5f2lvdqu1w3.js",
+      "sha256": "0a991d079cbd118acb7f9a28e9c8b1880783e79eb9bb5c6d70e077fc8a51a4c0",
+      "unicodeOffset": 118358,
+      "line": 14,
+      "column": 39640,
+      "needle": "async _verify(e)"
+    },
+    {
+      "id": "totp-list",
+      "evidenceType": "observed-static-consumer",
+      "file": "1vg2hz3k_4ur7.js",
+      "url": "https://yapin.gg/_next/static/chunks/1vg2hz3k_4ur7.js",
+      "sha256": "b341bef4f85b943bf02e450a33e40681d58d0e167d552ccbcb2387f8d1bfe813",
+      "unicodeOffset": 22686,
+      "line": 1,
+      "column": 22687,
+      "needle": "auth.mfa.listFactors"
+    },
+    {
+      "id": "bootstrap",
+      "evidenceType": "observed-static-consumer",
+      "file": "0yj8cn3x9eql7.js",
+      "url": "https://yapin.gg/_next/static/chunks/0yj8cn3x9eql7.js",
+      "sha256": "e6898bc405fc81fa9224bb6f2a45e0e41776cd58ca31dcf3002d18037a83f131",
+      "unicodeOffset": 33127,
+      "line": 1,
+      "column": 33128,
+      "needle": ".rpc(\"bootstrap\")"
+    },
+    {
+      "id": "history",
+      "evidenceType": "observed-static-consumer",
+      "file": "0yj8cn3x9eql7.js",
+      "url": "https://yapin.gg/_next/static/chunks/0yj8cn3x9eql7.js",
+      "sha256": "e6898bc405fc81fa9224bb6f2a45e0e41776cd58ca31dcf3002d18037a83f131",
+      "unicodeOffset": 36502,
+      "line": 1,
+      "column": 36503,
+      "needle": ".rpc(\"channel_messages\""
+    },
+    {
+      "id": "dm-fallback",
+      "evidenceType": "observed-static-consumer",
+      "file": "29mti5o2r3n9b.js",
+      "url": "https://yapin.gg/_next/static/chunks/29mti5o2r3n9b.js",
+      "sha256": "d184ba50d425db5c432e14dd36c94cc0ef44f6dbca72272feafb448f9937b080",
+      "unicodeOffset": 5089,
+      "line": 1,
+      "column": 5090,
+      "needle": "async function G()"
+    },
+    {
+      "id": "message-shape",
+      "evidenceType": "observed-static-consumer",
+      "file": "29mti5o2r3n9b.js",
+      "url": "https://yapin.gg/_next/static/chunks/29mti5o2r3n9b.js",
+      "sha256": "d184ba50d425db5c432e14dd36c94cc0ef44f6dbca72272feafb448f9937b080",
+      "unicodeOffset": 24537,
+      "line": 2,
+      "column": 16310,
+      "needle": "function tM("
+    },
+    {
+      "id": "send-insert",
+      "evidenceType": "observed-static-consumer",
+      "file": "29mti5o2r3n9b.js",
+      "url": "https://yapin.gg/_next/static/chunks/29mti5o2r3n9b.js",
+      "sha256": "d184ba50d425db5c432e14dd36c94cc0ef44f6dbca72272feafb448f9937b080",
+      "unicodeOffset": 26399,
+      "line": 2,
+      "column": 18172,
+      "needle": ".from(\"messages\").insert(i)"
+    },
+    {
+      "id": "realtime-endpoint",
+      "evidenceType": "observed-static-consumer",
+      "file": "1hu0uktie-cf6.js",
+      "url": "https://yapin.gg/_next/static/chunks/1hu0uktie-cf6.js",
+      "sha256": "9d8d4fb59fa45e350e36ff04c7c46177c86122c9ec0787779ac495654af94fb7",
+      "unicodeOffset": 61607,
+      "line": 1,
+      "column": 61608,
+      "needle": "wss://rt.yapper.website/ws"
+    },
+    {
+      "id": "realtime-auth",
+      "evidenceType": "observed-static-consumer",
+      "file": "1hu0uktie-cf6.js",
+      "url": "https://yapin.gg/_next/static/chunks/1hu0uktie-cf6.js",
+      "sha256": "9d8d4fb59fa45e350e36ff04c7c46177c86122c9ec0787779ac495654af94fb7",
+      "unicodeOffset": 63010,
+      "line": 1,
+      "column": 63011,
+      "needle": "b.send(JSON.stringify({type:\"auth\",token:t}))"
+    },
+    {
+      "id": "realtime-topics",
+      "evidenceType": "observed-static-consumer",
+      "file": "29mti5o2r3n9b.js",
+      "url": "https://yapin.gg/_next/static/chunks/29mti5o2r3n9b.js",
+      "sha256": "d184ba50d425db5c432e14dd36c94cc0ef44f6dbca72272feafb448f9937b080",
+      "unicodeOffset": 46399,
+      "line": 2,
+      "column": 38172,
+      "needle": "function t1()"
+    },
+    {
+      "id": "realtime-message",
+      "evidenceType": "observed-static-consumer",
+      "file": "29mti5o2r3n9b.js",
+      "url": "https://yapin.gg/_next/static/chunks/29mti5o2r3n9b.js",
+      "sha256": "d184ba50d425db5c432e14dd36c94cc0ef44f6dbca72272feafb448f9937b080",
+      "unicodeOffset": 36898,
+      "line": 2,
+      "column": 28671,
+      "needle": "function t0("
+    },
+    {
+      "id": "profile-fields",
+      "evidenceType": "observed-static-consumer",
+      "file": "29mti5o2r3n9b.js",
+      "url": "https://yapin.gg/_next/static/chunks/29mti5o2r3n9b.js",
+      "sha256": "d184ba50d425db5c432e14dd36c94cc0ef44f6dbca72272feafb448f9937b080",
+      "unicodeOffset": 131731,
+      "line": 2,
+      "column": 123504,
+      "needle": "id,username,created_at,bio,avatar_path"
+    },
+    {
+      "id": "media-helper",
+      "evidenceType": "observed-static-consumer",
+      "file": "3-qb3kp9rydmi.js",
+      "url": "https://yapin.gg/_next/static/chunks/3-qb3kp9rydmi.js",
+      "sha256": "23c344f8483022e8f09c2401333f4746db8bb07238b9078dad52201d1cb23453",
+      "unicodeOffset": 178,
+      "line": 1,
+      "column": 179,
+      "needle": "https://files.yapper.website"
+    },
+    {
+      "id": "limit-default",
+      "evidenceType": "observed-static-consumer",
+      "file": "3-qb3kp9rydmi.js",
+      "url": "https://yapin.gg/_next/static/chunks/3-qb3kp9rydmi.js",
+      "sha256": "23c344f8483022e8f09c2401333f4746db8bb07238b9078dad52201d1cb23453",
+      "unicodeOffset": 4766,
+      "line": 1,
+      "column": 4767,
+      "needle": "\"m\",0,2e3"
+    },
+    {
+      "id": "limit-plus",
+      "evidenceType": "observed-static-consumer",
+      "file": "3-qb3kp9rydmi.js",
+      "url": "https://yapin.gg/_next/static/chunks/3-qb3kp9rydmi.js",
+      "sha256": "23c344f8483022e8f09c2401333f4746db8bb07238b9078dad52201d1cb23453",
+      "unicodeOffset": 27534,
+      "line": 1,
+      "column": 27535,
+      "needle": "function O(e){return(0,a.flagOn)(e,\"plus_4000\")"
+    }
+  ],
+  "publicAuthSettings": {
+    "url": "https://dnfkuqzddwvtdojzgmdm.supabase.co/auth/v1/settings",
+    "method": "GET",
+    "credential": "public anonymous apikey from shipped bundle only",
+    "captchaFieldsPresent": false,
+    "captchaEnforcement": "unknown",
+    "emailEnabled": true,
+    "googleEnabled": true,
+    "passkeysEnabled": false,
+    "responseSHA256": "59fdfed28bd4d0d02c0df346b431848d34ff212717910b8451480a7df23aca41",
+    "captchaStatusInference": "The response omits CAPTCHA configuration; absence is not evidence enforcement is disabled."
+  },
+  "unknowns": [
+    "Whether current server requires CAPTCHA for each username/email sign-in; public settings omit this configuration.",
+    "Authenticated response nullability and row-level permission outcomes; no real account credentials used.",
+    "Native deep-link or external browser callback accepted by server; none identified in scoped source.",
+    "Server compatibility after future releases."
+  ]
+}

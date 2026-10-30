@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "passed": true,
+  "currentNativeCoreTests": 16,
+  "currentNativeCoreParameterCases": 17,
+  "uiFlowTests": 3,
+  "runs": [
+    {
+      "scope": "Initial Pro Max: 15 core tests, 16 parameter cases and 3 UI flows; before final profile identity regression",
+      "testCount": 18,
+      "passed": 18,
+      "failed": 0,
+      "skipped": 0,
+      "devices": [
+        {
+          "name": "iPhone 17 Pro Max",
+          "osVersion": "26.4.1",
+          "platform": "iOS Simulator",
+          "passedCases": 19
+        }
+      ]
+    },
+    {
+      "scope": "Final source: 16 core tests, 17 parameter cases and 3 UI flows on iPhone Pro",
+      "testCount": 19,
+      "passed": 19,
+      "failed": 0,
+      "skipped": 0,
+      "devices": [
+        {
+          "name": "iPhone 17 Pro",
+          "osVersion": "26.4.1",
+          "platform": "iOS Simulator",
+          "passedCases": 20
+        }
+      ]
+    },
+    {
+      "scope": "Final native UI: sign-in/account centering on Pro Max at accessibility-extra-large and iPad 13-inch",
+      "testCount": 1,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "devices": [
+        {
+          "name": "iPad Pro 13-inch (M5)",
+          "osVersion": "26.4.1",
+          "platform": "iOS Simulator",
+          "passedCases": 1
+        },
+        {
+          "name": "iPhone 17 Pro Max",
+          "osVersion": "26.4.1",
+          "platform": "iOS Simulator",
+          "passedCases": 1
+        }
+      ]
+    }
+  ],
+  "visualEvidence": "Anonymous Debug-only synthetic fixtures; iPad light appearance also inspected separately.",
+  "sourceReview": "Observed auth/DM/history/message/realtime contract and session/transport boundary reviewed. No WebKit/JS UI resources in Release.",
+  "limits": {
+    "realAccountLogin": false,
+    "liveMessageDelivery": false,
+    "physicalDevices": false,
+    "captchaEnforcement": "Unknown; direct auth may require an operator-supported native flow."
+  }
+}
