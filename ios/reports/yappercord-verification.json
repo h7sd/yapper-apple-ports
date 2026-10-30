@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-30T15:19:07.576647+00:00",
+  "generatedAt": "2026-10-30T16:48:19.017594+00:00",
   "product": {
     "name": "Yapper",
     "baseVersion": "1.1.0",
@@ -39,7 +39,8 @@
       "pageBackground": "Website-owned dynamic theme paints through the status and home safe areas.",
       "controls": "CSS env(safe-area-inset-*) keeps app controls, native-page dialogs and plugin manager clear of system areas.",
       "systemChromeHidden": false,
-      "nativeAPIAdded": false
+      "nativeAPIAdded": false,
+      "topSpacingOwner": "App container owns top inset; only base mobile child rail/header duplicate insets are normalized. New-look child spacing remains upstream-owned."
     }
   },
   "builds": {
@@ -89,14 +90,14 @@
       "caseExecutions": 42,
       "parameterizedFunctions": 6,
       "parameterizedCaseExecutions": 35,
-      "durationSeconds": 2.769
+      "durationSeconds": 1.957
     },
     "xctestUI": {
       "testFunctions": 3,
       "caseExecutions": 3,
-      "anonymousLoginDurationSeconds": 5.511,
-      "pluginManagerDurationSeconds": 5.974,
-      "fullscreenDynamicThemeDurationSeconds": 6.307
+      "anonymousLoginDurationSeconds": 5.493,
+      "pluginManagerDurationSeconds": 6.233,
+      "fullscreenDynamicThemeDurationSeconds": 7.449
     },
     "caseGroups": [
       {
@@ -138,13 +139,14 @@
       "The canonical window.Yapinplugger and legacy window.YapperCord aliases refer to the same frozen runtime API.",
       "The native WebView fills the display; the top action and bottom Home control remain hittable beyond the nonzero system safe areas (62pt top and 34pt bottom on the tested device).",
       "The live anonymous manager Close control clears the status area.",
-      "The full-screen red fixture changes to teal through a page CSS variable; screenshot pixels at both display edges match each current theme exactly."
+      "The full-screen red fixture changes to teal through a page CSS variable; screenshot pixels at both display edges match each current theme exactly.",
+      "The fixture keeps html/body dark while the themed .app starts at y0 and fills innerHeight; the original navigation reaches the bottom edge with exactly one intrinsic safe-area padding."
     ],
     "passMarkers": [
-      "Test run with 13 tests in 3 suites passed after 2.769 seconds.",
-      "Test testFullScreenViewportProtectsControlsAndFollowsTheme passed (6.307 seconds).",
-      "Test testOriginalMobileLoginLoads passed (5.511 seconds).",
-      "Test testYapperCordManagerOpensInAnonymousSession passed (5.974 seconds).",
+      "Test run with 13 tests in 3 suites passed after 1.957 seconds.",
+      "Test testOriginalMobileLoginLoads passed (5.493 seconds).",
+      "Test testYapperCordManagerOpensInAnonymousSession passed (6.233 seconds).",
+      "Test testFullScreenViewportProtectsControlsAndFollowsTheme passed (7.449 seconds).",
       "TEST SUCCEEDED"
     ],
     "fullscreenPixelVerification": {
@@ -158,6 +160,11 @@
           39,
           54
         ],
+        "htmlAndBodyRGB": [
+          16,
+          17,
+          20
+        ],
         "bands": {
           "top": {
             "sampledPixels": 17352,
@@ -180,7 +187,7 @@
             ]
           }
         },
-        "sha256": "38022f40402b0f26522046f4190bad17ed1633b709bde2deb5dc29f352f5f273"
+        "sha256": "6c97ee9bd3f1a46e8c8af742f7bba63a6326626af358c914d5c4f414025f9151"
       },
       "teal": {
         "imagePixels": [
@@ -192,6 +199,11 @@
           82,
           97
         ],
+        "htmlAndBodyRGB": [
+          16,
+          17,
+          20
+        ],
         "bands": {
           "top": {
             "sampledPixels": 17352,
@@ -214,7 +226,7 @@
             ]
           }
         },
-        "sha256": "4beaf1edc45be0cd473812cb2e9d2d19edbec6c00127763a3824bb02c171e4b3"
+        "sha256": "6927429ca449bd4a7c652a4c7e0e763cec1df6a25c680c8302e4788d29a3e205"
       }
     },
     "javascriptBridge": {
@@ -224,7 +236,8 @@
       "failed": 0,
       "skipped": 0,
       "source": "tests/native-bridge.test.cjs"
-    }
+    },
+    "sourceScope": "The last full 45-case suite passed before the final mobile top-spacing normalization. Final sources are covered by the focused base/new-look check below; the full suite was not rerun for these three CSS overrides."
   },
   "earlierAttempts": [
     {
@@ -241,6 +254,11 @@
       "stage": "preliminary appearance test launch",
       "result": "blocked-before-execution",
       "reason": "The previous simulator lost its launch/testmanager connection. Final tests passed on a newly created isolated verification device."
+    },
+    {
+      "stage": "fullscreen fixture layout settlement",
+      "result": "failed",
+      "reason": "The fixture captured safe-area metrics before WebKit settled viewport-fit; production CSS had already updated at screenshot time. The fixture now observes size changes and waits for nonzero values, retaining all geometry/control assertions."
     }
   ],
   "sourceInputs": {
@@ -280,13 +298,13 @@
       "Yapper/resources/NativeBridge.js": "0dedd00a5aa704bb115b79b9b8d440c93d511ffe3e19306d5d26f6821a4dc002",
       "Yapper/resources/YapperAppearance.js": "52c19429daee71e0eda97b95b9605aaf8090367626569df101ce19a2f4a3fdf6",
       "Yapper/resources/YapperCord.js": "de53f573bfa5fb3fdbcd8d35e710ef5805bae60284603a519c7c3850ab28e2a7",
-      "Yapper/resources/YapperViewport.js": "cdcb02fd7d6859f38f7e1e4d210f3aa2af6be80385120206c2799f4454e15f90",
+      "Yapper/resources/YapperViewport.js": "eaec7b9ae495be007fbb2e3678becb88a96820dbc024a1ccf60a05245cbd3276",
       "Yapper.xcodeproj/project.pbxproj": "7e42b6bc8630676160fac9b0f6c1675032e8248277fc0301055c4ff51036be38",
       "Yapper.xcodeproj/xcshareddata/xcschemes/Yapper.xcscheme": "c25e1f82f603129d058a606cf519b6ff88e5818a46dc9b989ef0cb19da7746c8",
       "YapperTests/URLPolicyTests.swift": "c7d067f51bf314c28d52b86aa1067dd630d3dd889f0026b5f3d1e337f7d6a5bb",
       "YapperTests/YapperAppearanceTests.swift": "fee2efe44bf9c4f7ac7c21fba2c0d4db8f8c8cce8d52d6ae83206ec3827ac13c",
       "YapperTests/YapperCordTests.swift": "b1d1987210f8256e3c6c289e3eb16464932fae428775eee6134326202a1d3a43",
-      "YapperUITests/YapperUITests.swift": "a765191767e5d42dd3106d59eb1ab5c10540e12feb8d066fca8b9399d3e1a68a",
+      "YapperUITests/YapperUITests.swift": "d73fb3c8c58b3d8540d76e112dd9df3c0ffb3f380fc705d7ac0989e7d5445432",
       "scripts/build-ios.sh": "76a25bbf37b4e4516c6c42ed290914c043f99342873a0059ae0056016cfa4e3b",
       "scripts/sync-appearance.mjs": "f3020be712bf6bc2e4562dbf942c573e9420149702bb9cbd0ca752997cde3871",
       "scripts/sync-yappercord.mjs": "0908d6067700871dd959b44b6560f38ec6609ca71133623eb9526b00391c0ea1",
@@ -301,12 +319,12 @@
   },
   "artifacts": {
     "Yapper-1.1.0-Yapinplugger-0.1.0-iOS-Simulator.zip": {
-      "sha256": "9a1849672dfefec39532901ce3281949ef902b122a24dfeb2e78490d0c0baafd",
-      "sizeBytes": 553819,
+      "sha256": "9381e8c321d1e91b2c0426510d90eb14f3656be44b1c6a677a00cf7ad16e3675",
+      "sizeBytes": 553875,
       "embeddedFiles": {
         "YapperCord.js": "de53f573bfa5fb3fdbcd8d35e710ef5805bae60284603a519c7c3850ab28e2a7",
         "YapperAppearance.js": "52c19429daee71e0eda97b95b9605aaf8090367626569df101ce19a2f4a3fdf6",
-        "YapperViewport.js": "cdcb02fd7d6859f38f7e1e4d210f3aa2af6be80385120206c2799f4454e15f90",
+        "YapperViewport.js": "eaec7b9ae495be007fbb2e3678becb88a96820dbc024a1ccf60a05245cbd3276",
         "LICENSE.Vencord": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
         "LICENSE.Appearance": "f9046e05df9221647c73268b51e8dfded4b7d1978ab9efb28c8a81af3e94f3ee",
         "NativeBridge.js": "0dedd00a5aa704bb115b79b9b8d440c93d511ffe3e19306d5d26f6821a4dc002"
@@ -315,12 +333,12 @@
       "debugFixtureBranchIncluded": false
     },
     "Yapper-1.1.0-Yapinplugger-0.1.0-ios-unsigned.ipa": {
-      "sha256": "94b6045aaf9f17e0aced55380efa4859a3ef37d41be84d8946e88b635f7c568e",
-      "sizeBytes": 376852,
+      "sha256": "2998f782248bef9257fc5373b92be69fc9419299f250b2be37eb13a2ee0aa5de",
+      "sizeBytes": 376908,
       "embeddedFiles": {
         "YapperCord.js": "de53f573bfa5fb3fdbcd8d35e710ef5805bae60284603a519c7c3850ab28e2a7",
         "YapperAppearance.js": "52c19429daee71e0eda97b95b9605aaf8090367626569df101ce19a2f4a3fdf6",
-        "YapperViewport.js": "cdcb02fd7d6859f38f7e1e4d210f3aa2af6be80385120206c2799f4454e15f90",
+        "YapperViewport.js": "eaec7b9ae495be007fbb2e3678becb88a96820dbc024a1ccf60a05245cbd3276",
         "LICENSE.Vencord": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
         "LICENSE.Appearance": "f9046e05df9221647c73268b51e8dfded4b7d1978ab9efb28c8a81af3e94f3ee",
         "NativeBridge.js": "0dedd00a5aa704bb115b79b9b8d440c93d511ffe3e19306d5d26f6821a4dc002"
@@ -329,24 +347,29 @@
       "debugFixtureBranchIncluded": false
     },
     "Yapinplugger-iOS-fullscreen-red-fixture.png": {
-      "sha256": "38022f40402b0f26522046f4190bad17ed1633b709bde2deb5dc29f352f5f273",
-      "sizeBytes": 117151,
-      "content": "Anonymous synthetic layout fixture; red theme edge proof, not account UI."
+      "sha256": "96c8fad25a859e99040473d46578572de057cf7cea9af64738a238721095163b",
+      "sizeBytes": 159330,
+      "content": "Anonymous synthetic red viewport fixture; final top-spacing check."
     },
     "Yapinplugger-iOS-fullscreen-teal-fixture.png": {
-      "sha256": "4beaf1edc45be0cd473812cb2e9d2d19edbec6c00127763a3824bb02c171e4b3",
-      "sizeBytes": 122314,
-      "content": "The same anonymous fixture after a dynamic theme change to teal."
+      "sha256": "3f7eda103177d9b2b21d39c350cd7803cef1f44ea2bf5184aad9d917602366ee",
+      "sizeBytes": 163106,
+      "content": "Anonymous synthetic teal viewport fixture; final top-spacing check."
     },
     "Yapinplugger-iOS-login-preview.png": {
-      "sha256": "d348dbacb7fa965aeb779c0b95b219577817e0582eaafef970d120b013e101f3",
-      "sizeBytes": 251193,
-      "content": "Anonymous original login page captured by the passing full-screen UI test."
+      "sha256": "7f7c28355b55383d1c7cfe6fe83bbc4a65641bf91d769b65559f6e1c6ae11c85",
+      "sizeBytes": 251062,
+      "content": "Anonymous live login UI captured by the passing full-screen suite."
     },
     "Yapinplugger-iOS-preview.png": {
-      "sha256": "ccb853faae844fcf54bb3d5d40e98d29ef7a79dc9c206e67ae62aae692c2e54c",
-      "sizeBytes": 301445,
-      "content": "Anonymous Yapinplugger manager captured by the passing full-screen UI test."
+      "sha256": "e5d374f4c319fbe6074fbc1d764ce933fb1f6b1bc2ad532672af6bf6eb33896f",
+      "sizeBytes": 301577,
+      "content": "Anonymous live manager UI captured by the passing full-screen suite."
+    },
+    "Yapinplugger-iOS-fullscreen-new-look-fixture.png": {
+      "sha256": "28616cc2f353930caa106e6d84c231da6564f07c3548848a1c74ebedd52491f6",
+      "sizeBytes": 163207,
+      "content": "Anonymous synthetic new-look viewport fixture; final top-spacing check."
     }
   },
   "coverageLimits": [
@@ -356,5 +379,143 @@
     "The device IPA is unsigned and needs the owner's Apple signing/provisioning before installation.",
     "The enhanced layout reuses existing Yapper profile/navigation controls; it supplies no profile data.",
     "Fullscreen native rendering was verified on an iPhone 17 Pro simulator with anonymous red/teal fixtures and live anonymous login/manager UI. The account-specific custom red theme from the user screenshot was not loaded or published."
-  ]
+  ],
+  "finalFocusedTests": {
+    "result": "passed",
+    "testFunctions": 1,
+    "caseExecutions": 1,
+    "failed": 0,
+    "skipped": 0,
+    "durationSeconds": 10.949,
+    "xcresultRecordedRuntimeWarnings": 0,
+    "testName": "testFullScreenViewportProtectsControlsAndFollowsTheme",
+    "scope": [
+      "Dark html/body versus app-owned red/teal background and complete display bounds.",
+      "Nonzero system safe areas and reachable top/Home controls.",
+      "Original nav reaches display bottom with one intrinsic safe-area padding.",
+      "Base mobile app owns the top inset once: rail10px, sidebar-head10px, main-head0px and48px height.",
+      "New-look keeps app safe inset and upstream rail8px, sidebar-head0px, main-head4px and52px height.",
+      "Both layouts place Top/Rail actions within one safeTop plus12px from the display edge."
+    ],
+    "passMarker": "TEST SUCCEEDED",
+    "fullscreenPixelVerification": {
+      "red": {
+        "imagePixels": [
+          1206,
+          2622
+        ],
+        "expectedRGB": [
+          105,
+          39,
+          54
+        ],
+        "htmlAndBodyRGB": [
+          16,
+          17,
+          20
+        ],
+        "bands": {
+          "top": {
+            "sampledPixels": 17352,
+            "matchingThemePixels": 17352,
+            "matches": true,
+            "heightPixels": 24,
+            "horizontalRangePercent": [
+              20,
+              80
+            ]
+          },
+          "bottom": {
+            "sampledPixels": 17352,
+            "matchingThemePixels": 17352,
+            "matches": true,
+            "heightPixels": 24,
+            "horizontalRangePercent": [
+              20,
+              80
+            ]
+          }
+        },
+        "sha256": "96c8fad25a859e99040473d46578572de057cf7cea9af64738a238721095163b"
+      },
+      "teal": {
+        "imagePixels": [
+          1206,
+          2622
+        ],
+        "expectedRGB": [
+          27,
+          82,
+          97
+        ],
+        "htmlAndBodyRGB": [
+          16,
+          17,
+          20
+        ],
+        "bands": {
+          "top": {
+            "sampledPixels": 17352,
+            "matchingThemePixels": 17352,
+            "matches": true,
+            "heightPixels": 24,
+            "horizontalRangePercent": [
+              20,
+              80
+            ]
+          },
+          "bottom": {
+            "sampledPixels": 17352,
+            "matchingThemePixels": 17352,
+            "matches": true,
+            "heightPixels": 24,
+            "horizontalRangePercent": [
+              20,
+              80
+            ]
+          }
+        },
+        "sha256": "3f7eda103177d9b2b21d39c350cd7803cef1f44ea2bf5184aad9d917602366ee"
+      },
+      "new-look": {
+        "imagePixels": [
+          1206,
+          2622
+        ],
+        "expectedRGB": [
+          27,
+          82,
+          97
+        ],
+        "htmlAndBodyRGB": [
+          16,
+          17,
+          20
+        ],
+        "bands": {
+          "top": {
+            "sampledPixels": 17352,
+            "matchingThemePixels": 17352,
+            "matches": true,
+            "heightPixels": 24,
+            "horizontalRangePercent": [
+              20,
+              80
+            ]
+          },
+          "bottom": {
+            "sampledPixels": 17352,
+            "matchingThemePixels": 17352,
+            "matches": true,
+            "heightPixels": 24,
+            "horizontalRangePercent": [
+              20,
+              80
+            ]
+          }
+        },
+        "sha256": "28616cc2f353930caa106e6d84c231da6564f07c3548848a1c74ebedd52491f6"
+      }
+    }
+  }
 }

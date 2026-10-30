@@ -12,7 +12,7 @@
     html[data-yapper-ios-viewport] .app{box-sizing:border-box!important;padding-top:env(safe-area-inset-top,0px)!important;padding-right:env(safe-area-inset-right,0px)!important;padding-bottom:env(safe-area-inset-bottom,0px)!important;padding-left:env(safe-area-inset-left,0px)!important}
     html[data-yapper-ios-viewport] .app>.stage-row{min-height:0}
     html[data-yapper-ios-viewport] .modal-overlay{box-sizing:border-box;padding-top:max(16px,env(safe-area-inset-top,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-bottom:max(16px,env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px))}
-    @media(max-width:760px){html[data-yapper-ios-viewport] .app nav.nl-tabbar:not([data-ypa-nav]){bottom:env(safe-area-inset-bottom,0px)!important}html[data-yapper-ios-viewport] .app .user-bar.floating:not([data-ypa-account]){bottom:calc(64px + env(safe-area-inset-bottom,0px))!important}}
+    @media(max-width:760px){html[data-yapper-ios-viewport]:not(.new-look) .app .rail{padding-top:10px!important}html[data-yapper-ios-viewport]:not(.new-look) .app .sidebar-head{padding-top:10px!important}html[data-yapper-ios-viewport]:not(.new-look) .app .main-head{padding-top:0!important;height:48px!important}html[data-yapper-ios-viewport] .app nav.nl-tabbar:not([data-ypa-nav]){bottom:0!important}html[data-yapper-ios-viewport] .app .user-bar.floating:not([data-ypa-account]){bottom:calc(64px + env(safe-area-inset-bottom,0px))!important}}
   `;
   function apply() {
     const root = doc.documentElement;

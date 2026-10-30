@@ -2,7 +2,7 @@
 
 **Experimental Yapinplugger extension:** [plugin manager, full upstream inventory and current compatibility](extensions/yappercord/README.md). Six limited Yapper feature adaptations are implemented; the remaining 161 public Vencord plugins are **not** compatible yet. [Native installer source](installer/README.md). This does not claim all Discord plugins work on Yapper.
 
-**Fullscreen on iOS:** Yapper’s theme fills the display behind the status bar and home indicator; controls respect the device safe areas. [Viewport verification](docs/IOS-YAPPERCORD.md#fullscreen-viewport).
+**Fullscreen on iOS:** Yapper’s theme fills the display behind the status bar and home indicator; controls respect the device safe areas. The [iOS fullscreen hotfix](https://github.com/h7sd/yapper-apple-ports/releases/tag/v1.1.0-apple.3) also removes duplicated mobile header/navigation insets. [Viewport verification](docs/IOS-YAPPERCORD.md#fullscreen-viewport).
 
 **Profile layout:** [reversible account strip, profile presentation and compact mobile navigation](appearance/README.md), using the original Yapper components, theme, artwork and actions. This is a local client layout enhancement; it does not change the hosted Yapper website for other users.
 
@@ -12,7 +12,7 @@ The supplied Linux client is an Electron shell around the live **[Yapper website
 
 ## Downloads
 
-Published binaries, when available, are listed on the **[Releases page](https://github.com/h7sd/yapper-apple-ports/releases)**. The current integrated build produces:
+Use [v1.1.0-apple.3 for the corrected iOS packages](https://github.com/h7sd/yapper-apple-ports/releases/tag/v1.1.0-apple.3) and [v1.1.0-apple.2 for the unchanged macOS Setup packages](https://github.com/h7sd/yapper-apple-ports/releases/tag/v1.1.0-apple.2). Each release includes its own asset checksums. All versions appear on the **[Releases page](https://github.com/h7sd/yapper-apple-ports/releases)**. The current integrated build produces:
 
 - `Yapinplugger-Setup-0.1.0-mac-arm64.zip`: self-contained installer and client for Apple Silicon Mac.
 - `Yapinplugger-Setup-0.1.0-mac-x64.zip`: self-contained installer and client for Intel Mac.

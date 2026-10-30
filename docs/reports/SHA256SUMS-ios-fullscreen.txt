@@ -1,0 +1,2 @@
+9381e8c321d1e91b2c0426510d90eb14f3656be44b1c6a677a00cf7ad16e3675  Yapper-1.1.0-Yapinplugger-0.1.0-iOS-Simulator.zip
+2998f782248bef9257fc5373b92be69fc9419299f250b2be37eb13a2ee0aa5de  Yapper-1.1.0-Yapinplugger-0.1.0-ios-unsigned.ipa
