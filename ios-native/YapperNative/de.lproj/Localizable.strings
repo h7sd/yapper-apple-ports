@@ -1,0 +1,16 @@
+/* Native welcome and official web authentication. */
+"welcome.title" = "Willkommen bei Yapper";
+"welcome.signIn" = "Anmelden";
+"welcome.terms" = "Nutzungsbedingungen";
+"welcome.privacy" = "Datenschutz";
+"login.restoring" = "Anmeldung wird wiederhergestellt …";
+"login.web.title" = "Bei Yapper anmelden";
+"common.cancel" = "Abbrechen";
+"common.retry" = "Erneut versuchen";
+"login.web.loading" = "Anmeldung wird geladen …";
+"login.web.verifying" = "Anmeldung wird abgeschlossen …";
+"login.web.mfa" = "Schließe die Zwei-Faktor-Bestätigung im Anmeldefenster ab.";
+"login.web.failed" = "Die Anmeldeseite konnte nicht geladen werden. Prüfe deine Verbindung und versuche es erneut.";
+"login.web.blocked" = "Nutze hier deine Yapper-E-Mail oder deinen Benutzernamen. Dieses externe Anmeldeverfahren wird hier nicht unterstützt.";
+"login.web.fixture" = "Testanmeldung · Beispieldaten";
+"login.web.fixture.complete" = "Testanmeldung abschließen";

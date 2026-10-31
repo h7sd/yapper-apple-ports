@@ -1,9 +1,9 @@
 import XCTest
 
 final class NativeFlowTests: XCTestCase {
-    @MainActor private func app(signedIn: Bool = true) -> XCUIApplication {
+    @MainActor private func app(signedIn: Bool = true, language: String = "de") -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--native-ui-fixtures", "-AppleLanguages", "(de)", "-AppleLocale", "de_DE"]
+        app.launchArguments = ["--native-ui-fixtures", "-AppleLanguages", "(\(language))", "-AppleLocale", language == "de" ? "de_DE" : "en_US"]
         if !signedIn { app.launchArguments.append("--native-ui-login-fixture") }
         return app
     }
@@ -18,18 +18,20 @@ final class NativeFlowTests: XCTestCase {
     @MainActor func testNativeLoginAndCenteredConversationList() throws {
         let app = app(signedIn: false)
         app.launch()
-        let identifier = app.textFields["native.login.identifier"]
-        XCTAssertTrue(identifier.waitForExistence(timeout: 10))
-        let submit = app.buttons["native.login.submit"]
-        XCTAssertFalse(submit.isEnabled)
-        screenshot(app, "Native sign-in — no real account")
-        identifier.tap()
-        identifier.typeText("demo@example.invalid")
-        let password = app.secureTextFields["native.login.password"]
-        password.tap()
-        password.typeText("fixture-password")
-        XCTAssertTrue(submit.isEnabled)
-        submit.tap()
+        let welcome = app.staticTexts["native.welcome.title"]
+        XCTAssertTrue(welcome.waitForExistence(timeout: 10))
+        XCTAssertEqual(welcome.label, "Willkommen bei Yapper")
+        XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "native.terms").firstMatch.isHittable)
+        XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "native.privacy").firstMatch.isHittable)
+        XCTAssertEqual(app.textFields.count, 0)
+        XCTAssertEqual(app.secureTextFields.count, 0)
+        XCTAssertFalse(app.staticTexts["Deine Gespräche. Jetzt nativ auf dem iPhone."].exists)
+        XCTAssertEqual(app.webViews.count, 0)
+        screenshot(app, "German welcome with legal footer — no real account")
+        app.buttons["native.login.web"].tap()
+        let finish = app.buttons["native.webLogin.fixture.complete"]
+        XCTAssertTrue(finish.waitForExistence(timeout: 5))
+        finish.tap()
         let account = app.buttons["native.account"]
         XCTAssertTrue(account.waitForExistence(timeout: 10))
         XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "native.fixture.notice").firstMatch.exists)
@@ -81,8 +83,42 @@ final class NativeFlowTests: XCTestCase {
         let confirm = app.buttons.matching(NSPredicate(format: "label == %@ AND identifier != %@", "Abmelden", "native.settings.signOut")).firstMatch
         XCTAssertTrue(confirm.waitForExistence(timeout: 5))
         confirm.tap()
-        XCTAssertTrue(app.textFields["native.login.identifier"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["native.welcome.title"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["native.account"].exists)
+        XCTAssertEqual(app.webViews.count, 0)
+    }
+
+    @MainActor func testEnglishWelcomeAndLegalFooter() throws {
+        let app = app(signedIn: false, language: "en")
+        app.launch()
+        let welcome = app.staticTexts["native.welcome.title"]
+        XCTAssertTrue(welcome.waitForExistence(timeout: 10))
+        XCTAssertEqual(welcome.label, "Welcome to Yapper")
+        XCTAssertEqual(app.buttons["native.login.web"].label, "Sign in")
+        for id in ["native.terms", "native.privacy"] {
+            let link = app.descendants(matching: .any).matching(identifier: id).firstMatch
+            XCTAssertTrue(link.exists)
+            XCTAssertTrue(link.isHittable)
+            XCTAssertGreaterThanOrEqual(link.frame.height, 44)
+        }
+        XCTAssertEqual(app.webViews.count, 0)
+        screenshot(app, "English welcome with legal footer — no real account")
+    }
+
+    @MainActor func testOfficialWebLoginLoadsAndCancelsWithoutAccount() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+        app.launch()
+        let signIn = app.buttons["native.login.web"]
+        XCTAssertTrue(signIn.waitForExistence(timeout: 10))
+        signIn.tap()
+        let web = app.webViews.firstMatch
+        XCTAssertTrue(web.waitForExistence(timeout: 15))
+        XCTAssertTrue(web.secureTextFields.firstMatch.waitForExistence(timeout: 30), "The real official login must load its password form; no credentials or CAPTCHA are submitted.")
+        screenshot(app, "Official web sign-in only — no account or CAPTCHA submission")
+        app.buttons["native.webLogin.cancel"].tap()
+        XCTAssertTrue(signIn.waitForExistence(timeout: 5))
+        XCTAssertTrue(signIn.isEnabled)
         XCTAssertEqual(app.webViews.count, 0)
     }
 }

@@ -109,6 +109,19 @@ nonisolated final class RejectRedirects: NSObject, URLSessionTaskDelegate, Senda
         try await response(AuthUserResponse.self, request: request(path: "auth/v1/user", token: token))
     }
 
+    func validateBrowserLogin(_ tokens: BrowserLoginTokens) async throws -> BrowserLoginValidation {
+        let claims = try BrowserTokenClaims.decode(tokens.accessToken)
+        guard claims.exp > Date().timeIntervalSince1970 else { throw NativeClientError.sessionExpired }
+        // Decoding is only scheduling/identity metadata. This HTTPS request validates the actual token.
+        let authenticatedUser = try await authUser(token: tokens.accessToken)
+        guard authenticatedUser.id == claims.sub else { throw NativeClientError.invalidResponse }
+        let needsTwoFactor = authenticatedUser.factors?.contains(where: { $0.status == "verified" }) == true
+            && claims.aal != "aal2"
+        let session = NativeSession(accessToken: tokens.accessToken, refreshToken: tokens.refreshToken,
+                                    expiresAt: Date(timeIntervalSince1970: claims.exp), userID: authenticatedUser.id)
+        return BrowserLoginValidation(session: session, requiresTwoFactor: needsTwoFactor)
+    }
+
     func verifyTOTP(factorID: String, code: String, session: NativeSession) async throws -> NativeSession {
         guard UUID(uuidString: factorID) != nil, code.utf8.count == 6, code.utf8.allSatisfy({ (48...57).contains($0) }) else { throw NativeClientError.unsupportedChallenge }
         let challenge = try await response(MFAChallenge.self, request: request(path: "auth/v1/factors/\(factorID)/challenge", method: "POST", token: session.accessToken, body: JSONEncoder().encode(["factorId": factorID])))
@@ -151,7 +164,7 @@ private nonisolated struct APIErrorBody: Decodable {
     var safeMessage: String? {
         guard let message = message ?? msg ?? error_description ?? error, !message.isEmpty else { return nil }
         if message.localizedCaseInsensitiveContains("captcha") || message.localizedCaseInsensitiveContains("turnstile") {
-            return "Yapper verlangt eine Browser-Bestätigung (CAPTCHA). Diese vollständig native App kann sie derzeit nicht abschließen. Die offizielle Website ist unter yapin.gg erreichbar."
+            return "Yapper verlangt eine Browser-Bestätigung (CAPTCHA). Melde dich über das Anmeldefenster in der App an."
         }
         // Response messages are shown as text only; never log the response or credentials.
         return String(message.prefix(300))

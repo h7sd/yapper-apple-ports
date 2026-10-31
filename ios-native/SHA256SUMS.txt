@@ -1,2 +1,2 @@
-fd7100a21f822e8097e970f8659465eed6558d674b4062b032fc6420c162cf8a  Yapinplugger-Native-0.1.0-iOS-Simulator.zip
-99a0d0ff49095f85ca3184951dbd1fd460fae526b72f3d9c5799ebabb3628a7c  Yapinplugger-Native-0.1.0-ios-unsigned.ipa
+5f875be6727d81fb68879c012c89d53bfa1a7d7add554a34e43d879684f4b190  Yapinplugger-Native-0.1.1-iOS-Simulator.zip
+ff3996859b174e72454721894db232d7f0c7e64fcae71ebb98a1222c7f5549a5  Yapinplugger-Native-0.1.1-ios-unsigned.ipa

@@ -39,6 +39,9 @@ import Observation
     @ObservationIgnored private var pendingSendIDs: [String: (text: String, id: String)] = [:]
     @ObservationIgnored private var oldestMessageCursor: String?
     @ObservationIgnored private var didExplicitlySignOut = false
+    @ObservationIgnored private var browserFlowID: UUID?
+    @ObservationIgnored private var browserTask: Task<BrowserLoginResult, Never>?
+    @ObservationIgnored private var browserOperationID: UUID?
     #if DEBUG
     @ObservationIgnored private var isFixture = false
     #endif
@@ -156,7 +159,93 @@ import Observation
         await task.value
     }
 
-    private func finishAuthentication(_ tokens: NativeSession, revision: Int) async throws {
+    func beginBrowserSignIn() -> UUID? {
+        guard authState != .signedIn else { return nil }
+        epoch += 1
+        authTask?.cancel()
+        browserTask?.cancel()
+        browserTask = nil
+        browserOperationID = nil
+        refreshTask?.cancel()
+        refreshTask = nil
+        refreshID = nil
+        pendingFactor = nil
+        session = nil
+        errorMessage = nil
+        authState = .signedOut
+        let flow = UUID()
+        browserFlowID = flow
+        return flow
+    }
+
+    func cancelBrowserSignIn(flowID: UUID) {
+        guard browserFlowID == flowID else { return }
+        epoch += 1
+        browserFlowID = nil
+        browserTask?.cancel()
+        browserTask = nil
+        browserOperationID = nil
+        session = nil
+        pendingFactor = nil
+        if authState != .signedIn { authState = .signedOut }
+    }
+
+    func pauseBrowserSignIn(flowID: UUID) {
+        guard browserFlowID == flowID else { return }
+        epoch += 1
+        browserTask?.cancel()
+        browserTask = nil
+        browserOperationID = nil
+        session = nil
+        pendingFactor = nil
+        if authState != .signedIn { authState = .signedOut }
+    }
+
+    func completeBrowserSignIn(tokens: BrowserLoginTokens, flowID: UUID) async -> BrowserLoginResult {
+        guard browserFlowID == flowID, authState != .signedIn, isActive, browserTask == nil else { return .rejected }
+        #if DEBUG
+        if isFixture { return .rejected }
+        #endif
+        let revision = epoch
+        let operation = UUID()
+        browserOperationID = operation
+        errorMessage = nil
+        authState = .signingIn
+        let task = Task { [weak self] () -> BrowserLoginResult in
+            guard let self else { return .rejected }
+            do {
+                let validation = try await self.api.validateBrowserLogin(tokens)
+                guard self.browserFlowID == flowID, self.epoch == revision, self.isActive, !Task.isCancelled else { return .rejected }
+                if validation.requiresTwoFactor {
+                    self.authState = .signedOut
+                    return .requiresTwoFactor
+                }
+                try await self.finishAuthentication(validation.session, revision: revision, browserFlow: flowID)
+                self.browserFlowID = nil
+                return .signedIn
+            } catch {
+                guard self.browserFlowID == flowID, self.epoch == revision, !Task.isCancelled else { return .rejected }
+                self.authState = .signedOut
+                self.errorMessage = error.localizedDescription
+                return .rejected
+            }
+        }
+        browserTask = task
+        let result = await task.value
+        if browserOperationID == operation { browserTask = nil; browserOperationID = nil }
+        return result
+    }
+
+    #if DEBUG
+    func completeBrowserFixture(flowID: UUID) -> Bool {
+        guard isFixture, browserFlowID == flowID, authState != .signedIn else { return false }
+        browserFlowID = nil
+        populateFixture()
+        return true
+    }
+    #endif
+
+    private func finishAuthentication(_ tokens: NativeSession, revision: Int, browserFlow: UUID? = nil) async throws {
         let bootstrap = try await api.bootstrap(session: tokens)
         let profile: ProfileRow
         if let found = bootstrap.profiles.first(where: { $0.id == tokens.userID }) { profile = found }
@@ -164,6 +253,7 @@ import Observation
         let list = try bootstrap.conversations(currentUserID: tokens.userID)
         try Task.checkCancellation()
         guard epoch == revision else { throw CancellationError() }
+        if let browserFlow { guard browserFlowID == browserFlow, isActive else { throw CancellationError() } }
         try vault.save(tokens)
         session = tokens
         didExplicitlySignOut = false
@@ -330,6 +420,10 @@ import Observation
         epoch += 1
         didExplicitlySignOut = true
         authTask?.cancel()
+        browserFlowID = nil
+        browserTask?.cancel()
+        browserTask = nil
+        browserOperationID = nil
         listTask?.cancel()
         historyTask?.cancel()
         sendTask?.cancel()

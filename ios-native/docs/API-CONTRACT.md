@@ -1,5 +1,7 @@
 # Yapper/Yapin native client contract
 
+**31 October 2026 update:** The user reported that production password login requires CAPTCHA. The user then explicitly approved a temporary official web login, with all chat screens remaining native. The earlier no-WebView limitation below describes version 0.1.0. See [the current authentication investigation](AUTH-HANDOFF-INVESTIGATION.md) for the new scope and evidence. Version 0.1.1 completes password/CAPTCHA/TOTP in a new app-owned, nonpersistent WebView and transfers only fresh successful authentication responses to the native client for validation; it does not import any existing browser or wrapper session.
+
 Observed on 30 October 2026 from public shipped JavaScript. This document is a compatibility snapshot, not an official API specification. A fully native client can reproduce the observed HTTPS and WebSocket calls, but production sign-in may require a browser challenge that this milestone deliberately does not bypass.
 
 ## Evidence and scope

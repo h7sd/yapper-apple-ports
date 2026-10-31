@@ -1,0 +1,17 @@
+{
+  "runner": "ios-native/scripts/test-web-login-bridge.py",
+  "source": "ios-native/YapperNative/Authentication/BrowserLoginScript.swift",
+  "test_source": "ios-native/tests/web-login-bridge.test.cjs",
+  "source_sha256": "37269461e02106f61980c29f96e7b5055fb13a685a2ba5f9ac28a18fdff5cbd6",
+  "test_source_sha256": "3dc2cccd241769cad20c0e9850328de59f2209816ec0924fb21fa85712765eac",
+  "tested_at_utc": "2026-10-31T20:01:39.077146+00:00",
+  "runtime": "v24.15.0",
+  "transport": "mocked; no live auth, CAPTCHA, browser session or network",
+  "result": "passed",
+  "tests": 89,
+  "pass": 89,
+  "fail": 0,
+  "cancelled": 0,
+  "skipped": 0,
+  "todo": 0
+}

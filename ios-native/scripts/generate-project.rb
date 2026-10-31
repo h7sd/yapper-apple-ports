@@ -29,8 +29,8 @@ ui.add_dependency(app)
       'PRODUCT_BUNDLE_IDENTIFIER' => "website.yapper.native.ios#{target == app ? '' : '.' + target.name}",
       'TARGETED_DEVICE_FAMILY' => '1,2',
       'CODE_SIGN_STYLE' => 'Automatic',
-      'CURRENT_PROJECT_VERSION' => '1',
-      'MARKETING_VERSION' => '0.1.0',
+      'CURRENT_PROJECT_VERSION' => '2',
+      'MARKETING_VERSION' => '0.1.1',
       'CLANG_ENABLE_MODULES' => 'YES',
       'ENABLE_USER_SCRIPT_SANDBOXING' => 'YES',
       'GENERATE_INFOPLIST_FILE' => target == app ? 'NO' : 'YES'
@@ -56,6 +56,16 @@ assets = project.main_group.find_subpath('YapperNative', false).new_file('Assets
 app.resources_build_phase.add_file_reference(assets)
 privacy = project.main_group.find_subpath('YapperNative', false).new_file('PrivacyInfo.xcprivacy')
 app.resources_build_phase.add_file_reference(privacy)
+resources = project.main_group.find_subpath('YapperNative', false)
+localized = resources.new_variant_group('Localizable.strings')
+Dir.glob(File.join(root, 'YapperNative/*.lproj/Localizable.strings')).sort.each do |file|
+  language = File.basename(File.dirname(file), '.lproj')
+  reference = localized.new_file("#{language}.lproj/Localizable.strings")
+  reference.name = language
+  reference.last_known_file_type = 'text.plist.strings'
+end
+app.resources_build_phase.add_file_reference(localized)
+project.root_object.known_regions = ['en', 'de', 'Base']
 project.build_configurations.each do |config|
   config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '17.0'
   config.build_settings['SDKROOT'] = 'iphoneos'

@@ -1,0 +1,16 @@
+/* Native welcome and official web authentication. */
+"welcome.title" = "Welcome to Yapper";
+"welcome.signIn" = "Sign in";
+"welcome.terms" = "Terms of Service";
+"welcome.privacy" = "Privacy";
+"login.restoring" = "Restoring your session…";
+"login.web.title" = "Sign in to Yapper";
+"common.cancel" = "Cancel";
+"common.retry" = "Try again";
+"login.web.loading" = "Loading sign-in…";
+"login.web.verifying" = "Finishing sign-in…";
+"login.web.mfa" = "Complete two-factor verification in the sign-in window.";
+"login.web.failed" = "The sign-in page could not be loaded. Check your connection and try again.";
+"login.web.blocked" = "Use your Yapper email or username in this sign-in window. This external sign-in method is not supported here.";
+"login.web.fixture" = "Test sign-in · synthetic data";
+"login.web.fixture.complete" = "Complete test sign-in";

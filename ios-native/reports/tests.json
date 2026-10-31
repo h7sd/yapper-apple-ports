@@ -1,68 +1,110 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
+  "appVersion": "0.1.1",
+  "checkedDate": "2026-10-31",
   "passed": true,
-  "currentNativeCoreTests": 16,
-  "currentNativeCoreParameterCases": 17,
-  "uiFlowTests": 3,
+  "currentSwiftTestDeclarations": 28,
+  "currentSwiftParameterCases": 30,
+  "existingCoreTestDeclarations": 16,
+  "browserLoginTestDeclarations": 12,
+  "deterministicFixtureUIFlows": 4,
+  "officialPublicPageSmokeTests": 1,
+  "rawResultPolicy": "Raw xcresult bundles remain local because they may contain device identifiers. Only sanitized summaries and result bundle names are published here.",
   "runs": [
     {
-      "scope": "Initial Pro Max: 15 core tests, 16 parameter cases and 3 UI flows; before final profile identity regression",
-      "testCount": 18,
-      "passed": 18,
+      "id": "canonical-final",
+      "resultBundleName": "WebLogin-Canonical-Final.xcresult",
+      "scope": "Final 0.1.1 source after canonical authentication URL validation, official sign-in entry, and legal-link target corrections",
+      "testCount": 33,
+      "passed": 33,
       "failed": 0,
       "skipped": 0,
-      "devices": [
-        {
-          "name": "iPhone 17 Pro Max",
-          "osVersion": "26.4.1",
-          "platform": "iOS Simulator",
-          "passedCases": 19
-        }
-      ]
-    },
-    {
-      "scope": "Final source: 16 core tests, 17 parameter cases and 3 UI flows on iPhone Pro",
-      "testCount": 19,
-      "passed": 19,
-      "failed": 0,
-      "skipped": 0,
+      "swiftTestDeclarations": 28,
+      "swiftParameterCases": 30,
+      "uiTestDeclarations": 5,
+      "uiCases": 5,
       "devices": [
         {
           "name": "iPhone 17 Pro",
           "osVersion": "26.4.1",
           "platform": "iOS Simulator",
-          "passedCases": 20
+          "passedCases": 35
         }
-      ]
+      ],
+      "officialPublicPageSmoke": {
+        "entryURL": "https://yapin.gg/?auth=in",
+        "officialPasswordFormLoaded": true,
+        "cancelReturnedToNativeWelcome": true,
+        "credentialsSubmitted": false,
+        "captchaAttempted": false,
+        "authenticatedSessionTransferred": false
+      }
     },
     {
-      "scope": "Final native UI: sign-in/account centering on Pro Max at accessibility-extra-large and iPad 13-inch",
-      "testCount": 1,
-      "passed": 1,
+      "id": "matrix-final",
+      "resultBundleName": "WebLogin-Matrix-Final.xcresult",
+      "scope": "Two deterministic native UI tests on Pro Max at accessibility-extra-large and iPad 13-inch",
+      "testCount": 2,
+      "passed": 2,
       "failed": 0,
       "skipped": 0,
+      "uiTestDeclarations": 2,
+      "totalDeviceCaseExecutions": 4,
       "devices": [
-        {
-          "name": "iPad Pro 13-inch (M5)",
-          "osVersion": "26.4.1",
-          "platform": "iOS Simulator",
-          "passedCases": 1
-        },
         {
           "name": "iPhone 17 Pro Max",
           "osVersion": "26.4.1",
           "platform": "iOS Simulator",
-          "passedCases": 1
+          "contentSizeCategory": "accessibility-extra-large",
+          "passedCases": 2
+        },
+        {
+          "name": "iPad Pro 13-inch (M5)",
+          "osVersion": "26.4.1",
+          "platform": "iOS Simulator",
+          "passedCases": 2
         }
       ]
     }
   ],
-  "visualEvidence": "Anonymous Debug-only synthetic fixtures; iPad light appearance also inspected separately.",
-  "sourceReview": "Observed auth/DM/history/message/realtime contract and session/transport boundary reviewed. No WebKit/JS UI resources in Release.",
+  "relatedVerification": {
+    "javaScriptBridge": {
+      "reportPath": "ios-native/reports/web-login-bridge-tests.json",
+      "passed": 89,
+      "total": 89,
+      "scope": "Synthetic bridge responses and browser API fixtures; no real authentication or CAPTCHA"
+    },
+    "packageInspection": {
+      "reportPath": "ios-native/reports/package-verification.json",
+      "appVersion": "0.1.1",
+      "passedChecks": 45,
+      "scope": "Package and source inspection, separate from runtime authentication validation"
+    }
+  },
+  "resolvedEarlierAttempts": [
+    {
+      "scope": "Official public-page smoke before the final entry URL correction",
+      "result": "Failed waiting for the official password field; superseded by the passing canonical-final run",
+      "cause": "The unqualified root URL displayed the site's marketing entry rather than the sign-in form",
+      "correction": "Use the official https://yapin.gg/?auth=in entry",
+      "credentialsSubmitted": false,
+      "captchaAttempted": false
+    },
+    {
+      "scope": "Native welcome legal-link geometry",
+      "result": "Earlier target-geometry failure corrected before final UI verification",
+      "correction": "Legal links have minimum 44-point targets and the tests inspect their tappable bounds"
+    }
+  ],
+  "visualEvidence": "Anonymous Debug-only synthetic fixtures and the public signed-out official login page. No private conversations, credentials, challenge responses or device identifiers are published.",
+  "sourceReview": "SwiftUI conversation lists, history, composer and account settings remain native. WebKit is restricted to the temporary official authentication component; fresh authentication responses are validated before native bootstrap and Keychain persistence. Static review and synthetic tests do not establish real-account authentication.",
   "limits": {
     "realAccountLogin": false,
+    "liveCaptchaCompletion": false,
     "liveMessageDelivery": false,
     "physicalDevices": false,
-    "captchaEnforcement": "Unknown; direct auth may require an operator-supported native flow."
+    "googleOrExternalProviderPopups": "Compatibility is not claimed; use email or username in this login flow.",
+    "captchaEnforcement": "A required-CAPTCHA response was reported for 0.1.0. The 0.1.1 flow renders official web authentication, but completed production CAPTCHA and real-account handoff still require user device validation.",
+    "hostedCI": "These are local verification results, not a claim that GitHub-hosted CI passed."
   }
 }

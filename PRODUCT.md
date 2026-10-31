@@ -8,7 +8,7 @@ adaptive
 
 ## Users
 
-Yapper users who want clients for their devices. The current native iOS work serves the user who requested this repository and a practical iPhone client without a WebView.
+Yapper users who want clients for their devices. The current iOS work serves the user who requested this repository and native chat screens.
 
 ## Product Purpose
 
@@ -20,7 +20,8 @@ The repository already contains unofficial desktop clients and iOS/Android websi
 
 ## Capabilities and Constraints
 
-- The native iOS milestone uses SwiftUI and direct service requests, with no embedded website or JavaScript UI.
+- Chat lists, messages and account settings use SwiftUI and direct service requests. On 31 October 2026, after CAPTCHA blocked the direct password login, the user explicitly approved a temporary WebView only for official web sign-in. No website UI is used for chats or account settings.
+- The welcome screen contains the app mark, a welcome title in the device's supported language, a sign-in action, and terms/privacy links at the bottom. The user requested removal of the two introductory/preview paragraphs.
 - Use observed service contracts; distinguish source inspection, simulated responses and live verification.
 - Existing WebView plugins are not automatically compatible with the native app. Native calls, media capture, background push, full server management and plugin parity are outside the approved first milestone.
 - Never publish account sessions, credentials, private conversations or signing keys. iPhone installation requires the user's own Apple signing.

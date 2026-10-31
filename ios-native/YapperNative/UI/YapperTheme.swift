@@ -97,7 +97,7 @@ struct NativeErrorBanner: View {
             .font(.subheadline)
             .foregroundStyle(YapperPalette.danger)
             if let retry {
-                Button("Erneut versuchen", action: retry)
+                Button("common.retry", action: retry)
                     .font(.subheadline.weight(.semibold))
                     .frame(minHeight: 44)
             }

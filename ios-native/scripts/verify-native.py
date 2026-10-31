@@ -30,7 +30,8 @@ def digest(path):
 sources = sorted((root / 'YapperNative').rglob('*.swift'))
 for path in sources:
     text = path.read_text()
-    check(not re.search(r'\b(?:WKWebView|UIWebView|JavaScriptCore|SFSafariViewController|ASWebAuthenticationSession)\b|import\s+WebKit', text), f'Native-only source: {path.relative_to(root)}')
+    if 'Authentication' not in path.relative_to(root).parts:
+        check(not re.search(r'\b(?:WKWebView|UIWebView|JavaScriptCore|SFSafariViewController|ASWebAuthenticationSession)\b|import\s+WebKit', text), f'Native-only application screen/core: {path.relative_to(root)}')
     check(not re.search(r'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|/Users/', text), f'No private material: {path.relative_to(root)}')
 
 api = (root / 'YapperNative/Core/NativeAPI.swift').read_text()
@@ -40,7 +41,7 @@ check(payload.get('role') == 'anon', 'Bundled Supabase key is the public anonymo
 
 info = plistlib.loads((args.app / 'Info.plist').read_bytes())
 check(info['CFBundleIdentifier'] == 'website.yapper.native.ios', 'Native app uses its separate bundle identifier')
-check(info['CFBundleShortVersionString'] == '0.1.0', 'Native preview version is 0.1.0')
+check(info['CFBundleShortVersionString'] == '0.1.1', 'Native preview version is 0.1.1')
 check(not info.get('NSAppTransportSecurity', {}).get('NSAllowsArbitraryLoads', False), 'No arbitrary insecure transport exception')
 check(not any(key in info for key in ['NSCameraUsageDescription', 'NSMicrophoneUsageDescription', 'NSContactsUsageDescription']), 'No unused capture or contacts permission prompts')
 check((args.app / 'PrivacyInfo.xcprivacy').exists(), 'Required-reason privacy manifest packaged')
@@ -48,7 +49,10 @@ privacy = plistlib.loads((args.app / 'PrivacyInfo.xcprivacy').read_bytes())
 check(privacy.get('NSPrivacyTracking') is False, 'No tracking declared by the native app')
 binary = args.app / info['CFBundleExecutable']
 linked = subprocess.check_output(['otool', '-L', str(binary)], text=True)
-check('WebKit.framework' not in linked and 'JavaScriptCore.framework' not in linked, 'Executable does not directly link a web or JavaScript UI runtime')
+check('WebKit.framework' in linked, 'WebKit is linked for the explicitly approved sign-in component')
+check('JavaScriptCore.framework' not in linked, 'No separate JavaScript application runtime is directly linked')
+for language in ['en', 'de']:
+    check((args.app / f'{language}.lproj/Localizable.strings').exists(), f'Welcome and sign-in localization packaged: {language}')
 check(not any(p.suffix.lower() in ['.html', '.js', '.asar'] for p in args.app.rglob('*')), 'Application embeds no website or JavaScript application resources')
 release_bytes = binary.read_bytes()
 for marker in [b'--native-ui-fixtures', b'--native-ui-login-fixture', b'fixture-chat', b'fixture-password', b'demo@example.invalid']:
@@ -71,8 +75,9 @@ report = {
     'sourceSHA256': {str(p.relative_to(root)): digest(p) for p in sources},
     'verificationLimits': {
         'realAccountSignIn': False, 'liveMessageSend': False,
-        'physicalDevice': False, 'serverCaptchaEnforcement': 'unknown',
-        'testResults': 'See separate native test report; package inspection is not a runtime test.'
+        'physicalDevice': False, 'serverCaptchaEnforcement': 'Reported by the user; human completion and real-account acceptance remain unverified.',
+        'testResults': 'See separate native test report; package inspection is not a runtime test.',
+        'webContentScope': 'Temporary official web sign-in only; conversations/messages/settings are native SwiftUI.'
     }
 }
 args.report.parent.mkdir(parents=True, exist_ok=True)

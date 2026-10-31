@@ -25,7 +25,7 @@ struct NativeRootView: View {
                         Image("AppMark")
                             .resizable().scaledToFit().frame(width: 72, height: 72)
                             .accessibilityHidden(true)
-                        ProgressView("Anmeldung wird wiederhergestellt …")
+                        ProgressView("login.restoring")
                             .tint(YapperPalette.accent)
                     }
                     .padding(24)
@@ -47,185 +47,95 @@ struct NativeRootView: View {
 
 private struct NativeLoginView: View {
     let store: NativeStore
-    @State private var identifier = ""
-    @State private var password = ""
-    @State private var code = ""
-    @State private var passwordVisible = false
-    @State private var awaitingCode = false
-    @FocusState private var focusedField: Field?
-
-    private enum Field: Hashable { case identifier, password, code }
-    private var needsCode: Bool { awaitingCode || store.authState == .requiresTwoFactor }
-    private var isSigningIn: Bool { store.authState == .signingIn }
-    private var normalizedCode: String { code.trimmingCharacters(in: .whitespacesAndNewlines) }
-    private var canSubmit: Bool {
-        guard !isSigningIn else { return false }
-        if needsCode {
-            return normalizedCode.utf8.count == 6 && normalizedCode.utf8.allSatisfy { (48...57).contains($0) }
-        }
-        return !identifier.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !password.isEmpty
-    }
+    @State private var showingWebLogin = false
 
     var body: some View {
-        NavigationStack {
-            GeometryReader { geometry in
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 32) {
-                        VStack(alignment: .leading, spacing: 18) {
-                            Image("AppMark")
-                                .resizable().scaledToFit().frame(width: 72, height: 72)
-                                .accessibilityHidden(true)
-                            Text("Willkommen bei Yapper")
-                                .font(.largeTitle.bold())
-                                .fixedSize(horizontal: false, vertical: true)
-                            Text("Deine Gespräche. Jetzt nativ auf dem iPhone.")
-                                .font(.body)
-                                .foregroundStyle(YapperPalette.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-
-                        VStack(alignment: .leading, spacing: 20) {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("E-Mail oder Benutzername").font(.subheadline.weight(.semibold))
-                                TextField("Dein Yapper-Konto", text: $identifier)
-                                    .textContentType(.username)
-                                    .keyboardType(.emailAddress)
-                                    .textInputAutocapitalization(.never)
-                                    .autocorrectionDisabled()
-                                    .focused($focusedField, equals: .identifier)
-                                    .submitLabel(.next)
-                                    .onSubmit { focusedField = .password }
-                                    .accessibilityIdentifier("native.login.identifier")
-                                    .loginField()
-                            }
-                            .disabled(needsCode)
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Passwort").font(.subheadline.weight(.semibold))
-                                HStack(spacing: 4) {
-                                    Group {
-                                        if passwordVisible {
-                                            TextField("Dein Passwort", text: $password)
-                                        } else {
-                                            SecureField("Dein Passwort", text: $password)
-                                        }
-                                    }
-                                    .textContentType(.password)
-                                    .textInputAutocapitalization(.never)
-                                    .autocorrectionDisabled()
-                                    .focused($focusedField, equals: .password)
-                                    .submitLabel(needsCode ? .next : .go)
-                                    .onSubmit {
-                                        if needsCode { focusedField = .code } else { submit() }
-                                    }
-                                    .accessibilityIdentifier("native.login.password")
-                                    Button {
-                                        passwordVisible.toggle()
-                                    } label: {
-                                        Image(systemName: passwordVisible ? "eye.slash" : "eye")
-                                            .frame(width: 44, height: 44)
-                                    }
-                                    .foregroundStyle(YapperPalette.secondary)
-                                    .accessibilityLabel(passwordVisible ? "Passwort verbergen" : "Passwort anzeigen")
-                                }
-                                .loginField()
-                            }
-                            .disabled(needsCode)
-                            if needsCode {
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text("Bestätigungscode").font(.subheadline.weight(.semibold))
-                                    TextField("6-stelliger Authenticator-Code", text: $code)
-                                        .textContentType(.oneTimeCode)
-                                        .keyboardType(.numberPad)
-                                        .textInputAutocapitalization(.never)
-                                        .autocorrectionDisabled()
-                                        .focused($focusedField, equals: .code)
-                                        .submitLabel(.go)
-                                        .onSubmit(submit)
-                                        .accessibilityIdentifier("native.login.code")
-                                        .loginField()
-                                }
-                            }
-                            if let message = store.errorMessage {
-                                NativeErrorBanner(message: message)
-                            }
-                            Button(action: submit) {
-                                HStack(spacing: 10) {
-                                    if isSigningIn { ProgressView().tint(YapperPalette.accentLabel) }
-                                    Text(needsCode ? "Code bestätigen" : "Anmelden")
-                                }
-                            }
-                            .buttonStyle(YapperPrimaryButtonStyle())
-                            .disabled(!canSubmit)
-                            .accessibilityIdentifier("native.login.submit")
-                        }
-                        .disabled(isSigningIn)
-
-                        if needsCode {
-                            Button("Anmeldung abbrechen") {
-                                focusedField = nil
-                                code = ""
-                                password = ""
-                                awaitingCode = false
-                                store.cancelSignIn()
-                            }
-                            .frame(maxWidth: .infinity, minHeight: 44)
-                            .accessibilityIdentifier("native.login.cancel")
-                        }
-
-                        Text("Mit deinem bestehenden Yapper-Konto anmelden. Diese native Vorschau unterstützt Nachrichten; Anrufe und Plugins folgen separat.")
-                            .font(.footnote)
-                            .foregroundStyle(YapperPalette.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
+        GeometryReader { geometry in
+            ScrollView {
+                VStack(spacing: 32) {
+                    Image("AppMark")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 88, height: 88)
+                        .accessibilityHidden(true)
+                    Text("welcome.title")
+                        .font(.largeTitle.bold())
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityAddTraits(.isHeader)
+                        .accessibilityIdentifier("native.welcome.title")
+                    if let message = store.errorMessage {
+                        NativeErrorBanner(message: message)
                     }
-                    .frame(maxWidth: 420)
-                    .frame(maxWidth: .infinity)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 32)
-                    .frame(minHeight: geometry.size.height, alignment: .center)
+                    Button {
+                        showingWebLogin = true
+                    } label: {
+                        Text("welcome.signIn")
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.vertical, 4)
+                    }
+                    .buttonStyle(YapperPrimaryButtonStyle())
+                    .disabled(store.authState == .signingIn)
+                    .accessibilityIdentifier("native.login.web")
                 }
-                .scrollDismissesKeyboard(.interactively)
-                .background(YapperPalette.background.ignoresSafeArea())
-            }
-            .navigationBarHidden(true)
-            .onChange(of: store.authState) { _, state in
-                if state == .requiresTwoFactor {
-                    awaitingCode = true
-                    focusedField = .code
-                }
-                if state == .signedOut {
-                    awaitingCode = false
-                    code = ""
-                }
-                if state == .signedIn {
-                    identifier = ""
-                    password = ""
-                    code = ""
-                    awaitingCode = false
-                }
+                .frame(maxWidth: 420)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 32)
+                .frame(maxWidth: .infinity, minHeight: geometry.size.height, alignment: .center)
             }
         }
-    }
-
-    private func submit() {
-        guard canSubmit else { return }
-        focusedField = nil
-        let factorCode = needsCode ? normalizedCode : nil
-        let account = identifier
-        let secret = password
-        if needsCode { awaitingCode = true }
-        Task {
-            await store.signIn(identifier: account, password: secret, code: factorCode)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            NativeLegalFooter()
+        }
+        .background(YapperPalette.background.ignoresSafeArea())
+        .sheet(isPresented: $showingWebLogin) {
+            WebLoginSheet(store: store)
         }
     }
 }
 
-private extension View {
-    func loginField() -> some View {
-        self
-            .font(.body)
-            .padding(.horizontal, 14)
-            .frame(minHeight: 52)
-            .background(YapperPalette.input, in: .rect(cornerRadius: 12))
+private struct NativeLegalFooter: View {
+    // Fixed HTTPS destinations match Yapper's published authentication footer.
+    private let termsURL = URL(string: "https://www.yapin.gg/terms")!
+    private let privacyURL = URL(string: "https://www.yapin.gg/privacy")!
+
+    var body: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 24) {
+                terms.fixedSize(horizontal: true, vertical: false)
+                privacy.fixedSize(horizontal: true, vertical: false)
+            }
+            VStack(spacing: 0) {
+                terms
+                privacy
+            }
+        }
+        .font(.footnote)
+        .multilineTextAlignment(.center)
+        .foregroundStyle(YapperPalette.secondary)
+        .padding(.horizontal, 24)
+        .padding(.top, 8)
+        .padding(.bottom, 12)
+        .frame(maxWidth: .infinity)
+        .background(YapperPalette.background)
+    }
+
+    private var terms: some View {
+        Link(destination: termsURL) {
+            Text("welcome.terms")
+                .frame(minHeight: 44)
+                .contentShape(.rect)
+        }
+        .accessibilityIdentifier("native.terms")
+    }
+
+    private var privacy: some View {
+        Link(destination: privacyURL) {
+            Text("welcome.privacy")
+                .frame(minHeight: 44)
+                .contentShape(.rect)
+        }
+        .accessibilityIdentifier("native.privacy")
     }
 }
 
