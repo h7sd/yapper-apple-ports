@@ -81,7 +81,7 @@ import ImageIO
                 values["created_at"] = .string("2026-10-31T12:00:00Z")
                 return try response(request, .object(values))
             }
-            return try response(request, .array([.object(["id": .string(messageID)])]))
+            return try response(request, .array([.object(["id": .string(messageID), "channel_id": .string(channel), "author_id": .string(user), "content": .string("Fixture"), "created_at": .string("2026-10-31T12:00:00Z")])]))
         })
         let long = String(repeating: "a", count: 2001)
         await #expect(throws: NativeClientError.messageTooLong) { _ = try await api.send(id: messageID, text: long, channelID: channel, session: session) }
@@ -154,7 +154,7 @@ import ImageIO
         let api = NativeAPI(transport: { request in
             requests.append(request)
             if request.httpMethod == "POST" { return try response(request, .object(["message": .string("duplicate")]), status: 409) }
-            return try response(request, .array([.object(["id": .string(messageID)])]))
+            return try response(request, .array([.object(["id": .string(messageID), "channel_id": .string(channel), "author_id": .string(user), "content": .string("Reply"), "created_at": .string("2026-10-31T12:00:00Z")])]))
         })
         try await api.sendReply(id: messageID, text: " Reply ", replyToID: replyID, channelID: channel, session: session)
         #expect(requests.count == 2)

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "version": "0.2.3",
+  "scope": "Public seeded image and generated orange video; no private account or library; actual system picker and pending attachments, no send.",
+  "captures": [
+    {
+      "image": "docs/images/interaction-ui-0.2.3-iphone-pro-gallery-photo.png",
+      "sha256": "5cbf116c629c223a9171420a677c6999b774f16ec0276db069c002c443e21aa5",
+      "test": "NativeInteractionRegressionTests/testNativeGalleryCancelAndSelectedPhotoKeepDraftWithoutSending()",
+      "device": "Yapper Appearance Verification",
+      "syntheticFixture": true,
+      "sent": false
+    },
+    {
+      "image": "docs/images/interaction-ui-0.2.3-iphone-pro-gallery-picker.png",
+      "sha256": "4b015aca4f12af08b28eeb2779b8c7d963a997810425894005476c1a83e340b7",
+      "test": "NativeInteractionRegressionTests/testNativeGalleryCancelAndSelectedPhotoKeepDraftWithoutSending()",
+      "device": "Yapper Appearance Verification",
+      "syntheticFixture": true,
+      "sent": false
+    },
+    {
+      "image": "docs/images/interaction-ui-0.2.3-iphone-pro-gallery-video.png",
+      "sha256": "ce0610bf0b6e78c7642551eb8b502661a3579c3bdde214f10a57d2da81d08e31",
+      "test": "NativeInteractionRegressionTests/testNativeGallerySelectedVideoKeepsDraftWithoutSending()",
+      "device": "Yapper Appearance Verification",
+      "syntheticFixture": true,
+      "sent": false
+    }
+  ]
+}

@@ -193,12 +193,49 @@ nonisolated final class RejectRedirects: NSObject, URLSessionTaskDelegate, Senda
     func send(id: String, text: String, channelID: String, session: NativeSession, messagePolicy: NativeMessagePolicy = .standard) async throws -> MessageRow {
         try messagePolicy.validate(text, for: session.userID)
         let row = MessageInsert(id: id, channel_id: channelID, author_id: session.userID, content: text)
+        return try await insertMessage(id: id, channelID: channelID, body: JSONEncoder().encode(row), session: session).row
+    }
+
+    // The official client inserts/selects a single object and reuses its UUID on a duplicate.
+    // UUID text casing is not identity: Swift generates uppercase, while Postgres returns lowercase.
+    func insertMessage(id: String, channelID: String, body: Data, session: NativeSession) async throws -> (row: MessageRow, duplicate: Bool) {
+        guard UUID(uuidString: id) != nil, UUID(uuidString: channelID) != nil,
+              UUID(uuidString: session.userID) != nil else { throw NativeClientError.invalidResponse }
+        let data: Data
         do {
-            return try await response(MessageRow.self, request: request(path: "rest/v1/messages", query: [URLQueryItem(name: "select", value: "*")], method: "POST", token: session.accessToken, body: JSONEncoder().encode(row), single: true))
+            data = try await dataResponse(request: request(path: "rest/v1/messages", query: [URLQueryItem(name: "select", value: "*")], method: "POST", token: session.accessToken, body: body, single: true))
         } catch let NativeClientError.api(status, _) where status == 409 {
-            // Reuse the same client ID after an uncertain send, matching the official client's idempotent retry.
-            return try await response(MessageRow.self, request: request(path: "rest/v1/messages", query: [URLQueryItem(name: "id", value: "eq.\(id)"), URLQueryItem(name: "channel_id", value: "eq.\(channelID)"), URLQueryItem(name: "select", value: "*")], token: session.accessToken, single: true))
+            return (try await requireSentMessage(id: id, channelID: channelID, session: session), true)
         }
+        if let rows = Self.sentMessageRows(data), rows.count == 1,
+           let row = rows.first, row.confirmsSend(id: id, channelID: channelID, authorID: session.userID),
+           (try? NativeDate.parse(row.created_at)) != nil { return (row, false) }
+        // An empty or unreadable successful acknowledgement may follow a committed insert.
+        // Confirm that exact row without issuing a second insert or inventing a successful message.
+        return (try await requireSentMessage(id: id, channelID: channelID, session: session), false)
+    }
+
+    func sentMessage(id: String, channelID: String, session: NativeSession) async throws -> MessageRow? {
+        guard UUID(uuidString: id) != nil, UUID(uuidString: channelID) != nil,
+              UUID(uuidString: session.userID) != nil else { throw NativeClientError.invalidResponse }
+        let query = [URLQueryItem(name: "id", value: "eq.\(id)"), URLQueryItem(name: "channel_id", value: "eq.\(channelID)"), URLQueryItem(name: "author_id", value: "eq.\(session.userID)"), URLQueryItem(name: "select", value: "*")]
+        let data = try await dataResponse(request: request(path: "rest/v1/messages", query: query, token: session.accessToken))
+        guard let rows = Self.sentMessageRows(data), rows.count <= 1 else { throw NativeClientError.invalidResponse }
+        guard let row = rows.first else { return nil }
+        guard row.confirmsSend(id: id, channelID: channelID, authorID: session.userID),
+              (try? NativeDate.parse(row.created_at)) != nil else { throw NativeClientError.invalidResponse }
+        return row
+    }
+
+    private func requireSentMessage(id: String, channelID: String, session: NativeSession) async throws -> MessageRow {
+        guard let row = try await sentMessage(id: id, channelID: channelID, session: session) else { throw NativeClientError.invalidResponse }
+        return row
+    }
+
+    private static func sentMessageRows(_ data: Data) -> [MessageRow]? {
+        let decoder = JSONDecoder()
+        if let row = try? decoder.decode(MessageRow.self, from: data) { return [row] }
+        return try? decoder.decode([MessageRow].self, from: data)
     }
 }
 
@@ -388,13 +425,25 @@ nonisolated struct MessageRow: Decodable, Sendable {
     let reply_to_id: String?
     let webhook: NativeJSON?
 
+    func confirmsSend(id: String, channelID: String, authorID: String) -> Bool {
+        guard let expectedID = UUID(uuidString: id), let expectedChannel = UUID(uuidString: channelID),
+              let expectedAuthor = UUID(uuidString: authorID), let author_id else { return false }
+        return UUID(uuidString: self.id) == expectedID && UUID(uuidString: channel_id) == expectedChannel
+            && UUID(uuidString: author_id) == expectedAuthor
+    }
+
     func message(profiles: [String: YapperUser]) throws -> ChatMessage {
         guard !id.isEmpty, !channel_id.isEmpty else { throw NativeClientError.malformedResponse("Message identity") }
-        let author = author_id.flatMap { profiles[$0] } ?? YapperUser(id: author_id ?? "system", username: author_id == nil ? "System" : "Unbekannt")
+        func canonical(_ value: String) -> String { UUID(uuidString: value)?.uuidString.lowercased() ?? value }
+        let messageID = canonical(id)
+        let channelID = canonical(channel_id)
+        let authorID = author_id.map(canonical)
+        let author = authorID.flatMap { profiles[$0] } ?? author_id.flatMap { profiles[$0] }
+            ?? YapperUser(id: authorID ?? "system", username: author_id == nil ? "System" : "Unbekannt")
         let attachments = attachment_path.map { path in
-            [MessageAttachment(id: id + ":attachment", url: NativeConfiguration.publicAsset(bucket: "attachments", path: path), filename: attachment_name ?? "Anhang", contentType: nil)]
+            [MessageAttachment(id: messageID + ":attachment", url: NativeConfiguration.publicAsset(bucket: "attachments", path: path), filename: attachment_name ?? "Anhang", contentType: nil)]
         } ?? []
-        return ChatMessage(id: id, channelID: channel_id, author: author, content: content ?? "", createdAt: try NativeDate.parse(created_at), attachments: attachments, isEdited: edited_at != nil, grouping: .from(system: system ?? .null, replyToID: reply_to_id, webhook: webhook ?? .null))
+        return ChatMessage(id: messageID, channelID: channelID, author: author, content: content ?? "", createdAt: try NativeDate.parse(created_at), attachments: attachments, isEdited: edited_at != nil, grouping: .from(system: system ?? .null, replyToID: reply_to_id.map(canonical), webhook: webhook ?? .null))
     }
 }
 

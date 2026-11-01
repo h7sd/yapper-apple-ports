@@ -14,7 +14,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "D76518A8986FA28547507A25"
+               BlueprintIdentifier = "A521FD3412B0C6F6A7E600AB"
                BuildableName = "YapperNative.app"
                BlueprintName = "YapperNative"
                ReferencedContainer = "container:YapperNative.xcodeproj">
@@ -30,7 +30,7 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "D76518A8986FA28547507A25"
+            BlueprintIdentifier = "A521FD3412B0C6F6A7E600AB"
             BuildableName = "YapperNative.app"
             BlueprintName = "YapperNative"
             ReferencedContainer = "container:YapperNative.xcodeproj">
@@ -41,7 +41,7 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "1617E5D27B67F7630DDF28C8"
+               BlueprintIdentifier = "0952286E46948ED219A369A5"
                BuildableName = "YapperNativeTests.xctest"
                BlueprintName = "YapperNativeTests"
                ReferencedContainer = "container:YapperNative.xcodeproj">
@@ -51,7 +51,7 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "8AF75F7142E0047AC014A67B"
+               BlueprintIdentifier = "23501632BE34F414C18AC575"
                BuildableName = "YapperNativeUITests.xctest"
                BlueprintName = "YapperNativeUITests"
                ReferencedContainer = "container:YapperNative.xcodeproj">
@@ -73,7 +73,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "D76518A8986FA28547507A25"
+            BlueprintIdentifier = "A521FD3412B0C6F6A7E600AB"
             BuildableName = "YapperNative.app"
             BlueprintName = "YapperNative"
             ReferencedContainer = "container:YapperNative.xcodeproj">
@@ -90,7 +90,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "D76518A8986FA28547507A25"
+            BlueprintIdentifier = "A521FD3412B0C6F6A7E600AB"
             BuildableName = "YapperNative.app"
             BlueprintName = "YapperNative"
             ReferencedContainer = "container:YapperNative.xcodeproj">

@@ -1,0 +1,226 @@
+{
+  "schemaVersion": 1,
+  "version": "0.2.3",
+  "build": "6",
+  "channel": "development-prerelease",
+  "validationStatus": "completed-local-validation-with-live-account-and-run-qualifications",
+  "overallParityComplete": false,
+  "liveAccountVerified": false,
+  "fixedReportedIssues": [
+    {
+      "issue": "Back requires repeated taps",
+      "fix": "48x48 rectangular hit shape; immediate focus dismissal, conversation closure and cancellation; direct compact navigation removes delayed re-push; stale read callbacks ignored; draft retained.",
+      "tests": "NativeInteractionRegressionTests/testSingleBackTapAtButtonEdgesPreservesDraftAndReturnsHome; NativeUserReportRegressionTests"
+    },
+    {
+      "issue": "Own banner says Angemeldet instead of Online",
+      "fix": "Read authenticated own status independently of notification preferences/blocks; preserve verified same-account preference across profile/list refresh; explicit JSON null follows observed cached/default official behavior; failures do not invent Online. Commit revision and final playback gate preserve newer DND.",
+      "tests": "NativePresenceTests; NativeUserReportRegressionTests; NativeInteractionRegressionTests/testOwnStatusPickerUpdatesBannerAndPreservesManualInvisible",
+      "limit": "Own availability preference only; full global presence/idle publishing parity is not established."
+    },
+    {
+      "issue": "Gallery photos and videos cannot be selected",
+      "fix": "Native selected-item PhotosUI picker alongside Files; photo/video import; upright JPEG conversion of HEIC/unsupported stills; bounded temporary-copy cleanup and 10MB limit; no broad photo-library permission. Existing upload/media-scan send path retained.",
+      "evidence": "native-0.2.3-gallery-regression.json",
+      "tests": "NativeGalleryImportTests; NativeInteractionRegressionTests photo/video selection and cancel flows",
+      "limit": "Simulator selection/import is verified; live account upload/media-scan acceptance is not."
+    },
+    {
+      "issue": "Message is sent but no-valid-response error appears",
+      "cause": "Case-sensitive text UUID comparison rejected valid lowercase PostgreSQL acknowledgment for uppercase generated message ID.",
+      "fix": "Generate lowercase UUIDs; verify typed message/channel/author identity and valid server timestamp; accept object/single-row acknowledgments; one scoped reconciliation read for ambiguous success/conflict, without another POST; canonical IDs merge with realtime and clear only original matching draft.",
+      "tests": "NativeSendConfirmationTests; NativeMessageFeatureTests; NativeUserReportRegressionTests",
+      "limit": "Synthetic transport evidence, no live sends."
+    }
+  ],
+  "fixDetails": "../docs/INTERACTION-FIXES-0.2.3.md",
+  "nativeUnitTests": {
+    "passed": true,
+    "logicalTests": 250,
+    "suites": 29,
+    "expandedCases": 296,
+    "failed": 0,
+    "skipped": 0,
+    "runtimeWarnings": [],
+    "evidence": "native-0.2.3-unit-confirmation.xcresult",
+    "device": "iPhone 17 Pro / arm64 / iOS26.4.1",
+    "scope": "Synthetic transport/core tests on frozen shipping app source; later changes affect only UI-test selectors, fixture resources and documentation."
+  },
+  "nativeUIFlows": {
+    "passed": true,
+    "logicalCases": 6,
+    "successfulCaseDevicePairs": 18,
+    "syntheticFixtures": true,
+    "singleRunAllPassed": false,
+    "coverageBasis": "Merged evidence: four passing initial cases on each of three devices plus final photo and video cases on each device. This is not one clean complete-matrix run.",
+    "initialRun": {
+      "evidence": "native-0.2.3-interactions.xcresult",
+      "overallResult": "Failed",
+      "logicalCases": 5,
+      "devices": [
+        {
+          "model": "iPad Pro 13-inch (M5)",
+          "passed": 4,
+          "failed": 1,
+          "skipped": 0
+        },
+        {
+          "model": "iPhone 17 Pro",
+          "passed": 4,
+          "failed": 1,
+          "skipped": 0
+        },
+        {
+          "model": "iPhone 17 Pro Max",
+          "passed": 4,
+          "failed": 1,
+          "skipped": 0
+        }
+      ],
+      "runtimeWarnings": [
+        "Adding '_UIReparentingView' as a subview of UIHostingController.view is not supported and may result in a broken view hierarchy. Add your view above UIHostingController.view in a common superview or insert it into your SwiftUI content in a UIViewRepresentable instead."
+      ]
+    },
+    "initialFailure": "The Photos system grid exposes Image accessibility elements rather than CollectionView cells, so the gallery selector failed on all three devices. Four other cases passed on all three.",
+    "intermediateRun": {
+      "evidence": "native-0.2.3-gallery-pro-fixed.xcresult",
+      "overallResult": "Failed",
+      "logicalCases": 1,
+      "devices": [
+        {
+          "model": "iPhone 17 Pro",
+          "passed": 0,
+          "failed": 1,
+          "skipped": 0
+        }
+      ],
+      "runtimeWarnings": [
+        "Adding '_UIReparentingView' as a subview of UIHostingController.view is not supported and may result in a broken view hierarchy. Add your view above UIHostingController.view in a common superview or insert it into your SwiftUI content in a UIViewRepresentable instead."
+      ]
+    },
+    "intermediateFailure": "The observed Photos image proxy had a visible frame but no XCTest activation hit point; use its observed frame center. Test-only correction; importer unchanged.",
+    "finalGalleryRuns": [
+      {
+        "evidence": "native-0.2.3-gallery-pro-confirmed.xcresult",
+        "overallResult": "Passed",
+        "logicalCases": 2,
+        "devices": [
+          {
+            "model": "iPhone 17 Pro",
+            "passed": 2,
+            "failed": 0,
+            "skipped": 0
+          }
+        ],
+        "runtimeWarnings": [
+          "Adding '_UIReparentingView' as a subview of UIHostingController.view is not supported and may result in a broken view hierarchy. Add your view above UIHostingController.view in a common superview or insert it into your SwiftUI content in a UIViewRepresentable instead."
+        ]
+      },
+      {
+        "evidence": "native-0.2.3-gallery-large-devices-confirmed.xcresult",
+        "overallResult": "Passed",
+        "logicalCases": 2,
+        "devices": [
+          {
+            "model": "iPad Pro 13-inch (M5)",
+            "passed": 2,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "model": "iPhone 17 Pro Max",
+            "passed": 2,
+            "failed": 0,
+            "skipped": 0
+          }
+        ],
+        "runtimeWarnings": [
+          "Adding '_UIReparentingView' as a subview of UIHostingController.view is not supported and may result in a broken view hierarchy. Add your view above UIHostingController.view in a common superview or insert it into your SwiftUI content in a UIViewRepresentable instead."
+        ]
+      }
+    ],
+    "galleryAssertions": "Actual selected photo/video becomes a pending attachment; cancel before selection leaves draft intact; cancel with an existing attachment retains it; removal preserves draft. No live send.",
+    "backAssertions": "Three different target-edge single taps with keyboard open return home and preserve draft. Wide iPad uses its Home control.",
+    "otherCases": "NativeFlowTests/testNativeMessagesSendAndDraftSurvivesNavigation; NativeFeatureFlowTests/testServerChannelsMembersAndNativeConversation",
+    "warningQualification": "UIKit/SwiftUI _UIReparentingView runtime warnings were recorded while exercising Photos; the final interaction assertions passed. UI runs are not warning-free."
+  },
+  "visualEvidence": {
+    "captureManifest": "interaction-captures-0.2.3.json",
+    "captures": 3,
+    "scope": "Actual native Photos picker and photo/video pending attachment states on Pro using public/synthetic media. Prior0.2.2 primary arrangement retained; not a new whole-app visual parity audit."
+  },
+  "builds": {
+    "deviceRelease": {
+      "passed": true,
+      "evidence": "native-0.2.3-archive-frozen.log",
+      "version": "0.2.3",
+      "build": "6",
+      "signing": "Unsigned; own Apple profile required."
+    },
+    "simulatorRelease": {
+      "passed": true,
+      "evidence": "native-0.2.3-simulator-frozen.log",
+      "architectures": [
+        "arm64",
+        "x86_64"
+      ],
+      "signing": "Local ad-hoc host signature and Simulator-only identity section."
+    },
+    "warnings": [
+      "Existing LiveKit E2EEOptions deprecation; no encryption API migration in this fix.",
+      "AppIntents metadata extraction skipped because no AppIntents framework dependency is included."
+    ],
+    "exactDeliveredSimulatorLaunch": {
+      "passed": true,
+      "device": "iPad Pro 13-inch (M5)",
+      "simulatorID": "446C9451-4AD5-48BE-8033-E2717303B797",
+      "processID": 65993,
+      "fixtureArguments": false,
+      "artifactSHA256": "f65260620b5cddbfaea18ecf0879ec6e0f3e87fc59efd10ceeef88cb6126e9cb",
+      "image": "../docs/images/welcome-0.2.3-release-de-ipad.png",
+      "imageSHA256": "6c6d17a43f884ee75d18f2c014cab94a0b54b0a488483c9aaf346a850571480d"
+    }
+  },
+  "packageInspection": {
+    "passed": true,
+    "checks": 217,
+    "report": "package-verification-0.2.3.json",
+    "artifacts": [
+      {
+        "name": "Yapinplugger-Native-0.2.3-iOS-Simulator.zip",
+        "bytes": 31151311,
+        "sha256": "f65260620b5cddbfaea18ecf0879ec6e0f3e87fc59efd10ceeef88cb6126e9cb"
+      },
+      {
+        "name": "Yapinplugger-Native-0.2.3-ios-unsigned.ipa",
+        "bytes": 11694521,
+        "sha256": "218691e25b2a643ef8b2deffdf1d138334ce275b42c53f1783a299c90b6a226a"
+      }
+    ],
+    "shippingSwiftFiles": 83,
+    "recordedShippingSourceHashesMatchFrozenSource": true,
+    "scope": "Exact delivered IPA and Simulator ZIP inspected, including native-only screen boundary, linked PhotosUI, lack of broad library permission, bundle identity, signature, resource/dependency hashes and exclusion of credentials/Debug fixtures."
+  },
+  "keychainEvidence": {
+    "newProbeRun": false,
+    "unchangedSourceSHA256": {
+      "YapperNative/Core/SessionVault.swift": "f50db51f4a42266160b3240871a59dfd33bdae79d46d9661f7edf753e9e58111",
+      "YapperNative/Core/Models.swift": "3edaf7f220f3f2ecb86827a81d39cf7fec8f2c2622825ddd76b3857007f3b19c"
+    },
+    "historicalProbe": "keychain-0.2.2.json",
+    "scope": "Shipping SessionVault and Models match0.2.2; no new standalone probe. The actual current release launched through its session restoration into Welcome without a Keychain error."
+  },
+  "verificationLimits": {
+    "realAccountLoginAndCaptchaCompletion": false,
+    "liveMessageDelivery": false,
+    "liveMediaUploadAndScan": false,
+    "liveServerPermissionAcceptance": false,
+    "physicalDevice": false,
+    "liveEncryptedCalls": false,
+    "allVencordPlugins": false,
+    "backendPushAndNativePurchaseProvisioning": false,
+    "hostedCIExecuted": false,
+    "completeVisualAndFunctionalParity": false,
+    "securityScope": "Source, request-contract, package and hash inspection are bounded checks, not a comprehensive malware audit or a guarantee about dependencies/server behavior."
+  }
+}

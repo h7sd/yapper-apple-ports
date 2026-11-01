@@ -6,7 +6,7 @@ DERIVED_DATA="${DERIVED_DATA:-$PROJECT_ROOT/.build/DerivedData}"
 OUTPUT_DIR="${OUTPUT_DIR:-$PROJECT_ROOT/.build/artifacts}"
 ARCHIVE_PATH="${ARCHIVE_PATH:-$PROJECT_ROOT/.build/YapperNative.xcarchive}"
 MODE="${1:-simulator}"
-VERSION="0.2.2"
+VERSION="0.2.3"
 mkdir -p "$OUTPUT_DIR"
 args=(-project "$PROJECT_ROOT/YapperNative.xcodeproj" -scheme YapperNative -derivedDataPath "$DERIVED_DATA" CODE_SIGNING_ALLOWED=NO)
 args+=(-onlyUsePackageVersionsFromResolvedFile)

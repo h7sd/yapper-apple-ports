@@ -134,8 +134,7 @@ extension NativeAPI {
     func sendAttachment(id: String, text: String, data: Data, filename: String, contentType: String, channelID: String, replyToID: String?, session: NativeSession, voiceSeconds: Double? = nil, waveform: [Double] = [], messagePolicy: NativeMessagePolicy = .standard) async throws {
         try messagePolicy.validate(text, for: session.userID)
         guard UUID(uuidString: id) != nil else { throw NativeClientError.invalidResponse }
-        let identityQuery = [URLQueryItem(name: "id", value: "eq.\(id)"), URLQueryItem(name: "channel_id", value: "eq.\(channelID)"), URLQueryItem(name: "author_id", value: "eq.\(session.userID)"), URLQueryItem(name: "select", value: "id")]
-        if try await table("messages", query: identityQuery, session: session).rows.contains(where: { $0["id"].string == id }) { return }
+        if try await sentMessage(id: id, channelID: channelID, session: session) != nil { return }
         let path = try await uploadMedia(bucket: "attachments", data: data, filename: filename, contentType: contentType, session: session)
         var values: [String: NativeJSON] = ["id": .string(id), "channel_id": .string(channelID), "author_id": .string(session.userID), "content": .string(text.trimmingCharacters(in: .whitespacesAndNewlines)), "attachment_path": .string(path), "attachment_name": .string(String(filename.prefix(200))), "attachment_size": .number(Double(data.count))]
         if let voiceSeconds {
@@ -144,11 +143,8 @@ extension NativeAPI {
             values["voice_wave"] = .string(NativeMediaUploadPolicy.voiceWave(waveform))
         }
         if let replyToID { values["reply_to_id"] = .string(replyToID) }
-        do {
-            let result = try await table("messages", query: [URLQueryItem(name: "select", value: "id")], method: "POST", values: .object(values), session: session, prefer: "return=representation")
-            guard result.rows.contains(where: { $0["id"].string == id }) else { throw NativeClientError.invalidResponse }
-        } catch let NativeClientError.api(status, _) where status == 409 {
-            guard try await table("messages", query: identityQuery, session: session).rows.contains(where: { $0["id"].string == id }) else { throw NativeClientError.invalidResponse }
+        let confirmed = try await insertMessage(id: id, channelID: channelID, body: JSONEncoder().encode(NativeJSON.object(values)), session: session)
+        if confirmed.duplicate, confirmed.row.attachment_path != path {
             _ = try? await webAPI(path: "api/media/remove", method: "POST", body: .object(["bucket": .string("attachments"), "path": .string(path)]), session: session)
         }
     }

@@ -1,0 +1,71 @@
+{
+  "date": "2026-11-01T13:55:54.827412+00:00",
+  "scope": "Native Photos picker UI regression, owned anonymous Simulator fixtures only; no live account or sends.",
+  "cause": "iOS26 Photos exposes asset tiles as Image accessibility elements under ScrollView/Other containers, not CollectionView cells. Their visible frames exist, but XCTest reports no activation hit point for Image.tap().",
+  "fix": "Test-only: match Foto,/Photo, or Video, image labels within native.gallery.picker, then tap the observed asset frame center. Use the navigation action identifier Cancel to avoid the onboarding card Close action. App/importer code unchanged.",
+  "testSource": "ios-native/YapperNativeUITests/NativeInteractionRegressionTests.swift",
+  "sourceCounts": {
+    "appSwift": 83,
+    "unitTestSwift": 29,
+    "uiTestSwift": 4,
+    "totalTestSwift": 33,
+    "totalSwift": 116
+  },
+  "logicalGalleryTests": 2,
+  "passedExecutions": 6,
+  "failedExecutions": 0,
+  "skippedExecutions": 0,
+  "assertions": [
+    "System picker opens and cancels without adding an attachment or changing the draft.",
+    "Real photo selection appears as an attachment; cancelling a reopened picker preserves that existing attachment and draft.",
+    "Real MP4 selection appears as an attachment with supported video suffix and unchanged draft.",
+    "Photo/video attachments can be removed without sending or changing the draft."
+  ],
+  "fixture": {
+    "path": "ios-native/tests/fixtures/gallery-orange-1s.mp4",
+    "sha256": "b31aa536c8fae24b50063922f39b87860f9f95fd72f29d355a077b945d44fe9e",
+    "bytes": 1882,
+    "generationAndSeeding": "ios-native/tests/fixtures/README.md",
+    "image": "ios-native/YapperNative/OriginalAssets/Brand/apple-icon.png"
+  },
+  "runs": [
+    {
+      "xcresult": "work/ios-native/native-0.2.3-gallery-pro-confirmed.xcresult",
+      "log": "work/ios-native/native-0.2.3-gallery-pro-confirmed.log",
+      "status": "Passed",
+      "devices": [
+        {
+          "name": "iPhone 17 Pro",
+          "id": "4D9ED43E-4B65-473B-B3A6-CF05C5D3A672",
+          "system": "26.4.1",
+          "passed": 2,
+          "failed": 0,
+          "skipped": 0
+        }
+      ]
+    },
+    {
+      "xcresult": "work/ios-native/native-0.2.3-gallery-large-devices-confirmed.xcresult",
+      "log": "work/ios-native/native-0.2.3-gallery-large-devices-confirmed.log",
+      "status": "Passed",
+      "devices": [
+        {
+          "name": "iPad Pro 13-inch (M5)",
+          "id": "446C9451-4AD5-48BE-8033-E2717303B797",
+          "system": "26.4.1",
+          "passed": 2,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "name": "iPhone 17 Pro Max",
+          "id": "B4E0060C-F362-46A7-BA5B-D058F0AC92F5",
+          "system": "26.4.1",
+          "passed": 2,
+          "failed": 0,
+          "skipped": 0
+        }
+      ]
+    }
+  ]
+}

@@ -115,10 +115,8 @@ struct NativeAppShell: View {
         .tint(YapperPalette.accent)
         .safeAreaInset(edge: .bottom, spacing: 0) { NativeCallBar() }
         .background(YapperPalette.background.ignoresSafeArea())
-        .onChange(of: requestedConversation?.id) { _, id in
-            if compact, id != nil, let requestedConversation { mobilePath = [requestedConversation] }
-        }
         .onChange(of: mobilePath.count) { _, count in if compact && count == 0 { requestedConversation = nil } }
+        .task(id: store.user?.id) { await store.refreshOwnPresence() }
         .task(id: store.user?.id) {
             await servers.refresh(); await conversationPreferences.load(store: store)
             store.updateNotificationPreferences(conversationPreferences.snapshot)
@@ -274,5 +272,11 @@ struct NativeAppShell: View {
     private func openHome() { selectedServer = nil; requestedConversation = nil; mobilePath = []; showingAccountMenu = false }
     private func openServer(_ server: NativeServer) { selectedServer = server; lastServer = server; requestedConversation = nil; mobilePath = []; showingAccountMenu = false }
     private func openLastServer() { if let server = servers.servers.first(where: { $0.id == lastServer?.id }) ?? servers.servers.sorted(by: { ($0.raw["created_at"].string ?? "") < ($1.raw["created_at"].string ?? "") }).first { openServer(server) } }
-    private func openConversation(_ conversation: Conversation) { if conversation.serverID == nil { selectedServer = nil }; homeSheet = nil; showingAccountMenu = false; requestedConversation = conversation }
+    private func openConversation(_ conversation: Conversation) {
+        if conversation.serverID == nil { selectedServer = nil }
+        homeSheet = nil
+        showingAccountMenu = false
+        requestedConversation = conversation
+        if compact { mobilePath = [conversation] }
+    }
 }

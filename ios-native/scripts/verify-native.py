@@ -18,7 +18,7 @@ parser.add_argument('--app', type=pathlib.Path, help='Optional unsigned build re
 parser.add_argument('--simulator-zip', required=True, type=pathlib.Path)
 parser.add_argument('--ipa', required=True, type=pathlib.Path)
 parser.add_argument('--report', required=True, type=pathlib.Path)
-parser.add_argument('--expected-version', default='0.2.2')
+parser.add_argument('--expected-version', default='0.2.3')
 args = parser.parse_args()
 root = pathlib.Path(__file__).resolve().parent.parent
 checks = []
@@ -72,6 +72,7 @@ check(not info.get('NSAppTransportSecurity', {}).get('NSAllowsArbitraryLoads', F
 for permission in ['NSCameraUsageDescription', 'NSMicrophoneUsageDescription']:
     check(bool(info.get(permission)), f'User-started native calls/recording have a purpose string: {permission}')
 check('NSContactsUsageDescription' not in info, 'No address-book permission requested')
+check('NSPhotoLibraryUsageDescription' not in info and 'NSPhotoLibraryAddUsageDescription' not in info, 'Gallery selection requires no broad photo-library read/write permission')
 check(info.get('UIBackgroundModes', []) == ['audio'], 'Background capability is limited to active native audio')
 check((args.app / 'PrivacyInfo.xcprivacy').exists(), 'Required-reason privacy manifest packaged')
 privacy = plistlib.loads((args.app / 'PrivacyInfo.xcprivacy').read_bytes())
@@ -81,6 +82,7 @@ linked = subprocess.check_output(['otool', '-L', str(binary)], text=True)
 dependency_lines = '\n'.join(line for line in linked.splitlines() if line.startswith('\t'))
 check('/Users/' not in dependency_lines and '/work/' not in dependency_lines, 'Runtime dependencies do not reference a developer build directory')
 check('WebKit.framework' in linked, 'WebKit is linked for the explicitly approved sign-in component')
+check('PhotosUI.framework' in linked, 'Native PhotosUI picker is linked for selected photo/video attachments')
 check('JavaScriptCore.framework' not in linked, 'No separate JavaScript application runtime is directly linked')
 signature_check = subprocess.run(['codesign', '--verify', '--deep', '--strict', str(args.app)], capture_output=True, text=True)
 check(signature_check.returncode == 0, 'Delivered Simulator app and nested frameworks have valid local signatures')
@@ -127,6 +129,7 @@ for path in [args.simulator_zip, args.ipa]:
             check(device_info['CFBundleIdentifier'] == info['CFBundleIdentifier'], 'IPA bundle identity matches native application')
             check(device_info['CFBundleShortVersionString'] == args.expected_version, 'IPA version matches inspected simulator application')
             check(device_info['CFBundleVersion'] == info['CFBundleVersion'], 'Device and simulator build numbers match')
+            check('NSPhotoLibraryUsageDescription' not in device_info and 'NSPhotoLibraryAddUsageDescription' not in device_info, 'iPhone gallery uses selected items without broad library permission')
             device_binary = inspection_root / 'DeviceExecutable'
             device_binary.write_bytes(archive.read('Payload/YapperNative.app/' + device_info['CFBundleExecutable']))
             try:

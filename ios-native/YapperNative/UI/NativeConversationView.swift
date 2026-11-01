@@ -21,6 +21,7 @@ struct NativeConversationView: View {
     @State private var showingSearch = false
     @State private var showingPins = false
     @State private var showingFileImporter = false
+    @State private var showingGalleryPicker = false
     @State private var showingVoiceRecorder = false
     @State private var showingPollCreator = false
     @State private var showingMentions = false
@@ -190,8 +191,11 @@ struct NativeConversationView: View {
                             Text(attachment.filename).font(OriginalYapper.font(12)).lineLimit(1)
                             Spacer(minLength: 0)
                             Text(ByteCountFormatter.string(fromByteCount: Int64(attachment.data.count), countStyle: .file)).font(OriginalYapper.font(12)).foregroundStyle(YapperPalette.secondary)
-                            Button { self.attachment = nil } label: { Image(systemName: "xmark").frame(width: 44, height: 44) }.accessibilityLabel("Anhang entfernen")
+                            Button { self.attachment = nil } label: { Image(systemName: "xmark").frame(width: 44, height: 44).contentShape(.rect) }
+                                .accessibilityLabel("Anhang entfernen").accessibilityIdentifier("native.composer.attachment.remove")
                         }
+                        .accessibilityElement(children: .contain)
+                        .accessibilityIdentifier("native.composer.attachment")
                     }
                     composer
                     if showCharacterCounter && draftLength >= messageLimit - 300 {
@@ -258,6 +262,14 @@ struct NativeConversationView: View {
                 Button("Abbrechen", role: .cancel) { deletingMessage = nil }
                 Button("Löschen", role: .destructive) { if let message = deletingMessage { delete(message) }; deletingMessage = nil }
             } message: { Text("Diese Nachricht wird für alle Teilnehmenden entfernt.") }
+            .sheet(isPresented: $showingGalleryPicker) {
+                NativeGalleryPicker(onImport: { selected in
+                    features.errorMessage = nil
+                    attachment = NativePendingAttachment(id: UUID(), data: selected.data, filename: selected.filename, contentType: selected.contentType)
+                }, onFailure: { error in
+                    features.errorMessage = error.localizedDescription
+                })
+            }
             .fileImporter(isPresented: $showingFileImporter,
                           allowedContentTypes: [.png, .jpeg, .gif, .webP, .mpeg4Movie, .quickTimeMovie, .mp3, .wav, .mpeg4Audio, .pdf, .zip, .plainText],
                           allowsMultipleSelection: false) { result in
@@ -297,7 +309,16 @@ struct NativeConversationView: View {
     private var conversationHeader: some View {
         HStack(spacing: compactPresentation ? 2 : 10) {
             if compactPresentation {
-                Button { if let onBack { onBack() } else { dismiss() } } label: { OriginalYapperIcon("chevronLeft", size: 22).frame(width: 44, height: 44) }
+                Button {
+                    composerFocused = false
+                    features.cancel()
+                    store.closeConversation(id: conversation.id)
+                    if let onBack { onBack() } else { dismiss() }
+                } label: {
+                    OriginalYapperIcon("chevronLeft", size: 22)
+                        .frame(width: 48, height: 48)
+                        .contentShape(.rect)
+                }
                     .accessibilityLabel("Zurück").accessibilityIdentifier("native.conversation.back")
             }
             if conversation.serverID != nil { OriginalYapperIcon("hash", size: 24).foregroundStyle(YapperPalette.secondary) }
@@ -326,7 +347,10 @@ struct NativeConversationView: View {
     private var composer: some View {
         HStack(alignment: .bottom, spacing: compactPresentation ? 0 : 4) {
             Menu {
+                Button { showingGalleryPicker = true } label: { Label("Foto oder Video auswählen", systemImage: "photo.on.rectangle") }
+                    .accessibilityIdentifier("native.composer.gallery")
                 Button { showingFileImporter = true } label: { Label("Datei anhängen", systemImage: "paperclip") }
+                    .accessibilityIdentifier("native.composer.file")
                 if store.capabilities.flagOn("voice_messages", userID: store.user?.id, serverID: conversation.serverID) {
                     Button { showingVoiceRecorder = true } label: { Label("Sprachnachricht aufnehmen", systemImage: "mic") }
                 }

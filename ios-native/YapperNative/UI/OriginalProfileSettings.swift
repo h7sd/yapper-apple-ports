@@ -187,9 +187,8 @@ struct OriginalAccountMenuView: View {
     private func setPresence(_ status: String) async {
         guard !busy else { return }; busy = true; defer { busy = false }
         do {
-            if fixture { return }
-            try await store.withAuthenticatedSession { api, session in try await api.setSocialPresence(status, session: session) }
-            await store.refreshOwnProfile()
+            guard let preference = NativePresencePreference(rawValue: status) else { throw NativeClientError.invalidResponse }
+            try await store.setOwnPresence(preference)
             await store.refreshNotificationSoundContext()
         } catch is CancellationError {} catch { self.error = error.localizedDescription }
     }

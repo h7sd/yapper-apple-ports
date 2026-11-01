@@ -12,11 +12,8 @@ nonisolated struct NativeNotificationSoundPolicy: Equatable, Sendable {
 }
 
 extension NativeAPI {
-    func nativeNotificationSoundPolicy(mutedIDs: Set<String>, session: NativeSession) async throws -> NativeNotificationSoundPolicy {
-        let status = try await rpc("my_status_pref", session: session)
-        guard let value = status.string, ["online", "idle", "dnd", "invisible"].contains(value) else {
-            throw NativeClientError.invalidResponse
-        }
+    func nativeNotificationSoundPolicy(mutedIDs: Set<String>, session: NativeSession, defaultPreference: NativePresencePreference = .online) async throws -> NativeNotificationSoundPolicy {
+        let preference = try await nativeOwnPresencePreference(session: session, defaultPreference: defaultPreference)
         try Task.checkCancellation()
         let blocks = try await table("blocks", query: [URLQueryItem(name: "select", value: "blocked")], session: session)
         guard case .array = blocks else { throw NativeClientError.invalidResponse }
@@ -24,7 +21,7 @@ extension NativeAPI {
             guard let id = row["blocked"].string, UUID(uuidString: id) != nil else { throw NativeClientError.invalidResponse }
             return id
         }
-        return NativeNotificationSoundPolicy(ownerID: session.userID, status: value, blockedIDs: Set(blocked), mutedIDs: mutedIDs)
+        return NativeNotificationSoundPolicy(ownerID: session.userID, status: preference.status, blockedIDs: Set(blocked), mutedIDs: mutedIDs)
     }
 }
 

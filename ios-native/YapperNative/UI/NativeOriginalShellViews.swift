@@ -229,8 +229,9 @@ extension String {
         case "online": "Online"
         case "idle", "away": "Abwesend"
         case "dnd", "busy": "Bitte nicht stören"
-        case "invisible", "offline": "Offline"
-        default: "Angemeldet"
+        case "invisible": "Unsichtbar"
+        case "offline": "Offline"
+        default: "Status nicht verfügbar"
         }
     }
 }

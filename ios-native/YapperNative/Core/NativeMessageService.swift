@@ -28,13 +28,7 @@ extension NativeAPI {
         try messagePolicy.validate(text, for: session.userID)
         guard UUID(uuidString: id) != nil, UUID(uuidString: replyToID) != nil else { throw NativeClientError.invalidResponse }
         let values = NativeJSON.object(["id": .string(id), "channel_id": .string(channelID), "author_id": .string(session.userID), "content": .string(text), "reply_to_id": .string(replyToID)])
-        do {
-            let rows = try await table("messages", query: [URLQueryItem(name: "select", value: "id")], method: "POST", values: values, session: session, prefer: "return=representation").rows
-            guard rows.contains(where: { $0["id"].string == id }) else { throw NativeClientError.invalidResponse }
-        } catch let NativeClientError.api(status, _) where status == 409 {
-            let rows = try await table("messages", query: [URLQueryItem(name: "id", value: "eq.\(id)"), URLQueryItem(name: "channel_id", value: "eq.\(channelID)"), URLQueryItem(name: "author_id", value: "eq.\(session.userID)"), URLQueryItem(name: "select", value: "id")], session: session).rows
-            guard rows.count == 1, rows[0]["id"].string == id else { throw NativeClientError.invalidResponse }
-        }
+        _ = try await insertMessage(id: id, channelID: channelID, body: JSONEncoder().encode(values), session: session)
     }
 
     func editMessage(_ message: ChatMessage, text: String, session: NativeSession, messagePolicy: NativeMessagePolicy = .standard) async throws {

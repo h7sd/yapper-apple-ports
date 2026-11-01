@@ -52,6 +52,9 @@ import Observation
     @ObservationIgnored private var notificationPreferences: NativeConversationPreferenceSnapshot?
     @ObservationIgnored private var refreshingNotificationPolicy = false
     @ObservationIgnored private var profiles: [String: YapperUser] = [:]
+    @ObservationIgnored private var ownPresencePreference: NativeOwnPresencePreference?
+    @ObservationIgnored private var presenceRevision = 0
+    @ObservationIgnored private var ownPresenceCommitRevision = 0
     @ObservationIgnored private var pendingSendIDs: [String: (text: String, id: String)] = [:]
     @ObservationIgnored private var oldestMessageCursor: String?
     @ObservationIgnored private var didExplicitlySignOut = false
@@ -110,11 +113,65 @@ import Observation
                 try await api.profile(id: session.userID, session: session)
             }
             guard profile.id == user?.id else { return }
-            let fresh = profile.user()
+            let fresh = preservingOwnPresence(profile.user())
             profiles[fresh.id] = fresh
             user = fresh
+            await refreshOwnPresence()
         } catch is CancellationError { }
         catch { errorMessage = error.localizedDescription }
+    }
+
+    /// Own status is a separate account preference, independent of notification permissions.
+    func refreshOwnPresence() async {
+        #if DEBUG
+        if isFixture { return }
+        #endif
+        guard authState == .signedIn, let ownerID = user?.id else { return }
+        let accountRevision = epoch
+        presenceRevision += 1
+        let operation = presenceRevision
+        let fallback = ownPresencePreference?.ownerID == ownerID ? ownPresencePreference?.preference : nil
+        do {
+            let preference = try await withAuthenticatedSession { api, session in
+                try await api.nativeOwnPresencePreference(session: session, defaultPreference: fallback ?? .online)
+            }
+            guard epoch == accountRevision, presenceRevision == operation, !Task.isCancelled else { return }
+            applyOwnPresence(preference)
+        } catch is CancellationError { }
+        catch { /* Retain a known preference; an unavailable read must not invent Online. */ }
+    }
+
+    func setOwnPresence(_ preference: NativePresencePreference) async throws {
+        guard authState == .signedIn, let ownerID = user?.id else { throw NativeClientError.missingSession }
+        let accountRevision = epoch
+        presenceRevision += 1
+        #if DEBUG
+        if !isFixture {
+            try await withAuthenticatedSession { api, session in try await api.setSocialPresence(preference.rawValue, session: session) }
+        }
+        #else
+        try await withAuthenticatedSession { api, session in try await api.setSocialPresence(preference.rawValue, session: session) }
+        #endif
+        guard epoch == accountRevision, user?.id == ownerID else { throw CancellationError() }
+        presenceRevision += 1
+        applyOwnPresence(NativeOwnPresencePreference(ownerID: ownerID, preference: preference))
+    }
+
+    private func applyOwnPresence(_ preference: NativeOwnPresencePreference) {
+        guard authState == .signedIn, user?.id == preference.ownerID else { return }
+        ownPresencePreference = preference
+        ownPresenceCommitRevision += 1
+        user?.presence = preference.status
+        if let user { profiles[user.id] = user }
+        if let policy = notificationPolicy, policy.ownerID == preference.ownerID {
+            notificationPolicy = NativeNotificationSoundPolicy(ownerID: policy.ownerID, status: preference.status, blockedIDs: policy.blockedIDs, mutedIDs: policy.mutedIDs)
+        }
+    }
+
+    private func preservingOwnPresence(_ profile: YapperUser) -> YapperUser {
+        var profile = profile
+        if let preference = ownPresencePreference, preference.ownerID == profile.id { profile.presence = preference.status }
+        return profile
     }
 
     func verifyNativeSecurityFactor(factorID: String, code: String) async throws {
@@ -176,6 +233,7 @@ import Observation
     }
 
     func markConversationRead(_ conversation: Conversation) async {
+        guard authState == .signedIn, selectedConversation?.id == conversation.id, !Task.isCancelled else { return }
         #if DEBUG
         if isFixture { return }
         #endif
@@ -186,7 +244,7 @@ import Observation
             if let index = conversations.firstIndex(where: { $0.id == conversation.id }) { conversations[index].unreadCount = 0 }
             realtime?.read(channelID: conversation.id)
         } catch is CancellationError { }
-        catch { errorMessage = error.localizedDescription }
+        catch { if selectedConversation?.id == conversation.id { errorMessage = error.localizedDescription } }
     }
 
     private func applyEvent(_ event: String, payload: NativeJSON) {
@@ -443,7 +501,7 @@ import Observation
         try vault.save(tokens)
         session = tokens
         didExplicitlySignOut = false
-        user = profile.user()
+        user = preservingOwnPresence(profile.user())
         capabilities = bootstrap.capabilities
         activeCallChannels = bootstrap.activeCallChannels(now: now())
         profiles = Dictionary(bootstrap.profiles.map { ($0.id, $0.user()) }, uniquingKeysWith: { _, new in new })
@@ -478,7 +536,10 @@ import Observation
                 try Task.checkCancellation()
                 guard self.epoch == revision, self.listRevision == listID else { return }
                 for profile in data.profiles { self.profiles[profile.id] = profile.user() }
-                if let own = data.profiles.first(where: { $0.id == valid.userID }) { self.user = own.user() }
+                if let own = data.profiles.first(where: { $0.id == valid.userID }) {
+                    self.user = self.preservingOwnPresence(own.user())
+                    self.profiles[own.id] = self.user
+                }
                 self.conversations = list
                 self.capabilities = data.capabilities
                 self.activeCallChannels = data.activeCallChannels(now: self.now())
@@ -592,7 +653,7 @@ import Observation
         }
         #endif
         let revision = epoch
-        let sendID = pendingSendIDs[conversation.id].flatMap { $0.text == trimmed ? $0.id : nil } ?? UUID().uuidString
+        let sendID = pendingSendIDs[conversation.id].flatMap { $0.text == trimmed ? $0.id : nil } ?? UUID().uuidString.lowercased()
         pendingSendIDs[conversation.id] = (trimmed, sendID)
         isSending = true
         errorMessage = nil
@@ -602,7 +663,7 @@ import Observation
             do {
                 let valid = try await self.validSession(revision: revision)
                 let row = try await self.api.send(id: sendID, text: trimmed, channelID: conversation.id, session: valid, messagePolicy: self.messagePolicy)
-                guard row.id == sendID, row.channel_id == conversation.id, row.author_id == valid.userID else { throw NativeClientError.invalidResponse }
+                guard row.confirmsSend(id: sendID, channelID: conversation.id, authorID: valid.userID) else { throw NativeClientError.invalidResponse }
                 let message = try row.message(profiles: self.profiles)
                 try Task.checkCancellation()
                 guard self.epoch == revision else { return false }
@@ -637,6 +698,16 @@ import Observation
         } else { notificationPolicy = nil }
     }
 
+    /// Recheck account, mute expiry and the latest DND choice at the moment of playback.
+    var currentNotificationSoundPolicy: NativeNotificationSoundPolicy? {
+        guard authState == .signedIn, let ownerID = user?.id,
+              let policy = notificationPolicy, policy.ownerID == ownerID,
+              let muted = notificationMutedIDs else { return nil }
+        let ownDND = ownPresencePreference?.ownerID == ownerID && ownPresencePreference?.preference == .dnd
+        return NativeNotificationSoundPolicy(ownerID: ownerID, status: ownDND ? "dnd" : policy.status,
+                                             blockedIDs: policy.blockedIDs, mutedIDs: muted)
+    }
+
     func refreshNotificationSoundContext() async {
         #if DEBUG
         if isFixture { return }
@@ -644,15 +715,18 @@ import Observation
         guard !refreshingNotificationPolicy, authState == .signedIn, let ownerID = user?.id,
               let muted = notificationMutedIDs else { return }
         let revision = epoch
+        let preferenceRevision = ownPresenceCommitRevision
         refreshingNotificationPolicy = true
         defer { if epoch == revision { refreshingNotificationPolicy = false } }
         do {
-            let policy = try await withAuthenticatedSession { api, session in try await api.nativeNotificationSoundPolicy(mutedIDs: muted, session: session) }
+            let known = ownPresencePreference?.ownerID == ownerID ? ownPresencePreference?.preference : nil
+            let policy = try await withAuthenticatedSession { api, session in try await api.nativeNotificationSoundPolicy(mutedIDs: muted, session: session, defaultPreference: known ?? .online) }
             guard epoch == revision, !Task.isCancelled, user?.id == ownerID, policy.ownerID == ownerID,
                   let currentMuted = notificationMutedIDs else { return }
-            notificationPolicy = NativeNotificationSoundPolicy(ownerID: ownerID, status: policy.status, blockedIDs: policy.blockedIDs, mutedIDs: currentMuted)
+            let latest = ownPresencePreference?.ownerID == ownerID ? ownPresencePreference : nil
+            let status = ownPresenceCommitRevision != preferenceRevision ? latest?.status ?? policy.status : policy.status
+            notificationPolicy = NativeNotificationSoundPolicy(ownerID: ownerID, status: status, blockedIDs: policy.blockedIDs, mutedIDs: currentMuted)
             notificationPolicyAt = now()
-            user?.presence = policy.status
         } catch { if epoch == revision { notificationPolicy = nil; notificationPolicyAt = nil } }
     }
 
@@ -666,14 +740,16 @@ import Observation
             guard let self, self.epoch == revision else { return }
             if self.notificationPolicyAt.map({ self.now().timeIntervalSince($0) >= 60 }) ?? true { await self.refreshNotificationSoundContext() }
             guard self.epoch == revision, self.authState == .signedIn, let userID = self.user?.id,
-                  let policy = self.notificationPolicy else { return }
-            let effective = NativeNotificationSoundPolicy(ownerID: policy.ownerID, status: policy.status, blockedIDs: policy.blockedIDs, mutedIDs: self.notificationMutedIDs ?? policy.mutedIDs)
-            self.notificationSound.receive(message: message, currentUserID: userID, currentConversationID: self.selectedConversation?.id, isActive: self.isActive, policy: effective)
+                  let policy = self.currentNotificationSoundPolicy else { return }
+            self.notificationSound.receive(message: message, currentUserID: userID, currentConversationID: self.selectedConversation?.id, isActive: self.isActive, policy: policy)
         }
     }
 
     func signOut() {
         notificationSound.reset(); notificationPolicy = nil; notificationPolicyAt = nil; notificationPreferences = nil; refreshingNotificationPolicy = false
+        ownPresencePreference = nil
+        presenceRevision += 1
+        ownPresenceCommitRevision += 1
         capabilities = NativeCapabilities()
         dismissIncomingCall()
         activeCallChannels = []
@@ -800,6 +876,8 @@ import Observation
             while self.epoch == revision, self.authState == .signedIn, self.isActive, !Task.isCancelled {
                 do {
                     let valid = try await self.validSession(revision: revision)
+                    guard self.epoch == revision, self.isActive, !Task.isCancelled else { return }
+                    await self.refreshOwnPresence()
                     guard self.epoch == revision, self.isActive, !Task.isCancelled else { return }
                     let delay = max(1, min(60, valid.expiresAt.timeIntervalSince(self.now()) - 60))
                     try await Task.sleep(for: .seconds(delay))
