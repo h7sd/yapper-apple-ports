@@ -29,7 +29,7 @@ The repository already contains unofficial desktop clients and iOS/Android websi
 
 ## Brand Commitments
 
-The user explicitly rejected the generic SwiftUI appearance of 0.2.0 and requires the same layout, design, typography, icons and controls as the official website/client. This supersedes earlier preferences for standard iOS chrome. Preserve Yapper's own colors, artwork and identity. Earlier references established an enhanced profile/account strip and mobile navigation, including correct centering on Pro Max screens. This is an unofficial port, not an official Yapper/Yapin' or Vencord release.
+The user rejected the generic SwiftUI appearance of 0.2.0. On 1 November 2026, the latest supplied screenshot became the binding arrangement for the native message home: left server rail, rounded message panel, top search/inbox/friends/group controls, preview/time rows and a full-width floating profile banner. Preserve Yapper colors, Inter, vectors, actual per-account artwork and native application behavior. The original Yapper interface remains the reference for the other application surfaces. This supersedes earlier preferences for standard iOS chrome. Preserve Yapper's own colors, artwork and identity. Earlier references established an enhanced profile/account strip and mobile navigation, including correct centering on Pro Max screens. This is an unofficial port, not an official Yapper/Yapin' or Vencord release.
 
 ## Evidence on Hand
 

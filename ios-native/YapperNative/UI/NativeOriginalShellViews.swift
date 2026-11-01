@@ -14,7 +14,7 @@ enum NativeRecentUnreadRail {
     }
 }
 
-/// Geometry and spacing mirror .rail/.chat-row/.user-bar/.nl-tabbar in the shipped CSS.
+/// Yapper's server rail retained beside the user-pinned messages arrangement.
 struct NativeOriginalRail: View {
     let servers: [NativeServer]
     let recentConversations: [Conversation]
@@ -22,11 +22,17 @@ struct NativeOriginalRail: View {
     let compact: Bool
     let unread: Int
     let showDiscovery: Bool
+    var bottomContentInset: CGFloat = 90
     let onHome: () -> Void
     let onServer: (NativeServer) -> Void
     let onConversation: (Conversation) -> Void
     let onAdd: () -> Void
     let onDiscover: () -> Void
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var actionInk: Color {
+        colorScheme == .light ? Color(red: 32.0 / 255, green: 139.0 / 255, blue: 88.0 / 255) : YapperPalette.success
+    }
 
     var body: some View {
         ScrollView {
@@ -37,25 +43,25 @@ struct NativeOriginalRail: View {
                 ForEach(recentConversations) { conversation in
                     railItem(selected: false, badge: conversation.unreadCount, label: "Ungelesene Nachrichten von \(conversation.title)", action: { onConversation(conversation) }) {
                         NativeAvatar(name: conversation.title, identity: conversation.participants.first?.id ?? conversation.id,
-                                     username: conversation.participants.first?.username ?? conversation.title, url: conversation.avatarURL, size: compact ? 46 : 48)
+                                     username: conversation.participants.first?.username ?? conversation.title, url: conversation.avatarURL, size: 48)
                     }.accessibilityIdentifier("native.rail.dm.\(conversation.id)")
                 }
                 Rectangle().fill(YapperPalette.active).frame(width: 32, height: 2).padding(.vertical, 2)
                 ForEach(servers) { server in
                     railItem(selected: selectedServerID == server.id, badge: 0, label: server.name, action: { onServer(server) }) {
-                        if server.iconURL != nil { NativeAvatar(name: server.name, url: server.iconURL, size: compact ? 46 : 48) }
+                        if server.iconURL != nil { NativeAvatar(name: server.name, url: server.iconURL, size: 48) }
                         else { Text(server.name.split(separator: " ").prefix(2).compactMap(\.first).map(String.init).joined().uppercased()).font(OriginalYapper.fixedFont(16, numericWeight: 700)) }
                     }
                     .accessibilityIdentifier("native.server.\(server.id)")
                 }
-                railItem(selected: false, badge: 0, label: "Server hinzufügen", action: onAdd) { OriginalYapperIcon("plus", size: 24).foregroundStyle(YapperPalette.success) }
-                if showDiscovery { railItem(selected: false, badge: 0, label: "Server entdecken", action: onDiscover) { OriginalYapperIcon("compass", size: 24).foregroundStyle(YapperPalette.success) } }
+                railItem(selected: false, badge: 0, label: "Server hinzufügen", action: onAdd) { OriginalYapperIcon("plus", size: 24).foregroundStyle(actionInk) }
+                if showDiscovery { railItem(selected: false, badge: 0, label: "Server entdecken", action: onDiscover) { OriginalYapperIcon("compass", size: 24).foregroundStyle(actionInk) } }
             }
             .padding(.top, compact ? 10 : 12)
-            .padding(.bottom, compact ? 10 : 90)
+            .padding(.bottom, bottomContentInset)
         }
         .scrollIndicators(.hidden)
-        .frame(width: compact ? 64 : 72)
+        .frame(width: 72)
         .background(YapperPalette.rail.ignoresSafeArea(.container, edges: .top))
         .accessibilityIdentifier("native.original.rail")
     }
@@ -64,12 +70,12 @@ struct NativeOriginalRail: View {
         Button(action: action) {
             ZStack(alignment: .bottomTrailing) {
                 content()
-                    .frame(width: compact ? 46 : 48, height: compact ? 46 : 48)
+                    .frame(width: 48, height: 48)
                     .background(selected ? YapperPalette.accentFill : YapperPalette.elevated)
-                    .clipShape(.rect(cornerRadius: selected ? 16 : 24))
+                    .clipShape(.rect(cornerRadius: selected ? 16 : 18))
                 if badge > 0 { NativeOriginalBadge(count: badge).offset(x: 2, y: 2) }
             }
-            .frame(width: compact ? 64 : 72, height: compact ? 46 : 48)
+            .frame(width: 72, height: 48)
             .overlay(alignment: .leading) {
                 if selected { Capsule().fill(YapperPalette.text).frame(width: 4, height: 36).offset(x: -2) }
             }
@@ -132,45 +138,88 @@ struct NativeOriginalBottomBar: View {
 
 struct NativeOriginalAccountBar: View {
     let user: YapperUser
+    var profile: NativeProfileDetail? = nil
     let compact: Bool
     let mentions: Int
     let showInbox: Bool
+    var showCustomStatus = false
     let onIdentity: () -> Void
     let onInbox: () -> Void
     let onSettings: () -> Void
     let onLogout: () -> Void
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    private var hasArtwork: Bool { compact && profile?.bannerURL != nil }
+    private var themed: Bool { compact && Color.originalProfileHex(profile?.accentColor) != nil }
+    private var light: Bool { OriginalProfileContrast.isLight(profile?.accentColor, profile?.accentColor2) }
+    private var ink: Color { hasArtwork ? .white : themed ? (light ? .black : .white) : YapperPalette.text }
+    private var secondaryInk: Color { hasArtwork ? .white.opacity(0.86) : themed ? (light ? .black.opacity(0.72) : .white.opacity(0.86)) : YapperPalette.secondary }
+    private var status: String {
+        if compact, showCustomStatus, let profile, !profile.customStatus.isEmpty,
+           profile.customStatusUntil.map({ $0 > Date() }) ?? true { return profile.customStatus }
+        return user.presence.nativeOriginalPresenceLabel
+    }
 
     var body: some View {
         HStack(spacing: 8) {
             Button(action: onIdentity) {
-                HStack(spacing: 8) {
-                    NativeAvatar(name: user.displayName, identity: user.id, username: user.username, url: user.avatarURL, presence: user.presence, size: compact ? 40 : 32, decorationURL: user.avatarDecorationURL, crop: user.avatarCrop)
-                    VStack(alignment: .leading, spacing: 1) {
-                        NativeDisplayName(name: user.displayName, bannerURL: user.nameBannerURL)
-                            .font(OriginalYapper.font(14, weight: .semibold)).lineLimit(1)
-                        Text(user.presence.nativeOriginalPresenceLabel).font(OriginalYapper.font(12)).foregroundStyle(YapperPalette.secondary).lineLimit(1)
+                HStack(spacing: compact ? 12 : 8) {
+                    NativeAvatar(name: user.displayName, identity: user.id, username: user.username, url: user.avatarURL, presence: user.presence, size: compact ? 48 : 32, decorationURL: user.avatarDecorationURL, crop: user.avatarCrop)
+                    VStack(alignment: .leading, spacing: compact ? 3 : 1) {
+                        HStack(spacing: 6) {
+                            NativeDisplayName(name: user.displayName, bannerURL: user.nameBannerURL)
+                                .font(OriginalYapper.font(compact ? 16 : 14, weight: .semibold)).lineLimit(1)
+                                .foregroundStyle(ink)
+                            if compact { OriginalYapperIcon("chevronDown", size: 14).foregroundStyle(secondaryInk) }
+                        }
+                        Text(verbatim: status).font(OriginalYapper.font(compact ? 13 : 12)).foregroundStyle(secondaryInk)
+                            .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
                     }.frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .padding(4).frame(maxWidth: .infinity, minHeight: compact ? 48 : 44, alignment: .leading).contentShape(.rect)
-            }.buttonStyle(.plain).accessibilityIdentifier("native.account")
+                .padding(compact ? 0 : 4).frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).contentShape(.rect)
+            }.buttonStyle(.plain).accessibilityLabel("Konto: \(user.displayName), \(status)").accessibilityHint("Profil, Status und Einstellungen öffnen").accessibilityIdentifier("native.account")
             if showInbox { Button(action: onInbox) {
-                OriginalYapperIcon("at", size: 22).frame(width: compact ? 40 : 36, height: compact ? 40 : 44).contentShape(.interaction, Rectangle().inset(by: compact ? -2 : -4))
+                OriginalYapperIcon(compact ? "bell" : "at", size: compact ? 18 : 22).frame(width: compact ? 32 : 36, height: compact ? 32 : 44)
+                    .background(compact ? (hasArtwork || themed ? Color.black.opacity(light && !hasArtwork ? 0.1 : 0.3) : YapperPalette.elevated) : .clear, in: .rect(cornerRadius: 12))
+                    .padding(compact ? 6 : 0)
+                    .contentShape(.interaction, Rectangle().inset(by: compact ? 0 : -4))
                     .overlay(alignment: .topTrailing) { if mentions > 0 { NativeOriginalBadge(count: mentions).offset(x: 1, y: 0) } }
             }.buttonStyle(.plain).accessibilityLabel("Mitteilungen & Erwähnungen").accessibilityIdentifier("native.home.inbox") }
             if !compact {
                 Button(action: onSettings) { OriginalYapperIcon("settings", size: 20).frame(width: compact ? 40 : 36, height: compact ? 40 : 44).contentShape(.interaction, Rectangle().inset(by: compact ? -2 : -4)) }
                     .buttonStyle(.plain).accessibilityLabel("Konto und Einstellungen").accessibilityIdentifier("native.settings")
             }
-            Button(action: onLogout) { OriginalYapperIcon("logout", size: 21).frame(width: compact ? 40 : 36, height: compact ? 40 : 44).contentShape(.interaction, Rectangle().inset(by: compact ? -2 : -4)) }
-                .buttonStyle(.plain).accessibilityLabel("Abmelden").accessibilityIdentifier("native.account.signOut")
+            if !compact {
+                Button(action: onLogout) { OriginalYapperIcon("logout", size: 21).frame(width: 36, height: 44).contentShape(.interaction, Rectangle().inset(by: -4)) }
+                    .buttonStyle(.plain).accessibilityLabel("Abmelden").accessibilityIdentifier("native.account.signOut")
+            }
         }
-        .foregroundStyle(YapperPalette.secondary)
+        .foregroundStyle(compact ? ink : YapperPalette.secondary)
         .padding(.horizontal, compact ? 12 : 10)
-        .frame(height: compact ? 64 : 66)
-        .background(YapperPalette.sidebar, in: .rect(cornerRadius: 16))
-        .accessibilityElement(children: .contain)
+        .frame(minHeight: compact ? 56 : 66)
+        .background {
+            bannerBackground
+                .clipShape(.rect(cornerRadius: compact ? 18 : 16))
+                .overlay(RoundedRectangle(cornerRadius: compact ? 18 : 16).strokeBorder(YapperPalette.border, lineWidth: compact ? 1 : 0))
+        }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("native.original.accountBar")
+    }
+
+    @ViewBuilder private var bannerBackground: some View {
+        ZStack {
+            if compact, let first = Color.originalProfileHex(profile?.accentColor) {
+                OriginalProfileGradient(first: first, second: Color.originalProfileHex(profile?.accentColor2) ?? first)
+            } else { YapperPalette.sidebar }
+            if compact, let profile, let banner = profile.bannerURL {
+                NativeCroppedImage(url: banner, crop: NativeImageCrop(x: profile.bannerX, y: profile.bannerY, zoom: profile.bannerZoom), maximumPixelSize: 1600, placeholder: "")
+                    .overlay(Color.black.opacity(0.5))
+                    .allowsHitTesting(false)
+            }
+            if compact, let effect = user.profileEffectURL {
+                NativeRemoteImage(url: effect, mode: .fill, placeholder: "").allowsHitTesting(false).accessibilityHidden(true)
+            }
+        }
     }
 }
 

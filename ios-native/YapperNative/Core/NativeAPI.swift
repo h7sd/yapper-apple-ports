@@ -33,6 +33,9 @@ nonisolated final class RejectRedirects: NSObject, URLSessionTaskDelegate, Senda
 
 @MainActor final class NativeAPI {
     typealias Transport = @MainActor (URLRequest) async throws -> (Data, HTTPURLResponse)
+    // Official profile consumer (3-pd02a6i86ee.js, module 99833) selects public columns.
+    // A wildcard also requests restricted columns and is denied by the server.
+    static let publicProfileColumns = "id,username,created_at,bio,avatar_path,banner_path,banner_x,banner_y,avatar_x,avatar_y,avatar_zoom,avatar_rot,banner_zoom,links,verified_as,verified_hidden,badges,display_name,pronouns,accent_color,accent_color2,plus_until,plus_badge_hidden,dms_from,server_tag,tag,tag_icon,tag_icon_off,shown_badge,verify_required,custom_status,custom_status_until,avatar_deco,profile_effect,name_banner,discriminator,avatar_revert_at,name_style,account_level,plus_since,gifts_given,chat_streak"
     private let transport: Transport
     private let session: URLSession?
 
@@ -87,7 +90,17 @@ nonisolated final class RejectRedirects: NSObject, URLSessionTaskDelegate, Senda
         guard let url = request.url, NativeConfiguration.permits(url) else { throw NativeClientError.invalidEndpoint }
         try Task.checkCancellation()
         try NativeAuthenticationContext.check?()
-        let (data, response) = try await transport(request)
+        let received: (Data, HTTPURLResponse)
+        do { received = try await transport(request) }
+        catch {
+            try Task.checkCancellation()
+            let failure = error as NSError
+            if error is CancellationError || (failure.domain == NSURLErrorDomain && failure.code == NSURLErrorCancelled) {
+                throw CancellationError()
+            }
+            throw error
+        }
+        let (data, response) = received
         try Task.checkCancellation()
         try NativeAuthenticationContext.check?()
         guard response.url == request.url else { throw NativeClientError.invalidEndpoint }
@@ -147,10 +160,29 @@ nonisolated final class RejectRedirects: NSObject, URLSessionTaskDelegate, Senda
     }
 
     func profile(id: String, session: NativeSession) async throws -> ProfileRow {
-        let query = [URLQueryItem(name: "id", value: "eq.\(id)"), URLQueryItem(name: "select", value: "id,username,display_name,avatar_path,bio,custom_status,avatar_deco,profile_effect,name_banner,avatar_x,avatar_y,avatar_zoom,avatar_rot,plus_until")]
+        let query = [URLQueryItem(name: "id", value: "eq.\(id)"), URLQueryItem(name: "select", value: Self.publicProfileColumns)]
         let profile = try await response(ProfileRow.self, request: request(path: "rest/v1/profiles", query: query, token: session.accessToken, single: true))
         guard profile.id == id, !profile.username.isEmpty else { throw NativeClientError.invalidResponse }
         return profile
+    }
+
+    func publicProfiles(ids: [String], session: NativeSession) async throws -> [NativeJSON] {
+        let unique = Array(Set(ids)).sorted()
+        guard unique.allSatisfy({ UUID(uuidString: $0) != nil }), unique.count <= 5_000 else { throw NativeClientError.invalidResponse }
+        var profiles: [NativeJSON] = []
+        for start in stride(from: 0, to: unique.count, by: 100) {
+            try Task.checkCancellation()
+            let batch = Array(unique[start..<min(start + 100, unique.count)])
+            let query = [URLQueryItem(name: "select", value: Self.publicProfileColumns), URLQueryItem(name: "id", value: "in.(\(batch.joined(separator: ",")))")]
+            let rows = try await response([NativeJSON].self, request: request(path: "rest/v1/profiles", query: query, token: session.accessToken))
+            var seen = Set<String>()
+            guard rows.allSatisfy({ row in
+                guard let id = row["id"].string, let username = row["username"].string else { return false }
+                return batch.contains(id) && !username.isEmpty && seen.insert(id).inserted
+            }) else { throw NativeClientError.invalidResponse }
+            profiles += rows
+        }
+        return profiles
     }
 
     func history(channelID: String, before: String? = nil, session: NativeSession) async throws -> HistoryResponse {

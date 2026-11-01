@@ -111,6 +111,7 @@ extension NativeAPI {
     private var ownerID: String?
 
     func load(store: NativeStore, servers: [NativeServer], readOnly: Bool) async {
+        guard !Task.isCancelled else { return }
         let current = UUID(); revision = current
         if ownerID != store.user?.id { value = NativeServerOrganization(folders: [], order: []); ownerID = store.user?.id }
         isLoaded = false

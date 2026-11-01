@@ -20,6 +20,7 @@ import Observation
     }
 
     func refresh() async {
+        guard !Task.isCancelled else { return }
         let current = UUID(); revision = current; isLoading = true; error = nil
         defer { if revision == current { isLoading = false } }
         do {
@@ -189,6 +190,7 @@ struct NativeServerDiscoveryView: View {
     }
 
     private func load(more: Bool = false) async {
+        guard !Task.isCancelled else { return }
         let current = UUID(); generation = current; isLoading = true; error = nil
         let requestedOffset = more ? offset : 0
         defer { if generation == current { isLoading = false } }
@@ -224,6 +226,7 @@ struct NativeServerDiscoveryView: View {
     }
 
     func refresh() async {
+        guard !Task.isCancelled else { return }
         let current = UUID(); revision = current; isLoading = true; error = nil
         defer { if revision == current { isLoading = false } }
         do {

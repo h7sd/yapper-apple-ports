@@ -26,6 +26,127 @@ import Testing
         try NativeServerRole(.object(["id": .string(roleID), "server_id": .string(serverID), "name": .string("Synthetic role"), "auto": .string(auto), "position": .number(Double(position)), "perms": .object(permissions)]), serverID: serverID)
     }
 
+    private func serverLoadResponse(_ request: URLRequest) throws -> (Data, HTTPURLResponse) {
+        switch request.url?.lastPathComponent {
+        case "bootstrap":
+            return try response(request, .object(["profiles": .array([.object(["id": .string(userID), "username": .string("synthetic")])]), "dm_channels": .array([]), "dm_members": .array([])]))
+        case "server_members": return try response(request, .array([.object(["server_id": .string(serverID)])]))
+        case "servers": return try response(request, .array([server()]))
+        case "profiles": return try response(request, .array([.object(["id": .string(userID), "server_order": .array([.string(serverID)])])]))
+        case "visible_server_channels", "channel_roles", "channel_post_roles", "channel_categories", "roles", "server_role_assignments", "server_members_slice":
+            return try response(request, .array([]))
+        default: throw URLError(.unsupportedURL)
+        }
+    }
+
+    @Test(arguments: [false, true]) func `A canceled server request stays quiet and a retry loads content`(detail: Bool) async throws {
+        var cancelRequest = true
+        let route = detail ? "servers" : "server_members"
+        let api = NativeAPI { request in
+            if request.url?.lastPathComponent == route, cancelRequest { throw URLError(.cancelled) }
+            return try serverLoadResponse(request)
+        }
+        let store = NativeStore(api: api, vault: MemorySessionVault(session: session), realtime: nil)
+        await store.restoreSession()
+        let model = NativeServerLoadProbe(store: store, serverID: serverID, detail: detail)
+        await model.refresh()
+        #expect(model.error == nil)
+        #expect(!model.isLoading && !model.hasContent)
+        #expect(store.authState == .signedIn)
+        cancelRequest = false
+        await model.refresh()
+        #expect(model.hasContent && !model.isLoading)
+        #expect(model.error == nil)
+    }
+
+    @Test func `Canceling server organization leaves the loaded library available for a retry`() async throws {
+        var cancelOrganization = true
+        let api = NativeAPI { request in
+            if request.url?.lastPathComponent == "profiles", cancelOrganization { throw URLError(.cancelled) }
+            return try serverLoadResponse(request)
+        }
+        let store = NativeStore(api: api, vault: MemorySessionVault(session: session), realtime: nil)
+        await store.restoreSession()
+        let model = NativeServerLibraryModel(store: store)
+        await model.refresh()
+        #expect(model.servers.map(\.id) == [serverID])
+        #expect(!model.isLoading && !model.organization.isLoaded)
+        #expect(model.error == nil && model.organization.error == nil)
+        cancelOrganization = false
+        await model.refresh()
+        #expect(model.organization.isLoaded)
+        #expect(model.organization.value.order == [serverID])
+        #expect(model.error == nil && model.organization.error == nil)
+    }
+
+    @Test(arguments: [false, true]) func `An already canceled view task cannot supersede an active server load`(detail: Bool) async throws {
+        let gate = NativeServerLoadGate()
+        var shouldWait = true
+        let route = detail ? "servers" : "server_members"
+        let api = NativeAPI { request in
+            if request.url?.lastPathComponent == route, shouldWait {
+                shouldWait = false
+                await gate.wait()
+            }
+            return try serverLoadResponse(request)
+        }
+        let store = NativeStore(api: api, vault: MemorySessionVault(session: session), realtime: nil)
+        await store.restoreSession()
+        let model = NativeServerLoadProbe(store: store, serverID: serverID, detail: detail)
+        let pending = Task { await model.refresh() }
+        await gate.started()
+        let obsoleteViewTask = Task { await model.refresh() }
+        obsoleteViewTask.cancel()
+        await obsoleteViewTask.value
+        #expect(model.isLoading)
+        gate.finish()
+        await pending.value
+        #expect(model.hasContent && !model.isLoading)
+        #expect(model.error == nil)
+    }
+
+    @Test(arguments: [false, true], [false, true]) func `A failed server refresh preserves content and reports network or permission failures`(detail: Bool, forbidden: Bool) async throws {
+        var failRequest = false
+        let route = detail ? "servers" : "server_members"
+        let api = NativeAPI { request in
+            if request.url?.lastPathComponent == route, failRequest {
+                if forbidden { return try response(request, .object(["message": .string("Serverzugriff verweigert")]), status: 403) }
+                throw URLError(.notConnectedToInternet)
+            }
+            return try serverLoadResponse(request)
+        }
+        let store = NativeStore(api: api, vault: MemorySessionVault(session: session), realtime: nil)
+        await store.restoreSession()
+        let model = NativeServerLoadProbe(store: store, serverID: serverID, detail: detail)
+        await model.refresh()
+        #expect(model.hasContent)
+        failRequest = true
+        await model.refresh()
+        #expect(model.hasContent && !model.isLoading)
+        #expect(model.error == (forbidden ? "Serverzugriff verweigert" : URLError(.notConnectedToInternet).localizedDescription))
+        #expect(store.authState == .signedIn)
+    }
+
+    @Test(arguments: [false, true]) func `A server request completing after logout cannot publish its content`(detail: Bool) async throws {
+        let gate = NativeServerLoadGate()
+        let route = detail ? "servers" : "server_members"
+        let api = NativeAPI { request in
+            if request.url?.lastPathComponent == route { await gate.wait() }
+            return try serverLoadResponse(request)
+        }
+        let store = NativeStore(api: api, vault: MemorySessionVault(session: session), realtime: nil)
+        await store.restoreSession()
+        let model = NativeServerLoadProbe(store: store, serverID: serverID, detail: detail)
+        let pending = Task { await model.refresh() }
+        await gate.started()
+        store.signOut()
+        gate.finish()
+        await pending.value
+        #expect(!model.hasContent && !model.isLoading)
+        #expect(model.error == nil)
+        #expect(store.authState == .signedOut)
+    }
+
     @Test func `Invite links accept only the official service and a bounded code`() throws {
         #expect(try NativeServerInput.inviteCode(" Abc12345 ") == "Abc12345")
         #expect(try NativeServerInput.inviteCode("https://yapin.gg/invite/Abc12345") == "Abc12345")
@@ -201,4 +322,38 @@ import Testing
     @Test func `Invitation preview does not mistake an ID from another response field for server identity`() {
         #expect(throws: (any Error).self) { try NativeServerInvitation(.object(["id": .string(serverID), "name": .string("Not an invitation response")])) }
     }
+}
+
+@MainActor private final class NativeServerLoadProbe {
+    private let library: NativeServerLibraryModel
+    private let server: NativeServerDetailModel
+    private let detail: Bool
+
+    init(store: NativeStore, serverID: String, detail: Bool) {
+        library = NativeServerLibraryModel(store: store)
+        server = NativeServerDetailModel(store: store, id: serverID)
+        self.detail = detail
+    }
+
+    var isLoading: Bool { detail ? server.isLoading : library.isLoading }
+    var hasContent: Bool { detail ? server.snapshot != nil : !library.servers.isEmpty }
+    var error: String? { detail ? server.error : library.error ?? library.organization.error }
+    func refresh() async {
+        if detail { await server.refresh() }
+        else { await library.refresh() }
+    }
+}
+
+@MainActor private final class NativeServerLoadGate {
+    private var continuation: CheckedContinuation<Void, Never>?
+    private var startedContinuation: CheckedContinuation<Void, Never>?
+
+    func wait() async {
+        await withCheckedContinuation { continuation = $0; startedContinuation?.resume(); startedContinuation = nil }
+    }
+    func started() async {
+        if continuation != nil { return }
+        await withCheckedContinuation { startedContinuation = $0 }
+    }
+    func finish() { continuation?.resume(); continuation = nil }
 }

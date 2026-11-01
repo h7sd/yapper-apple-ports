@@ -22,7 +22,7 @@ final class NativeOriginalVisualTests: XCTestCase {
         XCTAssertTrue(account.waitForExistence(timeout: 10))
         let rail = element(app, "native.original.rail")
         XCTAssertTrue(rail.exists)
-        XCTAssertEqual(rail.frame.width, app.frame.width <= 760 ? 64 : 72, accuracy: 1)
+        XCTAssertEqual(rail.frame.width, 72, accuracy: 1)
         XCTAssertTrue(element(app, "native.fixture.notice").exists)
         capture(app, "Home / server rail / direct messages", appearance: appearance)
 
@@ -53,7 +53,10 @@ final class NativeOriginalVisualTests: XCTestCase {
         else { app.buttons["Home"].firstMatch.tap() }
         XCTAssertTrue(account.waitForExistence(timeout: 5))
 
-        app.buttons["native.settings"].firstMatch.tap()
+        if !app.buttons["native.settings"].firstMatch.exists { account.tap() }
+        let settings = app.buttons["native.settings"].firstMatch
+        XCTAssertTrue(settings.waitForExistence(timeout: 5))
+        settings.tap()
         XCTAssertTrue(app.buttons["native.settings.tab.account"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["native.profile.edit"].waitForExistence(timeout: 5))
         capture(app, "Account settings", appearance: appearance)

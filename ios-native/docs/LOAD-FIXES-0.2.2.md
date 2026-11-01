@@ -1,0 +1,13 @@
+# Loading fixes for 0.2.2
+
+Message author hydration requested `profiles?select=*`. The server denies that projection because it includes restricted columns. The current official client selects 42 public profile columns explicitly; the native client now shares that exact projection across message, social and own-profile reads.
+
+On 2026-11-01, public anonymous requests with `limit=0` reproduced the distinction on both `dnfkuqzddwvtdojzgmdm.supabase.co` and `api.yapper.website`: wildcard reads returned HTTP 401 with PostgreSQL code `42501` and `permission denied for table profiles`; the official projection returned HTTP 200 and `[]`. These probes requested no profile rows and used no account credentials. They establish the column-grant distinction for the anonymous role; authenticated account behavior was not observed.
+
+The official consumer is [3-pd02a6i86ee.js](https://www.yapin.gg/_next/static/chunks/3-pd02a6i86ee.js): the fetch starts at byte 8474 and module `99833` defines the projection at byte 161918. Its SHA-256 and the complete projection are retained in [profile-contract-0.2.2.json](../reports/profile-contract-0.2.2.json). Static REA evidence `ev_2de6158d130739b9a5141339e0299cc35c7d9dc8eba6b449fd51d7d4484f131a` analyzed two selected scripts as inert text, with other modules outside its analysis scope.
+
+`NativeAPI.publicProfiles` keeps session authentication, validates requested identities and returned rows, and batches requests. Authorization failures remain errors. No endpoint bypass, permission change or fallback to a privileged credential was added. `NativeAPI.dataResponse` now maps Swift and URLSession cancellation to `CancellationError`, while preserving actual network and HTTP failures.
+
+The accompanying loading changes make realtime subscription acknowledgements trigger resynchronization once per replacement connection, retain visible history during same-conversation refresh, and track live deletions so a late history response cannot restore removed messages. These descriptions refer to the implementation in [RealtimeClient.swift](../YapperNative/Core/RealtimeClient.swift) and [NativeStore.swift](../YapperNative/Core/NativeStore.swift); they are not claims of observed production behavior.
+
+[NativeProfileContractTests.swift](../YapperNativeTests/NativeProfileContractTests.swift) covers reply, pinned-message and search hydration against a transport that denies wildcard profile reads; public banner fields; identity validation and batching; visible authorization failures; and cancellation versus offline failure. Swift syntax parsing passed. Integration tests, app builds and release validation remain pending and are recorded separately by the release owner.

@@ -1,0 +1,236 @@
+{
+  "schemaVersion": 1,
+  "version": "0.2.2",
+  "build": "5",
+  "channel": "development-prerelease",
+  "validationStatus": "completed-local-validation-with-explicit-run-and-live-account-qualifications",
+  "overallParityComplete": false,
+  "liveAccountVerified": false,
+  "fixedReportedIssues": [
+    {
+      "issue": "permission denied for table profiles during message hydration",
+      "cause": "Wildcard profile reads include columns not granted to the client.",
+      "fix": "Shared authenticated retrieval uses the current official 42-column public projection, validates returned identities and batches requests.",
+      "evidence": "profile-contract-0.2.2.json",
+      "scope": "Public zero-row probes and mocked protocol regression; no real account data."
+    },
+    {
+      "issue": "Server views display Abgebrochen",
+      "cause": "URLSession reports cancellation as NSURLErrorCancelled, which previously reached visible error state; pre-canceled tasks could also claim load ownership.",
+      "fix": "Normalize transport cancellation to CancellationError, ignore pre-canceled model loads and retain real failures.",
+      "tests": "NativeProfileContractTests; NativeServerFeatureTests"
+    },
+    {
+      "issue": "Repeated automatic message reloads",
+      "cause": "Every subscribed acknowledgement called onReconnect, including confirmations of ordinary channel/topic changes. Resync called observe again, forming a feedback loop.",
+      "fix": "Only the first approved user-topic acknowledgement on a replacement socket triggers resync; unchanged topics do not resubscribe. Keep cached messages visible during refresh and preserve in-flight live inserts/edits/deletes.",
+      "tests": "NativeReloadRegressionTests; existing NativeCoreTests"
+    }
+  ],
+  "nativeUnitTests": {
+    "passed": true,
+    "logicalTests": 219,
+    "suites": 25,
+    "expandedCases": 236,
+    "evidence": "native-0.2.2-unit-confirmation.xcresult",
+    "device": "iPhone 17 Pro / arm64 / iOS 26.4.1",
+    "scope": "Synthetic transport/lifecycle tests; the final subsequent correction batch changes primary UI geometry, labels and accessibility only."
+  },
+  "nativeUIFlows": {
+    "passed": true,
+    "confirmationPending": false,
+    "logicalCases": 12,
+    "devices": [
+      "iPhone 17 Pro",
+      "iPhone 17 Pro Max",
+      "iPad Pro 13-inch (M5)"
+    ],
+    "syntheticFixtures": true,
+    "initialRun": {
+      "evidence": "native-0.2.2-ui-matrix.xcresult",
+      "overallResult": "Failed",
+      "successfulCaseDevicePairs": 33,
+      "failedCaseDevicePairs": 3,
+      "failedCase": "NativeFeatureFlowTests/testHomeTabsPeopleSearchAndNativeProfileConversation",
+      "reason": "The Add Friend container identifier propagated to its child buttons, hiding the Send identifier from UI queries.",
+      "visualCasesPassedOnAllDevices": true
+    },
+    "singleRunAllPassed": false,
+    "successfulCaseDevicePairs": 36,
+    "coverageBasis": "Merged passing evidence across initial, affected-state, final Friends and final primary-surface runs; not one clean complete-matrix run.",
+    "confirmationRun": {
+      "evidence": "native-0.2.2-ui-confirmation.xcresult",
+      "overallResult": "Failed",
+      "logicalCases": 6,
+      "devices": [
+        {
+          "model": "iPad Pro 13-inch (M5)",
+          "passed": 5,
+          "failed": 1,
+          "skipped": 0
+        },
+        {
+          "model": "iPhone 17 Pro",
+          "passed": 5,
+          "failed": 1,
+          "skipped": 0
+        },
+        {
+          "model": "iPhone 17 Pro Max",
+          "passed": 5,
+          "failed": 1,
+          "skipped": 0
+        }
+      ]
+    },
+    "finalHomeRuns": [
+      {
+        "evidence": "native-0.2.2-wide-friends-final.xcresult",
+        "overallResult": "Passed",
+        "logicalCases": 1,
+        "devices": [
+          {
+            "model": "iPad Pro 13-inch (M5)",
+            "passed": 1,
+            "failed": 0,
+            "skipped": 0
+          }
+        ]
+      },
+      {
+        "evidence": "native-0.2.2-phone-friends-final.xcresult",
+        "overallResult": "Passed",
+        "logicalCases": 1,
+        "devices": [
+          {
+            "model": "iPhone 17 Pro",
+            "passed": 1,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "model": "iPhone 17 Pro Max",
+            "passed": 1,
+            "failed": 0,
+            "skipped": 0
+          }
+        ]
+      }
+    ],
+    "finalSurfacesRun": {
+      "evidence": "native-0.2.2-final-surfaces.xcresult",
+      "overallResult": "Passed",
+      "logicalCases": 2,
+      "devices": [
+        {
+          "model": "iPad Pro 13-inch (M5)",
+          "passed": 2,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "model": "iPhone 17 Pro",
+          "passed": 2,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "model": "iPhone 17 Pro Max",
+          "passed": 2,
+          "failed": 0,
+          "skipped": 0
+        }
+      ]
+    },
+    "confirmationFailures": "Phone home tests failed only because an exact44pt AX frame converted to43.999999999999986pt; tolerance now0.001pt. iPad revealed a duplicate Friends presentation; the final source reuses its existing stage and its full Home flow passed."
+  },
+  "visualEvidence": {
+    "reference": "Latest user-provided reference arrangement, adapted with Yapper colors, Inter, vectors and actual per-account cosmetics. Private reference pixels/usernames are not redistributed.",
+    "defaultCaptures": 30,
+    "review": "reference-layout-finish-0.2.2.json",
+    "finalConfirmationPending": false,
+    "activityCards": "No invented friend/voice activity cards are shown when authoritative participant/activity data is absent.",
+    "largeFontCaptures": 5,
+    "captureManifest": "reference-ui-captures-0.2.2.json",
+    "largeFontRun": {
+      "evidence": "native-0.2.2-large-final.xcresult",
+      "overallResult": "Passed",
+      "logicalCases": 1,
+      "devices": [
+        {
+          "model": "iPhone 17 Pro Max",
+          "passed": 1,
+          "failed": 0,
+          "skipped": 0
+        }
+      ]
+    },
+    "largeFontScope": "Pro Max, dark appearance, accessibility-large; normal content size restored afterward.",
+    "reviewStatus": "bounded_confirmation_complete_with_qualifications",
+    "reviewVerdict": "The supplied frozen-source home now follows the reference density and slim-banner arrangement while preserving Yapper identity. The three initial P2 findings are resolved for the supplied fixture states. No unresolved P0/P1 or new home P2 was identified in the bounded confirmation; live artwork and whole-app equivalence remain unverified."
+  },
+  "builds": {
+    "deviceRelease": {
+      "passed": true,
+      "evidence": "native-0.2.2-archive-frozen.log",
+      "version": "0.2.2",
+      "build": "5",
+      "signing": "Unsigned; user Apple provisioning required."
+    },
+    "simulatorRelease": {
+      "passed": true,
+      "evidence": "native-0.2.2-simulator-frozen.log",
+      "architectures": [
+        "arm64",
+        "x86_64"
+      ],
+      "signing": "Locally ad-hoc signed with Simulator-only identity section."
+    },
+    "exactDeliveredSimulatorLaunch": {
+      "passed": true,
+      "device": "iPad Pro 13-inch (M5)",
+      "simulatorID": "446C9451-4AD5-48BE-8033-E2717303B797",
+      "processID": 51858,
+      "fixtureArguments": false,
+      "artifactSHA256": "a24a66c99060ce189111f664901138436a42dec083386c341033499a9d877e48",
+      "image": "../docs/images/welcome-0.2.2-release-de-ipad.png",
+      "imageSHA256": "0753edc8dcb90cd47dfe53e2cc02884b50dd2fe8acaa93fdedcba83971bbf3a4"
+    }
+  },
+  "packageInspection": {
+    "passed": true,
+    "checks": 208,
+    "report": "package-verification-0.2.2.json",
+    "artifacts": [
+      {
+        "name": "Yapinplugger-Native-0.2.2-iOS-Simulator.zip",
+        "bytes": 31044110,
+        "sha256": "a24a66c99060ce189111f664901138436a42dec083386c341033499a9d877e48"
+      },
+      {
+        "name": "Yapinplugger-Native-0.2.2-ios-unsigned.ipa",
+        "bytes": 11659869,
+        "sha256": "587c57402fca28cbbdd130e3920aedbecb86a54569d343850a0c635b11395aed"
+      }
+    ],
+    "recordedShippingSourceHashesMatchFrozenSource": true,
+    "scope": "Checks inspect exact delivered ZIP/IPA bytes. App sources stayed frozen through final builds and visual confirmation."
+  },
+  "verificationLimits": {
+    "realAccountLoginAndCaptchaCompletion": false,
+    "liveMessageDelivery": false,
+    "liveServerPermissionAcceptance": false,
+    "physicalDevice": false,
+    "liveEncryptedCalls": false,
+    "allVencordPlugins": false,
+    "backendPushAndNativePurchaseProvisioning": false,
+    "hostedCIExecuted": false,
+    "completeVisualAndFunctionalParity": false,
+    "securityScope": "Source, request-contract, package and hash inspection are bounded checks, not a comprehensive malware audit or a guarantee about server/dependency behavior."
+  },
+  "keychainProbe": {
+    "passed": true,
+    "report": "keychain-0.2.2.json",
+    "scope": "Exact shipping SessionVault source compiled in an isolated own-identity Simulator probe; synthetic write/read/update/delete and cleanup, all OSStatus values 0; no user Keychain items read."
+  }
+}

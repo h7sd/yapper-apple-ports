@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum NativeHomeSheet: String, Identifiable {
-    case people, inbox, group
+    case people, inbox, group, addFriend
     var id: String { rawValue }
 }
 
@@ -24,6 +24,10 @@ struct NativeAppShell: View {
     @State private var confirmingLogout = false
     @State private var homeSheet: NativeHomeSheet?
     @State private var conversationPreferences = NativeConversationPreferenceModel()
+    @State private var ownBannerProfile: NativeProfileDetail?
+    @State private var loadedBannerUserID: String?
+    @State private var bannerLoadID = UUID()
+    @State private var floatingAccountHeight: CGFloat = 56
     @AppStorage("yapper-rail-dms") private var railDMPreference = ""
 
     init(store: NativeStore) {
@@ -52,43 +56,49 @@ struct NativeAppShell: View {
             GeometryReader { geometry in
                 let small = geometry.size.width <= 760
                 ZStack(alignment: .bottomLeading) {
-                    VStack(spacing: 0) {
-                        HStack(spacing: 0) {
+                    HStack(spacing: 0) {
                             NativeOriginalRail(servers: servers.servers, recentConversations: recentUnreadConversations, selectedServerID: selectedServer?.id, compact: small, unread: unread, showDiscovery: store.capabilities.flagOn("discovery", userID: store.user?.id),
+                                               bottomContentInset: small ? floatingAccountHeight + 24 : 90,
                                                onHome: openHome, onServer: openServer, onConversation: openConversation, onAdd: { showingServerActions = true }, onDiscover: { discoveringServers = true })
-                            VStack(spacing: 0) {
-                                sidebar
-                                if small, let user = store.user { accountBar(user, compact: true).padding(.horizontal, 8).padding(.top, 6).padding(.bottom, 10) }
-                            }
+                            sidebar
                             .frame(width: small ? nil : 260)
                             .frame(maxWidth: small ? .infinity : nil, maxHeight: .infinity)
-                            .background(YapperPalette.sidebar.ignoresSafeArea(.container, edges: .top))
+                            .background(YapperPalette.sidebar)
+                            .clipShape(.rect(topLeadingRadius: small ? 24 : 0))
+                            .overlay {
+                                UnevenRoundedRectangle(topLeadingRadius: small ? 24 : 0)
+                                    .strokeBorder(YapperPalette.border, lineWidth: small ? 1 : 0)
+                                    .allowsHitTesting(false)
+                            }
                             if !small {
                                 Rectangle().fill(YapperPalette.border).frame(width: 1)
                                 stage.frame(maxWidth: .infinity, maxHeight: .infinity)
                             }
-                        }
-                        if small {
-                            NativeOriginalBottomBar(unread: unread, serverSelected: selectedServer != nil, serversAvailable: !servers.servers.isEmpty,
-                                                    onHome: openHome, onServers: openLastServer, onSettings: { showingSettings = true })
-                        }
                     }
-                    if !small, let user = store.user {
-                        accountBar(user, compact: false).frame(width: 316).padding(.leading, 8).padding(.bottom, 8).zIndex(10)
+                    if let user = store.user {
+                        if small {
+                            accountBar(user, compact: true)
+                                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { floatingAccountHeight = $0 }
+                                .frame(maxWidth: 560)
+                                .padding(.horizontal, 12).padding(.bottom, 10)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .zIndex(10)
+                        } else {
+                            accountBar(user, compact: false).frame(width: 316).padding(.leading, 8).padding(.bottom, 8).zIndex(10)
+                        }
                     }
                     if showingAccountMenu {
                         Color.black.opacity(0.001).ignoresSafeArea().onTapGesture { showingAccountMenu = false }
-                        fittedAccountMenu(availableHeight: max(200, geometry.size.height - (small ? 116 : 82) - 8))
+                        fittedAccountMenu(availableHeight: max(120, geometry.size.height - (small ? floatingAccountHeight + 20 : 82) - 8))
                             .frame(width: min(300, geometry.size.width - 16))
-                            .padding(.leading, 8)
-                            .padding(.bottom, small ? 116 : 82)
-                            .accessibilityElement(children: .contain)
+                            .padding(.leading, small ? 12 : 8)
+                            .padding(.bottom, small ? floatingAccountHeight + 20 : 82)
                             .accessibilityElement(children: .contain)
                             .accessibilityIdentifier("native.original.accountMenu")
                             .zIndex(20)
                     }
                 }
-                .background(YapperPalette.background.ignoresSafeArea())
+                .background(YapperPalette.rail.ignoresSafeArea())
                 .onAppear { compact = small }
                 .onChange(of: small) { _, value in
                     compact = value
@@ -114,8 +124,12 @@ struct NativeAppShell: View {
             store.updateNotificationPreferences(conversationPreferences.snapshot)
             await store.refreshNotificationSoundContext()
         }
+        .task(id: store.user?.id) { await loadOwnBannerProfile() }
         .onChange(of: conversationPreferences.snapshot?.muted) { _, _ in store.updateNotificationPreferences(conversationPreferences.snapshot) }
         .onChange(of: conversationPreferences.snapshot?.hidden) { _, _ in store.updateNotificationPreferences(conversationPreferences.snapshot) }
+        .onChange(of: showingAccountMenu) { wasShowing, isShowing in if wasShowing && !isShowing { Task { await loadOwnBannerProfile(refresh: true) } } }
+        .onChange(of: showingSettings) { wasShowing, isShowing in if wasShowing && !isShowing { Task { await loadOwnBannerProfile(refresh: true) } } }
+        .onChange(of: showingProfile) { wasShowing, isShowing in if wasShowing && !isShowing { Task { await loadOwnBannerProfile(refresh: true) } } }
         .fullScreenCover(isPresented: $showingSettings) {
             NativeAccountView(store: store, onOpenConversation: { conversation in showingSettings = false; openConversation(conversation) })
         }
@@ -129,6 +143,7 @@ struct NativeAppShell: View {
                     case .people: NativePeopleView(store: store, onOpenConversation: openConversation)
                     case .inbox: NativeInboxView(store: store, onOpenConversation: openConversation)
                     case .group: NativeGroupEditor(store: store, onOpenConversation: openConversation)
+                    case .addFriend: NativeHomeAddFriendView(store: store, onShowFriends: { openHomeSurface(.people) })
                     }
                 }
                 .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Fertig") { homeSheet = nil }.frame(minHeight: 44) } }
@@ -169,7 +184,27 @@ struct NativeAppShell: View {
     }
 
     private var originalAccountMenu: some View {
-        OriginalAccountMenuView(store: store, onOpenProfile: { showingAccountMenu = false; showingProfile = true }, onOpenSettings: { showingAccountMenu = false; showingSettings = true }, onClose: { showingAccountMenu = false })
+        VStack(spacing: 0) {
+            OriginalAccountMenuView(store: store, onOpenProfile: { showingAccountMenu = false; showingProfile = true }, onOpenSettings: { showingAccountMenu = false; showingSettings = true }, onClose: { showingAccountMenu = false })
+            if compact {
+                Rectangle().fill(YapperPalette.border).frame(height: 1).padding(.horizontal, 12)
+                accountMenuAction("Einstellungen", icon: "settings", identifier: "native.settings") { showingAccountMenu = false; showingSettings = true }
+                accountMenuAction("Abmelden", icon: "logout", identifier: "native.account.signOut") { showingAccountMenu = false; confirmingLogout = true }
+            }
+        }
+        .padding(.bottom, compact ? 6 : 0)
+        .background(YapperPalette.sidebar, in: .rect(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(YapperPalette.border, lineWidth: 1))
+    }
+
+    private func accountMenuAction(_ title: String, icon: String, identifier: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                OriginalYapperIcon(icon, size: 16)
+                Text(title).font(OriginalYapper.font(14))
+                Spacer(minLength: 0)
+            }.foregroundStyle(YapperPalette.text).frame(minHeight: 44).padding(.horizontal, 16).contentShape(.rect)
+        }.buttonStyle(.plain).accessibilityIdentifier(identifier)
     }
 
     private func fittedAccountMenu(availableHeight: CGFloat) -> some View {
@@ -181,10 +216,11 @@ struct NativeAppShell: View {
 
     @ViewBuilder private var sidebar: some View {
         if let selectedServer {
-            NativeServerDetailView(store: store, server: selectedServer, onJoinVoice: { channel in Task { await call.join(store: store, channelID: channel.id, title: channel.name, serverID: channel.serverID) } }, onOpenConversation: openConversation, originalSidebar: true, reserveFloatingAccount: !compact, onServerLeft: { openHome(); Task { await servers.refresh() } })
+            NativeServerDetailView(store: store, server: selectedServer, onJoinVoice: { channel in Task { await call.join(store: store, channelID: channel.id, title: channel.name, serverID: channel.serverID) } }, onOpenConversation: openConversation, originalSidebar: true, reserveFloatingAccount: true, onServerLeft: { openHome(); Task { await servers.refresh() } })
+                .padding(.bottom, compact ? max(0, floatingAccountHeight + 24 - 90) : 0)
                 .id(selectedServer.id)
         } else {
-            NativeConversationList(store: store, requestedConversation: $requestedConversation, onOpenConversation: openConversation, onOpenSurface: openHomeSurface, preferenceModel: conversationPreferences, reserveFloatingAccount: !compact)
+            NativeConversationList(store: store, requestedConversation: $requestedConversation, onOpenConversation: openConversation, onOpenSurface: openHomeSurface, preferenceModel: conversationPreferences, reserveFloatingAccount: true, floatingAccountInset: compact ? floatingAccountHeight + 24 : 90)
         }
     }
 
@@ -200,9 +236,33 @@ struct NativeAppShell: View {
     }
 
     private func accountBar(_ user: YapperUser, compact: Bool) -> some View {
-        NativeOriginalAccountBar(user: user, compact: compact, mentions: 0, showInbox: store.capabilities.flagOn("mentions_inbox", userID: user.id) || store.capabilities.flagOn("notif_inbox", userID: user.id),
+        NativeOriginalAccountBar(user: user, profile: ownBannerProfile?.id == user.id ? ownBannerProfile : nil, compact: compact, mentions: 0, showInbox: store.capabilities.flagOn("mentions_inbox", userID: user.id) || store.capabilities.flagOn("notif_inbox", userID: user.id), showCustomStatus: store.capabilities.flagOn("activity", userID: user.id),
                                  onIdentity: { showingAccountMenu.toggle() }, onInbox: { homeSheet = .inbox },
                                  onSettings: { showingSettings = true }, onLogout: { confirmingLogout = true })
+    }
+
+    private func loadOwnBannerProfile(refresh: Bool = false) async {
+        guard let id = store.user?.id, refresh || loadedBannerUserID != id else { return }
+        let operation = UUID()
+        bannerLoadID = operation
+        do {
+            let profile: NativeProfileDetail?
+            #if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("--native-ui-fixtures") {
+                profile = try NativeSocialModel(store: store).fixtureProfile(userID: id)
+            } else {
+                profile = try await store.withAuthenticatedSession { api, session in try await api.socialProfiles(ids: [id], session: session).first }
+            }
+            #else
+            profile = try await store.withAuthenticatedSession { api, session in try await api.socialProfiles(ids: [id], session: session).first }
+            #endif
+            guard !Task.isCancelled, store.user?.id == id, bannerLoadID == operation else { return }
+            ownBannerProfile = profile
+            loadedBannerUserID = id
+        } catch {
+            // Missing cosmetic metadata must not interrupt the message list.
+            // Keep the last successful same-account banner while requests cancel.
+        }
     }
 
     private func openHomeSurface(_ surface: NativeHomeSheet) {

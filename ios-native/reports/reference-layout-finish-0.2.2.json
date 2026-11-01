@@ -1,0 +1,132 @@
+{
+  "review": "Independent Impeccable native 0.2.2 reference-layout finish review",
+  "reviewedAt": "2026-11-01",
+  "mode": "Operate",
+  "status": "bounded_confirmation_complete_with_qualifications",
+  "verdict": "The supplied frozen-source home now follows the reference density and slim-banner arrangement while preserving Yapper identity. The three initial P2 findings are resolved for the supplied fixture states. No unresolved P0/P1 or new home P2 was identified in the bounded confirmation; live artwork and whole-app equivalence remain unverified.",
+  "findingCounts": {
+    "initialP0": 0,
+    "initialP1": 0,
+    "initialP2": 3,
+    "remainingNewHomeP0": 0,
+    "remainingNewHomeP1": 0,
+    "remainingNewHomeP2": 0
+  },
+  "productionEditsByReviewer": false,
+  "briefAuthority": "The latest user-provided reference governs the home arrangement and visible geometry. Retain Yapper's adaptive palette, bundled Inter, original vectors, actual account cosmetics and native application behavior. Do not copy the reference account's artwork or identity, and do not invent active voice cards.",
+  "scope": "Home and its account/profile/settings/chat paths on iPhone Pro, Pro Max and iPad in default-size dark and light appearances, plus the supplied Pro Max dark accessibility-large state. This is a bounded finish review, not a whole-app parity, authenticated-account or security audit.",
+  "evidence": {
+    "source": [
+      "PRODUCT.md",
+      "ios-native/DESIGN.md",
+      "ios-native/YapperNative/UI/NativeAppShell.swift",
+      "ios-native/YapperNative/UI/NativeOriginalConversationList.swift",
+      "ios-native/YapperNative/UI/NativeOriginalShellViews.swift",
+      "ios-native/YapperNative/UI/YapperTheme.swift",
+      "ios-native/YapperNativeUITests/NativeFlowTests.swift",
+      "ios-native/YapperNativeUITests/NativeFeatureFlowTests.swift",
+      "ios-native/YapperNativeUITests/NativeOriginalVisualTests.swift"
+    ],
+    "initialCaptureManifest": "work/ios-native/native-0.2.2-ui-captures/manifest.json",
+    "initialResultBundle": "work/ios-native/native-0.2.2-ui-matrix.xcresult",
+    "inspectedInitialPrimaryCaptureCount": 30,
+    "initialMatrix": "Home, account popover, own profile, native chat/composer and account settings, each on Pro 402x874pt at 3x, Pro Max 440x956pt at 3x and iPad 1032x1376pt at 2x, in dark and light appearances.",
+    "referenceHandling": "The latest user-provided reference was viewed privately. No private screenshot, identity, artwork or attachment path is included in this report or copied into the repository.",
+    "measurementQualification": "Reference dimensions are approximate logical-point readings of its raster image at the equivalent phone viewport. They support composition and density findings; they do not establish pixel-perfect reproduction or account-cosmetic parity.",
+    "finalCaptureManifest": "ios-native/reports/reference-ui-captures-0.2.2.json",
+    "finalDefaultCapturesAvailable": 30,
+    "finalDefaultCapturesInspected": "12: Home and account menu on Pro, Pro Max and iPad in dark and light appearances. The unchanged primary paths were inspected in the initial 30-image batch.",
+    "finalLargeCapturesInspected": "5: Pro Max accessibility-large dark Home, account menu, profile, chat and settings.",
+    "finalCapturePattern": "ios-native/docs/images/reference-ui-0.2.2-{iphone-pro|iphone-promax|ipad}-{dark|light}-{home|account-menu|profile|chat|settings}.png",
+    "finalLargeCapturePattern": "ios-native/docs/images/reference-ui-0.2.2-iphone-promax-accessibility-large-dark-{home|account-menu|profile|chat|settings}.png",
+    "reviewMethod": "One batched initial primary inspection, followed by one bounded affected-state/default-and-large-text confirmation. No production edits or test reruns by this reviewer."
+  },
+  "positiveChecks": [
+    "All 30 initial primary captures were visually inspected in one batched round. The rail, rounded Messages panel, four-part home toolbar, preview/time rows and floating compact account banner are present.",
+    "Pro and Pro Max account banners are horizontally centered. Controls clear the top system area and the banner clears the bottom inset. Surface backgrounds continue through system-bar regions.",
+    "Account popovers fit both phones and the iPad. Compact popovers visibly retain profile, status, notification sounds, Settings and Sign out. Profile overlays remain centered, and their Edit footer clears the actual bottom inset.",
+    "Chat header, native message stream and composer fit the supplied phone and tablet states. Account settings retain their dedicated close region and horizontally scrolling settings navigation.",
+    "Yapper's Inter typography, vector language and adaptive surface palette remain visible. Main home secondary/faint text tokens exceed 4.5:1 against their actual sidebar surfaces in both appearances.",
+    "No synthetic active-voice cards or reference-account artwork were introduced. The captures visibly identify their anonymous Debug fixtures."
+  ],
+  "findings": [
+    {
+      "id": "P2-REFERENCE-HOME-GEOMETRY",
+      "priority": "P2",
+      "status": "resolved_in_frozen_source_and_final_default_home_captures_live_decorated_artwork_unverified",
+      "title": "Home has the requested parts but changes the reference density and account-banner silhouette",
+      "evidence": "The initial Pro/Max Home renders use a 64pt rail, 40pt DM avatars, rows of at least 64pt, a 19pt heading and 44pt visible toolbar boxes. The reference reads approximately 72pt, 32pt, 50pt, 16pt and 32pt respectively. The current 76pt-high banner contains a 44pt avatar, while the reference has an approximately 56pt-high banner with substantially overlapping account artwork. These differences are visible at equivalent logical phone scale, independent of fixture content and the retained Yapper palette.",
+      "initialCaptures": [
+        "405D0470-19BB-4CFD-B494-9FEE3B28A2AA.png",
+        "4E0EBB61-220F-437B-8B27-7F2EB90CA96B.png",
+        "ABCE2E58-EDA7-432C-891B-D06822B0436D.png"
+      ],
+      "sourceFiles": [
+        "ios-native/YapperNative/UI/NativeAppShell.swift",
+        "ios-native/YapperNative/UI/NativeOriginalConversationList.swift",
+        "ios-native/YapperNative/UI/NativeOriginalShellViews.swift"
+      ],
+      "action": "Restore the observed home density and slim-banner/overlapping-avatar relationship in the single correction batch. Preserve at least 44pt effective interaction regions separately from visible artwork. Treat the reference's large decorated-avatar silhouette as artwork plus base avatar, rather than enlarging the base and multiplying the decoration again.",
+      "confirmation": "Final six default Home PNGs show the 72pt rail, 32pt DM avatars, 52pt minimum row rhythm, 16pt heading and 32pt visible toolbar boxes with separate 44pt interaction allocation. The compact account background is 56pt high with a 48pt base avatar, and source clips only its background so supported 72pt decorations may overlap. Reduced heading/tool spacing visibly restores the reference relationship. The phone banner stays centered and above the bottom inset. iPad retains its wider stage and stacks the add-friend control when its narrow sidebar requires it. Live decorated-avatar and banner-artwork fit is not established by the plain fixture."
+    },
+    {
+      "id": "P2-FRIENDS-DISCOVERABILITY",
+      "priority": "P2",
+      "status": "resolved_in_final_source_default_captures_and_passing_three_device_home_flow",
+      "title": "The phone's Friends label opens Add friend, while the friends list requires an undisclosed long press",
+      "evidence": "The visible initial label is Freunde. Its primary action opens the username/note request form; existing friends and person search are in its context menu. NativeFeatureFlowTests explicitly uses press(forDuration: 0.6) to reach the friends list. The actions are retained in source, but the new phone home does not expose an obvious route to them.",
+      "sourceFiles": [
+        "ios-native/YapperNative/UI/NativeOriginalConversationList.swift",
+        "ios-native/YapperNativeUITests/NativeFeatureFlowTests.swift"
+      ],
+      "action": "Use a clear add-friend label and expose a visible Friends-list action from the add-friend form, retaining the compact toolbar arrangement.",
+      "confirmation": "Final Home captures show the complete Freunde hinzufügen label, wrapping rather than disappearing. Source exposes a visible Freunde anzeigen action in the form; the final home-flow test passes on both phones and iPad. AppShell routes the wide action through openHomeSurface(.people), dismissing the form and reusing the existing People stage instead of duplicating it in a sheet."
+    },
+    {
+      "id": "P2-LIGHT-RAIL-ACTION-CONTRAST",
+      "priority": "P2",
+      "status": "resolved_in_source_and_final_three_device_light_home_captures",
+      "title": "The inherited green rail action loses visual contrast in light appearance",
+      "evidence": "Server add/discover vectors use fixed #3FCF82 on light elevated #EBEDEF: computed sRGB contrast is 1.71:1, compared with 6.92:1 on dark #2B2C33. The light Home captures visibly confirm the faint green add-server action. This is an inherited rail-token issue exposed by the new home, not a reason to replace Yapper's palette.",
+      "initialCaptures": [
+        "4E0EBB61-220F-437B-8B27-7F2EB90CA96B.png",
+        "DA893790-0F76-47B5-8CC6-6D675508FD68.png",
+        "87B36BCF-61B7-49E7-A538-4DB47B035275.png"
+      ],
+      "sourceFiles": [
+        "ios-native/YapperNative/UI/NativeOriginalShellViews.swift",
+        "ios-native/YapperNative/UI/YapperTheme.swift"
+      ],
+      "action": "Provide a darker green for these actions in light appearance while preserving the existing dark brand green.",
+      "confirmation": "The final light rail action is #208B58 on #EBEDEF, computed contrast 3.65:1, and visibly stronger on all three devices. Dark uses the original green unchanged."
+    }
+  ],
+  "initialRuntimeQualification": "The independently read initial xcresult summary confirms 11 of 12 selected UI tests passing on each device (33/36). Its home-flow failure snapshot shows the form container identifier masking child Send identifiers; it does not show a missing visible Send button. The owner added accessibility containment. A later phone assertion at 43.999999999999986pt was a floating-point comparison artifact, addressed with a 0.001pt tolerance. These historical failures are not described as one wholly green initial suite.",
+  "finalRuntimeEvidence": {
+    "reviewerReadSummaries": [
+      "native-0.2.2-final-surfaces.xcresult: Passed, 2 visual tests per device on all 3 devices, no runtime warnings; 30 final default captures.",
+      "native-0.2.2-phone-friends-final.xcresult: Passed, 1 home-flow test per phone on both phones, no runtime warnings.",
+      "native-0.2.2-wide-friends-final.xcresult: Passed, 1 home-flow test on iPad, no runtime warnings.",
+      "native-0.2.2-large-final.xcresult: Passed, 1 five-surface visual test on Pro Max dark accessibility-large, no runtime warnings."
+    ],
+    "ownerReportedAdditionalCoverage": "The release owner reports the other five confirmation cases passing on all three devices, with the remaining six selected cases already passing on all three in the initial matrix. See the release validation report for the combined runtime ledger; this is not a claim that every selected test was rerun in one final-source full-suite invocation.",
+    "reviewerTestReruns": 0
+  },
+  "touchTargetQualification": "Final new-home source allocates 44pt toolbar and inbox interaction regions around 32pt visible boxes, at least 52pt DM rows, 48pt rail targets, and at least 44pt account identity interaction height. Passing home tests exercise representative actions, not every physical boundary coordinate. Previously documented overlapping invisible regions on consecutive compact account-menu rows remain outside this new-home geometry confirmation.",
+  "confirmationObservations": [
+    "All six final default Home captures and all six account-menu captures fit their device widths; the smaller compact banner remains centered with safe-area clearance, and its menu keeps profile, status, notification sounds, Settings and Sign out visible.",
+    "The final Pro Max accessibility-large Home stacks the add-friend control, grows names/previews and metadata, retains complete fixed avatar/rail glyphs and keeps its growing account banner above the bottom inset.",
+    "The large account menu wraps localized actions without clipped line boxes and retains Settings and Sign out. The expanded presence selector was not captured.",
+    "The large profile keeps its close and Edit actions visible above the bottom inset. Chat body text wraps naturally with header and composer present. Settings labels/values grow and the page continues vertically; its top navigation remains a horizontal strip.",
+    "No new visual defect was identified in this bounded confirmation. Review stops here; no further style cycle is proposed."
+  ],
+  "remainingQualifications": [
+    "The supplied initial fixture has only three conversations and no account banner artwork. It cannot validate long-list scrolling, every live cosmetic, live profile grants or real-account acceptance.",
+    "The normal portrait matrix and one Pro Max dark accessibility-large point do not establish landscape/multitasking, all Dynamic Type sizes, Pro/iPad or light large-text layouts, expanded presence-selector overflow, VoiceOver order, Increase Contrast, Reduce Transparency, physical-device gestures or performance.",
+    "No new independent visual regression was found in the supplied non-home primary states. This limited observation does not establish full accessibility or whole-app visual and functional parity.",
+    "Global presence, rollout-dependent activity, custom name styles/themes, complete plugin compatibility, calls and backend/background push retain the separately documented parity limits."
+  ],
+  "wholeAppParity": false,
+  "liveAccountAcceptanceVerified": false,
+  "securityAuditPerformed": false
+}

@@ -103,7 +103,7 @@ extension NativeAPI {
     private func messageProfiles(rows: [NativeJSON], session: NativeSession) async throws -> [String: YapperUser] {
         let ids = Array(Set(rows.compactMap { $0["author_id"].string })).filter { UUID(uuidString: $0) != nil }.sorted()
         guard !ids.isEmpty else { return [:] }
-        let profiles = try await table("profiles", query: [URLQueryItem(name: "id", value: "in.(\(ids.joined(separator: ",")))"), URLQueryItem(name: "select", value: "*")], session: session).rows
+        let profiles = try await publicProfiles(ids: ids, session: session)
         var result: [String: YapperUser] = [:]
         for row in profiles {
             guard let id = row["id"].string, let username = row["username"].string, ids.contains(id) else { continue }

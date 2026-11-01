@@ -34,6 +34,23 @@ nonisolated struct RealtimeEnvelope: Decodable, Sendable {
     }
 }
 
+/// A subscription acknowledgement can confirm a topic change on the same socket.
+/// Only the first approved user subscription on a replacement socket requires a resync.
+nonisolated struct RealtimeSubscriptionLifecycle: Sendable {
+    private(set) var hasConnected: Bool
+    private var awaitingFirstApproval = true
+
+    init(previouslyConnected: Bool = false) { hasConnected = previouslyConnected }
+    mutating func beginSocket() { awaitingFirstApproval = true }
+    mutating func acknowledge(userTopicApproved: Bool) -> Bool {
+        guard userTopicApproved, awaitingFirstApproval else { return false }
+        awaitingFirstApproval = false
+        let needsResync = hasConnected
+        hasConnected = true
+        return needsResync
+    }
+}
+
 /// Native client for the observed Yapin realtime protocol; no JavaScript engine or embedded page.
 @MainActor final class RealtimeClient {
     private let session: URLSession
@@ -48,7 +65,7 @@ nonisolated struct RealtimeEnvelope: Decodable, Sendable {
     private var desiredTopics: Set<String> = []
     private var authenticated = false
     private var lastReceivedAt = Date()
-    private var hasConnected = false
+    private var subscriptionLifecycle = RealtimeSubscriptionLifecycle()
     var onMutation: (@MainActor (RealtimeMutation) -> Void)?
     var onStatus: (@MainActor (String) -> Void)?
     var onReconnect: (@MainActor () -> Void)?
@@ -64,12 +81,12 @@ nonisolated struct RealtimeEnvelope: Decodable, Sendable {
     }
 
     func connect(session credentials: NativeSession) {
-        let reconnectingSameAccount = self.credentials?.userID == credentials.userID && hasConnected
+        let reconnectingSameAccount = self.credentials?.userID == credentials.userID && subscriptionLifecycle.hasConnected
         let retainedTopics = reconnectingSameAccount ? desiredTopics : []
         disconnect()
         desiredTopics = retainedTopics
         self.credentials = credentials
-        hasConnected = reconnectingSameAccount
+        subscriptionLifecycle = RealtimeSubscriptionLifecycle(previouslyConnected: reconnectingSameAccount)
         retryDelay = 1
         open()
     }
@@ -80,6 +97,7 @@ nonisolated struct RealtimeEnvelope: Decodable, Sendable {
         subscribedTopics = []
         desiredTopics = []
         authenticated = false
+        subscriptionLifecycle = RealtimeSubscriptionLifecycle()
         receiveTask?.cancel()
         heartbeatTask?.cancel()
         reconnectTask?.cancel()
@@ -96,6 +114,7 @@ nonisolated struct RealtimeEnvelope: Decodable, Sendable {
         let revision = generation
         subscribedTopics = []
         authenticated = false
+        subscriptionLifecycle.beginSocket()
         lastReceivedAt = Date()
         let task = session.webSocketTask(with: URL(string: "wss://rt.yapper.website/ws")!)
         socket = task
@@ -132,10 +151,7 @@ nonisolated struct RealtimeEnvelope: Decodable, Sendable {
                         self.subscribedTopics = Set(envelope.approvedTopics ?? [])
                         let approved = self.subscribedTopics.contains("user:\(credentials.userID)")
                         self.onStatus?(approved ? "Verbunden" : "Live-Nachrichten nicht freigegeben. Bitte Chats manuell aktualisieren.")
-                        if approved {
-                            if self.hasConnected { self.onReconnect?() }
-                            self.hasConnected = true
-                        }
+                        if self.subscriptionLifecycle.acknowledge(userTopicApproved: approved) { self.onReconnect?() }
                     } else if envelope.type == "event", envelope.event == "message",
                               let topic = envelope.topic, self.subscribedTopics.contains(topic),
                               let payload = envelope.payload, payload.table == "messages" {
@@ -180,7 +196,9 @@ nonisolated struct RealtimeEnvelope: Decodable, Sendable {
     }
 
     func observe(channelID: String?, serverID: String?) {
-        desiredTopics = Set([channelID.flatMap { UUID(uuidString: $0) == nil ? nil : "chan:\($0)" }, serverID.flatMap { UUID(uuidString: $0) == nil ? nil : "server:\($0)" }].compactMap { $0 })
+        let topics = Set([channelID.flatMap { UUID(uuidString: $0) == nil ? nil : "chan:\($0)" }, serverID.flatMap { UUID(uuidString: $0) == nil ? nil : "server:\($0)" }].compactMap { $0 })
+        guard topics != desiredTopics else { return }
+        desiredTopics = topics
         guard authenticated, let socket, let credentials else { return }
         let expected = generation
         Task { [weak self] in

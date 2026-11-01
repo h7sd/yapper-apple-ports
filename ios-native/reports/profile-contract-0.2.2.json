@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "release": "0.2.2",
+  "created_at_utc": "2026-11-01T12:09:13.770471+00:00",
+  "validation_status": "implemented_with_passed_unit_regressions_and_package_inspection",
+  "issue": {
+    "symptom": "permission denied for table profiles during message author hydration",
+    "cause": "NativeMessageService.messageProfiles requested a wildcard profile projection containing restricted columns.",
+    "resolution": "Use the explicit 42-column projection observed in the current official profile consumer; preserve authenticated requests and authorization errors.",
+    "scope_limit": "Public anonymous zero-row probes establish a column-grant distinction; no authenticated account behavior or private account data was observed."
+  },
+  "official_sources": [
+    {
+      "url": "https://www.yapin.gg/_next/static/chunks/3-pd02a6i86ee.js",
+      "sha256": "0ec714b3692c4ef7dd5bca6a1445b76b50746217c1addd22eb0fd5ae4c200a42",
+      "fetch_consumer_byte_offset": 8474,
+      "projection_module_id": 99833,
+      "projection_module_byte_offset": 161918,
+      "projection": "id,username,created_at,bio,avatar_path,banner_path,banner_x,banner_y,avatar_x,avatar_y,avatar_zoom,avatar_rot,banner_zoom,links,verified_as,verified_hidden,badges,display_name,pronouns,accent_color,accent_color2,plus_until,plus_badge_hidden,dms_from,server_tag,tag,tag_icon,tag_icon_off,shown_badge,verify_required,custom_status,custom_status_until,avatar_deco,profile_effect,name_banner,discriminator,avatar_revert_at,name_style,account_level,plus_since,gifts_given,chat_streak",
+      "column_count": 42
+    },
+    {
+      "url": "https://www.yapin.gg/_next/static/chunks/1rmz66qprxti5.js",
+      "sha256": "1bd0c3af36eb4ee8f3774e2cc5f50569ac5b79c509ab2521080582d566fa54d7",
+      "routing_target_byte_offset": 630,
+      "routing_constructor_byte_offset": 33069,
+      "routing_flag_byte_offset": 33151,
+      "observation": "The api_hetzner flag can rewrite the Supabase REST prefix to https://api.yapper.website/rest/v1/. Authorization failures do not trigger this router's fallback. Both hosts showed the same projection-dependent denial."
+    }
+  ],
+  "rea": {
+    "tool_version": "6.5.0",
+    "evidence_id": "ev_2de6158d130739b9a5141339e0299cc35c7d9dc8eba6b449fd51d7d4484f131a",
+    "selected_sources": [
+      "1rmz66qprxti5.js",
+      "3-pd02a6i86ee.js"
+    ],
+    "execution": "inert_static_analysis",
+    "limitations": [
+      "Only two selected scripts were analyzed; relationships through unselected scripts remain unknown.",
+      "Static analysis does not establish runtime execution or authenticated production behavior."
+    ],
+    "workspace_evidence_path": "work/ios-native/profile-contract-2026-11-01/rea-evidence.json"
+  },
+  "probes": {
+    "authentication": "Public anonymous project role; header values intentionally omitted.",
+    "privacy": "Every profile request included limit=0. No account credentials were used and no profile rows were returned.",
+    "records": [
+      {
+        "observed_at_utc": "2026-11-01T12:08:21.721909+00:00",
+        "host": "dnfkuqzddwvtdojzgmdm.supabase.co",
+        "method": "GET",
+        "path": "/rest/v1/profiles",
+        "query": {
+          "select": "*",
+          "limit": 0
+        },
+        "http_status": 401,
+        "response": {
+          "code": "42501",
+          "message": "permission denied for table profiles"
+        }
+      },
+      {
+        "observed_at_utc": "2026-11-01T12:08:21.849127+00:00",
+        "host": "dnfkuqzddwvtdojzgmdm.supabase.co",
+        "method": "GET",
+        "path": "/rest/v1/profiles",
+        "query": {
+          "select": "id,username,created_at,bio,avatar_path,banner_path,banner_x,banner_y,avatar_x,avatar_y,avatar_zoom,avatar_rot,banner_zoom,links,verified_as,verified_hidden,badges,display_name,pronouns,accent_color,accent_color2,plus_until,plus_badge_hidden,dms_from,server_tag,tag,tag_icon,tag_icon_off,shown_badge,verify_required,custom_status,custom_status_until,avatar_deco,profile_effect,name_banner,discriminator,avatar_revert_at,name_style,account_level,plus_since,gifts_given,chat_streak",
+          "limit": 0
+        },
+        "http_status": 200,
+        "response": []
+      },
+      {
+        "observed_at_utc": "2026-11-01T12:08:22.009836+00:00",
+        "host": "api.yapper.website",
+        "method": "GET",
+        "path": "/rest/v1/profiles",
+        "query": {
+          "select": "*",
+          "limit": 0
+        },
+        "http_status": 401,
+        "response": {
+          "code": "42501",
+          "message": "permission denied for table profiles"
+        }
+      },
+      {
+        "observed_at_utc": "2026-11-01T12:08:22.222252+00:00",
+        "host": "api.yapper.website",
+        "method": "GET",
+        "path": "/rest/v1/profiles",
+        "query": {
+          "select": "id,username,created_at,bio,avatar_path,banner_path,banner_x,banner_y,avatar_x,avatar_y,avatar_zoom,avatar_rot,banner_zoom,links,verified_as,verified_hidden,badges,display_name,pronouns,accent_color,accent_color2,plus_until,plus_badge_hidden,dms_from,server_tag,tag,tag_icon,tag_icon_off,shown_badge,verify_required,custom_status,custom_status_until,avatar_deco,profile_effect,name_banner,discriminator,avatar_revert_at,name_style,account_level,plus_since,gifts_given,chat_streak",
+          "limit": 0
+        },
+        "http_status": 200,
+        "response": []
+      }
+    ]
+  },
+  "implementation": {
+    "profile_files": [
+      "ios-native/YapperNative/Core/NativeAPI.swift",
+      "ios-native/YapperNative/Core/NativeMessageService.swift",
+      "ios-native/YapperNative/Core/NativeSocialService.swift"
+    ],
+    "profile_behavior": [
+      "Shared exact official public projection, including banner fields.",
+      "Authenticated requests with validated UUIDs, bounded batches and requested, unique, named response identities.",
+      "Authorization errors propagate without an endpoint bypass or privileged credentials."
+    ],
+    "cancellation": "NativeAPI.dataResponse normalizes CancellationError and NSURLErrorCancelled, and preserves other network and HTTP errors.",
+    "accompanying_source_changes": [
+      {
+        "file": "ios-native/YapperNative/Core/RealtimeClient.swift",
+        "behavior": "Subscription acknowledgements request a resync only once per replacement connection."
+      },
+      {
+        "file": "ios-native/YapperNative/Core/NativeStore.swift",
+        "behavior": "Same-conversation refresh retains visible history until success, merging live changes and deletion tombstones."
+      }
+    ]
+  },
+  "verification": {
+    "swift_syntax_parse": "passed_for_profile_api_services_and_new_regression_test_file",
+    "official_projection_exact_match": "passed_42_columns",
+    "public_zero_row_probes": "wildcard_denied_and_official_projection_allowed_on_both_hosts",
+    "regression_test_file": "ios-native/YapperNativeTests/NativeProfileContractTests.swift",
+    "regression_cases": [
+      "Replies, pins and search hydrate authors when wildcard profile reads are denied.",
+      "Own and social reads retain public banner fields and account filters.",
+      "Foreign, duplicate or unnamed response rows are rejected.",
+      "Profile identity batches are bounded and validated.",
+      "Authorization errors remain visible without an alternate endpoint.",
+      "Swift and URLSession cancellation share the cancellation path; offline failures remain failures."
+    ],
+    "integration_tests": "NativeProfileContractTests passed within219logicaltests/25suites (236expanded cases), native-0.2.2-unit-confirmation.xcresult",
+    "app_builds": "Unsigned device archive and locally signed arm64/x86_64 Simulator Release builds succeeded from the frozen application sources.",
+    "release_validation": "See native-0.2.2-validation.json for final UI/capture/package/launch outcomes and verification limits; no real-account acceptance claimed."
+  }
+}

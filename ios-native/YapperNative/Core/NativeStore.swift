@@ -34,6 +34,7 @@ import Observation
     @ObservationIgnored private var pendingFactor: String?
     @ObservationIgnored private var epoch = 0
     @ObservationIgnored private var historyRevision = 0
+    @ObservationIgnored private var historyDeletedIDs: Set<String> = []
     @ObservationIgnored private var listRevision = 0
     @ObservationIgnored private var authTask: Task<Void, Never>?
     @ObservationIgnored private var historyTask: Task<Void, Never>?
@@ -139,8 +140,9 @@ import Observation
         historyRevision += 1
         let historyID = historyRevision
         historyTask?.cancel()
+        historyDeletedIDs = []
         isLoadingMessages = true
-        defer { if epoch == revision, historyRevision == historyID { isLoadingMessages = false } }
+        defer { if epoch == revision, historyRevision == historyID { isLoadingMessages = false; historyDeletedIDs = [] } }
         do {
             let context = try await withAuthenticatedSession { api, session in
                 let body = try JSONEncoder().encode(["cid": conversation.id, "mid": id])
@@ -152,7 +154,8 @@ import Observation
             }
             var profiles = profiles
             for profile in context.profiles ?? [] { profiles[profile.id] = profile.user() }
-            let displayed = try rows.map { try $0.message(profiles: profiles) }
+            guard !historyDeletedIDs.contains(id) else { return false }
+            let displayed = try rows.filter { !historyDeletedIDs.contains($0.id) }.map { try $0.message(profiles: profiles) }
             self.profiles = profiles
             messages = Self.merged(displayed)
             oldestMessageCursor = rows.min { $0.created_at < $1.created_at }?.created_at
@@ -456,7 +459,7 @@ import Observation
         #if DEBUG
         if isFixture { return }
         #endif
-        guard authState == .signedIn else { return }
+        guard authState == .signedIn, !Task.isCancelled else { return }
         let revision = epoch
         listRevision += 1
         let listID = listRevision
@@ -489,7 +492,13 @@ import Observation
     }
 
     func loadMessages(for conversation: Conversation) async {
-        guard authState == .signedIn else { return }
+        guard authState == .signedIn, !Task.isCancelled else { return }
+        let changingConversation = selectedConversation?.id != conversation.id
+        if changingConversation {
+            messages = []
+            hasMoreMessages = false
+            oldestMessageCursor = nil
+        }
         selectedConversation = conversation
         realtime?.observe(channelID: conversation.id, serverID: conversation.serverID)
         #if DEBUG
@@ -498,8 +507,6 @@ import Observation
             return
         }
         #endif
-        hasMoreMessages = false
-        oldestMessageCursor = nil
         await loadHistory(for: conversation, before: nil)
     }
 
@@ -513,6 +520,7 @@ import Observation
         guard selectedConversation?.id == id else { return }
         historyRevision += 1
         historyTask?.cancel()
+        historyDeletedIDs = []
         selectedConversation = nil
         messages = []
         oldestMessageCursor = nil
@@ -526,17 +534,19 @@ import Observation
     }
 
     private func loadHistory(for conversation: Conversation, before: String?) async {
+        guard !Task.isCancelled else { return }
         let revision = epoch
         historyRevision += 1
         let historyID = historyRevision
         historyTask?.cancel()
-        if before == nil { messages = [] }
+        historyDeletedIDs = []
+        let messagesAtStart = Dictionary(messages.map { ($0.id, $0) }, uniquingKeysWith: { _, new in new })
         isLoadingMessages = true
         errorMessage = nil
         let task = Task { [weak self] in
             guard let self else { return }
             defer {
-                if self.epoch == revision, self.historyRevision == historyID { self.isLoadingMessages = false }
+                if self.epoch == revision, self.historyRevision == historyID { self.isLoadingMessages = false; self.historyDeletedIDs = [] }
             }
             do {
                 let valid = try await self.validSession(revision: revision)
@@ -550,9 +560,15 @@ import Observation
                 self.profiles = profiles
                 let cursor = history.messages.min { $0.created_at < $1.created_at }?.created_at
                 self.hasMoreMessages = history.messages.count == 50 && cursor != before
-                if let cursor { self.oldestMessageCursor = cursor }
-                // Include inserts received while the history request was in flight.
-                self.messages = Self.merged(messages + self.messages)
+                if before == nil { self.oldestMessageCursor = cursor }
+                else if let cursor { self.oldestMessageCursor = cursor }
+                if before == nil {
+                    // Keep the current history visible during refresh. Replace it only after a
+                    // successful response, retaining live inserts/edits/deletes from this request.
+                    let removed = Set(messagesAtStart.keys).subtracting(self.messages.map(\.id)).union(self.historyDeletedIDs)
+                    let liveChanges = self.messages.filter { messagesAtStart[$0.id] != $0 }
+                    self.messages = Self.merged(messages.filter { !removed.contains($0.id) } + liveChanges)
+                } else { self.messages = Self.merged(messages.filter { !self.historyDeletedIDs.contains($0.id) } + self.messages) }
             } catch {
                 guard self.epoch == revision, self.historyRevision == historyID, !Task.isCancelled else { return }
                 self.handle(error)
@@ -675,6 +691,7 @@ import Observation
         browserOperationID = nil
         listTask?.cancel()
         historyTask?.cancel()
+        historyDeletedIDs = []
         sendTask?.cancel()
         refreshTask?.cancel()
         refreshTask = nil
@@ -749,6 +766,7 @@ import Observation
     }
 
     private func handle(_ error: any Error) {
+        guard !(error is CancellationError), !Task.isCancelled else { return }
         if error as? NativeClientError == .sessionExpired {
             failAuthentication(NativeClientError.sessionExpired)
         } else if case let NativeClientError.api(status, _) = error, status == 401 {
@@ -819,9 +837,10 @@ import Observation
         }
     }
 
-    private func apply(_ mutation: RealtimeMutation) {
+    func apply(_ mutation: RealtimeMutation) {
         guard authState == .signedIn, mutation.table == "messages" else { return }
         if mutation.operation == "DELETE", let old = mutation.old_record, let id = old.id {
+            if isLoadingMessages { historyDeletedIDs.insert(id) }
             messages.removeAll { $0.id == id }
             return
         }

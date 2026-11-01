@@ -5,17 +5,7 @@ extension NativeAPI {
     private static let socialProfileColumns = "id,username,display_name,bio,pronouns,custom_status,custom_status_until,avatar_path,banner_path,accent_color,accent_color2,links,badges,created_at,plus_until,plus_since,plus_badge_hidden,account_level,tag,server_tag,tag_icon_off,verified_as,verified_hidden,banner_x,banner_y,banner_zoom,avatar_x,avatar_y,avatar_zoom,avatar_rot,avatar_deco,profile_effect,name_banner,avatar_revert_at"
 
     func socialProfiles(ids: [String], session: NativeSession) async throws -> [NativeProfileDetail] {
-        let unique = Array(Set(ids)).sorted()
-        guard unique.allSatisfy({ UUID(uuidString: $0) != nil }), unique.count <= 5_000 else { throw NativeClientError.invalidResponse }
-        var profiles: [NativeProfileDetail] = []
-        for start in stride(from: 0, to: unique.count, by: 100) {
-            try Task.checkCancellation()
-            let values = unique[start..<min(start + 100, unique.count)].joined(separator: ",")
-            let rows = try await table("profiles", query: [URLQueryItem(name: "select", value: Self.socialProfileColumns), URLQueryItem(name: "id", value: "in.(\(values))")], session: session)
-            guard case .array = rows else { throw NativeClientError.invalidResponse }
-            profiles += try rows.array.map(NativeProfileDetail.init(row:))
-        }
-        return profiles
+        try await publicProfiles(ids: ids, session: session).map(NativeProfileDetail.init(row:))
     }
 
     func socialSnapshot(session: NativeSession) async throws -> NativeSocialSnapshot {

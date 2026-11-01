@@ -46,9 +46,10 @@ final class NativeFlowTests: XCTestCase {
         let rail = app.descendants(matching: .any).matching(identifier: "native.original.rail").firstMatch
         XCTAssertTrue(bar.exists && sidebar.exists && rail.exists)
         if app.frame.width <= 760 {
-            XCTAssertEqual(rail.frame.width, 64, accuracy: 1)
-            XCTAssertEqual(bar.frame.minX - sidebar.frame.minX, sidebar.frame.maxX - bar.frame.maxX, accuracy: 1)
-            XCTAssertEqual(bar.frame.height, 64, accuracy: 1)
+            XCTAssertEqual(rail.frame.width, 72, accuracy: 1)
+            XCTAssertEqual(bar.frame.midX, app.frame.midX, accuracy: 1)
+            XCTAssertEqual(bar.frame.width, app.frame.width - 24, accuracy: 1)
+            XCTAssertEqual(bar.frame.height, 56, accuracy: 1)
         } else {
             XCTAssertEqual(rail.frame.width, 72, accuracy: 1)
             XCTAssertEqual(bar.frame.width, 316, accuracy: 1)
@@ -57,7 +58,12 @@ final class NativeFlowTests: XCTestCase {
         }
         XCTAssertGreaterThanOrEqual(account.frame.height, 44)
         XCTAssertTrue(account.isHittable)
-        XCTAssertTrue(app.buttons["native.settings"].isHittable)
+        if app.frame.width <= 760 {
+            account.tap()
+            XCTAssertTrue(app.buttons["native.settings"].waitForExistence(timeout: 5))
+            XCTAssertTrue(app.buttons["native.settings"].isHittable)
+            account.tap()
+        } else { XCTAssertTrue(app.buttons["native.settings"].isHittable) }
         XCTAssertEqual(app.webViews.count, 0)
         screenshot(app, "Native conversation list — synthetic fixture")
     }
@@ -90,7 +96,9 @@ final class NativeFlowTests: XCTestCase {
     @MainActor func testNativeAccountSignOut() throws {
         let app = app()
         app.launch()
+        XCTAssertTrue(app.buttons["native.account"].waitForExistence(timeout: 10))
         let signOut = app.buttons["native.account.signOut"]
+        if !signOut.exists { app.buttons["native.account"].tap() }
         XCTAssertTrue(signOut.waitForExistence(timeout: 10))
         XCTAssertTrue(signOut.isHittable)
         signOut.tap()

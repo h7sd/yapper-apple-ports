@@ -29,7 +29,10 @@ final class NativeFeatureFlowTests: XCTestCase {
     }
 
     @MainActor private func tab(_ app: XCUIApplication, _ label: String) -> XCUIElement {
-        if label == "Einstellungen" { return app.buttons["native.settings"] }
+        if label == "Einstellungen" {
+            if !app.buttons["native.settings"].exists { app.buttons["native.account"].tap() }
+            return app.buttons["native.settings"]
+        }
         let tab = app.tabBars.buttons[label].firstMatch
         return tab.exists ? tab : app.buttons[label].firstMatch
     }
@@ -100,21 +103,31 @@ final class NativeFeatureFlowTests: XCTestCase {
         let app = app()
         let friends = app.buttons["native.home.people"]
         XCTAssertTrue(friends.waitForExistence(timeout: 10))
-        XCTAssertGreaterThanOrEqual(friends.frame.height, 44)
-        if app.frame.width <= 760 {
-            for label in ["Home", "Server", "Einstellungen"] {
-                let item = tab(app, label)
-                XCTAssertTrue(item.exists)
-                XCTAssertTrue(item.isHittable)
-            }
-        } else {
-            XCTAssertFalse(element(app, id: "native.app.tabs").exists, "The wide original layout uses its server rail and account actions.")
-            XCTAssertTrue(element(app, id: "native.original.rail").exists)
-            XCTAssertTrue(app.buttons["native.server.66666666-6666-4666-8666-666666666666"].isHittable)
-            XCTAssertTrue(app.buttons["native.settings"].isHittable)
-        }
+        // Accessibility frames can represent an exact 44pt target as
+        // 43.999999999999986 after coordinate conversion.
+        XCTAssertGreaterThanOrEqual(friends.frame.height, 44 - 0.001)
+        XCTAssertFalse(element(app, id: "native.app.tabs").exists, "The pinned layout navigates through its rail, toolbar and profile menu.")
+        XCTAssertTrue(element(app, id: "native.original.rail").exists)
+        XCTAssertTrue(app.buttons["native.server.66666666-6666-4666-8666-666666666666"].isHittable)
+        XCTAssertTrue(app.buttons["native.home.search"].isHittable)
+        XCTAssertTrue(app.buttons["native.home.group"].isHittable)
+        tap(app.buttons["native.home.search"], in: app)
+        let conversationSearch = app.textFields["native.home.search.field"]
+        tap(conversationSearch, in: app)
+        conversationSearch.typeText("Nova")
+        XCTAssertTrue(app.buttons["native.conversation.fixture-chat"].exists)
+        XCTAssertFalse(app.buttons["native.conversation.fixture-milo"].exists)
+        tap(app.buttons["Suche schließen"], in: app)
         nativeOnly(app)
         tap(friends, in: app)
+        let requestUsername = app.textFields["native.home.addFriend.username"]
+        XCTAssertTrue(requestUsername.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["native.home.addFriend.send"].isEnabled)
+        tap(app.buttons["Abbrechen"], in: app)
+        waitForDismissal(requestUsername)
+        tap(friends, in: app)
+        XCTAssertTrue(requestUsername.waitForExistence(timeout: 5))
+        tap(app.buttons["native.home.addFriend.showFriends"], in: app)
         XCTAssertTrue(element(app, id: "native.people.filter").waitForExistence(timeout: 10))
         let add = app.buttons["native.people.add"]
         XCTAssertTrue(add.exists)
@@ -217,7 +230,6 @@ final class NativeFeatureFlowTests: XCTestCase {
     @MainActor func testServerChannelsMembersAndNativeConversation() throws {
         let app = app()
         XCTAssertTrue(app.buttons["native.home.people"].waitForExistence(timeout: 10))
-        if app.frame.width <= 760 { tap(tab(app, "Server"), in: app) }
         let server = app.buttons["native.server.66666666-6666-4666-8666-666666666666"]
         tap(server, in: app)
         XCTAssertTrue(app.buttons["Servermenü"].waitForExistence(timeout: 5))
