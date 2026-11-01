@@ -184,7 +184,7 @@ private struct NativeCallParticipant: View {
                     .padding(.top, 12)
             }
             ForEach(videos, id: \.sid) { publication in
-                NativeCallVideoPublication(publication: publication)
+                NativeCallVideoPublication(publication: publication, participantIdentity: participant.identity?.stringValue)
             }
             HStack(spacing: 6) {
                 Text(participant.name ?? participant.identity?.stringValue ?? "Yapper").lineLimit(2)
@@ -201,14 +201,31 @@ private struct NativeCallParticipant: View {
 
 private struct NativeCallVideoPublication: View {
     @ObservedObject var publication: TrackPublication
+    let participantIdentity: String?
+    @Environment(NativeCallController.self) private var call
     private var screen: Bool { publication.source == .screenShareVideo }
     private var label: String { screen ? "Bildschirm" : publication.source == .camera ? "Kamera" : "Video" }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label(label, systemImage: screen ? "rectangle.on.rectangle" : "video")
-                .font(OriginalYapper.font(12, weight: .semibold))
-                .foregroundStyle(YapperPalette.secondary)
+            HStack {
+                Label(label, systemImage: screen ? "rectangle.on.rectangle" : "video")
+                    .font(OriginalYapper.font(12, weight: .semibold))
+                    .foregroundStyle(YapperPalette.secondary)
+                Spacer(minLength: 0)
+                if screen, let owner = participantIdentity, call.hasRemoteScreenAudio(for: owner) {
+                    Button {
+                        call.setScreenAudioEnabled(!call.isScreenAudioEnabled(for: owner), for: owner)
+                    } label: {
+                        Label(call.isScreenAudioEnabled(for: owner) ? "Stream-Ton aus" : "Stream-Ton an",
+                              systemImage: call.isScreenAudioEnabled(for: owner) ? "speaker.wave.2" : "speaker.slash")
+                            .font(OriginalYapper.font(12, weight: .semibold))
+                            .frame(minHeight: 44)
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("native.call.screenAudio." + NativeCallAudioPolicy.normalizedOwner(remoteIdentity: owner))
+                }
+            }
             if !publication.isMuted, let track = publication.track as? VideoTrack {
                 SwiftUIVideoView(track, layoutMode: .fit)
                     .frame(minHeight: 140, idealHeight: 220)

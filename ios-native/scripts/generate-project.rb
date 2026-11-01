@@ -42,8 +42,8 @@ app.frameworks_build_phase.files << livekit_link
       'PRODUCT_BUNDLE_IDENTIFIER' => "website.yapper.native.ios#{target == app ? '' : '.' + target.name}",
       'TARGETED_DEVICE_FAMILY' => '1,2',
       'CODE_SIGN_STYLE' => 'Automatic',
-      'CURRENT_PROJECT_VERSION' => '7',
-      'MARKETING_VERSION' => '0.2.4',
+      'CURRENT_PROJECT_VERSION' => '8',
+      'MARKETING_VERSION' => '0.2.5',
       'CLANG_ENABLE_MODULES' => 'YES',
       'ENABLE_USER_SCRIPT_SANDBOXING' => 'YES',
       'GENERATE_INFOPLIST_FILE' => target == app ? 'NO' : 'YES'

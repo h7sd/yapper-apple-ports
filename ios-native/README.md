@@ -4,9 +4,19 @@ A native iOS reconstruction in development, with **SwiftUI/UIKit application scr
 
 The welcome screen shows Yapper's mark, a localized welcome title and sign-in action; terms/privacy links stay at the bottom. German and English follow the device's preferred supported language, with English fallback. The official page handles email/username sign-in, CAPTCHA and TOTP, then the temporary window closes. Conversation lists, paginated messages, text sending, incoming updates, account settings, keyboard handling and Dynamic Type remain native.
 
-## Current live state, server and appearance work (0.2.4)
+## Current received-audio work (0.2.5)
 
-Candidate 0.2.4/build 7 keeps the pinned home arrangement and adds peer availability, unread/mention indicators, server voice rosters, channel posting checks, a continuing member roster, role colors and synchronized account appearance. Application screens remain native. [Live-state contracts](reports/live-state-contract-0.2.4.json), [server contracts](reports/server-contracts-0.2.4.json) and [account-appearance evidence](reports/account-appearance-0.2.4.json) distinguish observed official-client behavior from native implementation and unverified live acceptance.
+Version **0.2.5/build 8** addresses a possible extra playback path behind the reported doubled remote voices. Calls connect with automatic remote-track subscription disabled, then explicitly apply the media policy to existing and newly published tracks and after reconnect. Ordinary microphone audio, unknown audio sources and other participants' video remain available. Every publication belonging to the local account's validated UUID `:screen` companion is excluded.
+
+Other participants' `screen_share_audio` is off until **Stream-Ton an** is selected on that screen-share tile. Screen video remains visible independently. Only one normalized owner can have stream sound enabled at a time; selecting another owner's sound silences the previous owner's screen audio. **Stream-Ton aus** disables it again. Subscription and playback-volume decisions share the same owner and deafen checks, including while subscription changes are pending.
+
+The [received-audio policy evidence](reports/call-audio-policy-0.2.5.json) records the retained official-client source, identity rules and regression scope. The official client excludes its own screen companion and conditionally applies on-demand screen subscriptions behind a rollout flag. The native default-off, separately controlled stream sound is a deliberate refinement of that behavior. This does not prove that screen audio caused the reported issue, establish successful live call interoperability or constitute physical-device acoustic verification. The 0.2.4 features and pinned home arrangement below are retained; complete native feature/visual parity is not claimed.
+
+[Current validation](reports/native-0.2.5-validation.json): 315 logical unit tests in 34 suites pass; device/Simulator Release builds and 237 package checks pass. The exact delivered Simulator package launches to Welcome. Live call audio remains unverified on a physical device.
+
+## Historical live state, server and appearance work (0.2.4)
+
+Version 0.2.4/build 7 keeps the pinned home arrangement and adds peer availability, unread/mention indicators, server voice rosters, channel posting checks, a continuing member roster, role colors and synchronized account appearance. Application screens remain native. [Live-state contracts](reports/live-state-contract-0.2.4.json), [server contracts](reports/server-contracts-0.2.4.json) and [account-appearance evidence](reports/account-appearance-0.2.4.json) distinguish observed official-client behavior from native implementation and unverified live acceptance.
 
 Peer availability uses the observed top-level realtime presence frames and authenticated `who_online` fallback, scoped to the active server and requested users. DM rows, chat headers and server members use that peer state; the own saved preference remains separate. Unknown or failed responses do not turn a person Online, and Invisible does not become Online. Publishing the verified own preference while the app is active does not establish complete global presence or automatic-idle parity.
 
@@ -83,6 +93,10 @@ SIMULATOR_ID=<dedicated-simulator-udid> ./scripts/build-native.sh test
 The archive command produces an **unsigned IPA**. Sign it with your own Apple development/distribution profile before installing; it is not an App Store or TestFlight release. The Simulator ZIP runs only in Xcode's iOS Simulator. Optional project regeneration uses Ruby and `xcodeproj` 1.27.0: `ruby scripts/generate-project.rb`.
 
 ## Verification
+
+The [0.2.5 audio-policy report](reports/call-audio-policy-0.2.5.json) preserves the source hash and exact evidence offsets. Its regression suite covers UUID normalization, own-companion exclusion, explicit screen-audio selection, ordinary/unknown media preservation, deafen and gain gates, and the actual controller's disabled automatic subscription setting. Source inspection and synthetic policy tests do not reproduce the reported doubled sound or validate live acoustic behavior. Versioned results below describe their named releases, not the new 0.2.5 artifacts.
+
+### Historical 0.2.4 verification
 
 The 0.2.4 unit run `native-0.2.4-unit-final.xcresult` passed **304 logical tests in 33 suites** (392 expanded cases), with zero failures, skips or runtime warnings. It includes the new live-state, channel-access, appearance and mention-rendering regressions against synthetic transports and account data. The run precedes subsequent UI-only changes for pin/poll submission gates, navigation restoration, live-avatar display and decorative-background hit testing; it does not independently validate those later UI changes.
 

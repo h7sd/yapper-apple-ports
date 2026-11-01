@@ -18,7 +18,7 @@ parser.add_argument('--app', type=pathlib.Path, help='Optional unsigned build re
 parser.add_argument('--simulator-zip', required=True, type=pathlib.Path)
 parser.add_argument('--ipa', required=True, type=pathlib.Path)
 parser.add_argument('--report', required=True, type=pathlib.Path)
-parser.add_argument('--expected-version', default='0.2.4')
+parser.add_argument('--expected-version', default='0.2.5')
 args = parser.parse_args()
 root = pathlib.Path(__file__).resolve().parent.parent
 checks = []

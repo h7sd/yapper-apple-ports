@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "targetVersion": "0.2.5",
+  "generatedAtUTC": "2026-11-01T16:15:13+00:00",
+  "reportedSymptom": "Remote participants are heard twice, including while the reporting user microphone is muted.",
+  "sourceEvidence": {
+    "artifact": "work/ios-native/profile-contract-2026-11-01/1axmaw-2qjnnk.js",
+    "sha256": "e6b38e4ef010ed998640d5f90197eb6216d0fe68372553722ba553469c09394f",
+    "offsetConvention": "Offsets refer to the exact retained minified UTF-8 artifact. Both Unicode character and UTF-8 byte offsets are zero based.",
+    "observations": [
+      {
+        "anchor": "J=\"screen_share\"",
+        "zeroBasedCharacterOffset": 7261,
+        "zeroBasedUTF8ByteOffset": 7265,
+        "observation": "The retained client distinguishes screen_share_audio from microphone audio."
+      },
+      {
+        "anchor": "er=/",
+        "zeroBasedCharacterOffset": 8959,
+        "zeroBasedUTF8ByteOffset": 8963,
+        "observation": "Screen companions require an exact lowercase :screen suffix after a standard hyphenated UUID; UUID hex matching is case insensitive."
+      },
+      {
+        "anchor": "eL=e=>",
+        "zeroBasedCharacterOffset": 12998,
+        "zeroBasedUTF8ByteOffset": 13002,
+        "observation": "The client screen-publication predicate includes both screen video and screen audio; eN removes only a validated companion suffix."
+      },
+      {
+        "anchor": "function eU(",
+        "zeroBasedCharacterOffset": 13424,
+        "zeroBasedUTF8ByteOffset": 13428,
+        "observation": "The publication policy rejects the local account screen companion for every source. When stream_on_demand is enabled, other screen publications subscribe only for the watching owner."
+      },
+      {
+        "anchor": "stream_on_demand",
+        "zeroBasedCharacterOffset": 29499,
+        "zeroBasedUTF8ByteOffset": 29535,
+        "observation": "The on-demand subscription path is guarded by a rollout flag; it is not unconditional behavior for every official-client session."
+      },
+      {
+        "anchor": "M.on(Z.RoomEvent.TrackPublished",
+        "zeroBasedCharacterOffset": 34504,
+        "zeroBasedUTF8ByteOffset": 34542,
+        "observation": "New publications invoke eU. Subscribed audio elements are indexed by track SID, with separate metadata for screen audio."
+      },
+      {
+        "anchor": "if(et=!es,eu(),eZ)",
+        "zeroBasedCharacterOffset": 42262,
+        "zeroBasedUTF8ByteOffset": 42306,
+        "observation": "The initial remote-publication subscription pass is also conditional on the rollout flag."
+      },
+      {
+        "anchor": "\"watchScreen\",0,function(e)",
+        "zeroBasedCharacterOffset": 56410,
+        "zeroBasedUTF8ByteOffset": 56470,
+        "observation": "One watching owner is stored. With the rollout flag, the selected and previous owners screen publications are subscribed/unsubscribed together; own-account owners are skipped."
+      }
+    ]
+  },
+  "nativePolicy": {
+    "identity": "Canonicalize valid UUID owners case insensitively. Strip only a validated exact :screen suffix. Preserve all malformed or unknown identities verbatim.",
+    "ownCompanion": "Reject every publication from the authenticated local UUID screen companion, including explicitly selected screen audio.",
+    "screenAudio": "Default off. Permit audio only for the one explicitly selected normalized owner. Missing or empty owner/remote identities cannot select screen audio.",
+    "otherMedia": "Preserve ordinary audio, unknown audio sources and video, including other participants screen video, without arbitrary microphone deduplication.",
+    "playbackGain": "Apply the same subscription decision and deafen gate before playback; nonfinite gains are silent and finite gains are clamped to 0...2.",
+    "parityQualification": "Always requiring explicit screen-audio selection is a deliberate native refinement inspired by the official client conditional stream-on-demand path. It is not claimed as unconditional official-client behavior. Native screen video remains separately available.",
+    "integrationScope": "NativeCallController uses manual initial subscriptions, a serialized revision-guarded deny-before-allow worker, publication/reconnect callbacks and immediate gain gates. NativeCallViews provides per-screen sound controls. Failed signaling retains the failed request direction; explicit retry rejoins with autoSubscribe=false without globally ending the call."
+  },
+  "verification": {
+    "testSource": "YapperNativeTests/NativeCallAudioPolicyTests.swift",
+    "testFunctions": 11,
+    "expandedArgumentRuns": 38,
+    "executionStatus": "Passed in native-0.2.5-unit-shipping.xcresult; full suite: 315 logical tests in 34 suites, 0 failures and 0 skips. No real room or media capture.",
+    "coverage": [
+      "UUID case normalization",
+      "strict companion validation",
+      "own companion excluded for all media",
+      "malformed identity preservation",
+      "one selected screen-audio owner",
+      "screen audio off by default",
+      "ordinary/unknown audio preserved",
+      "other participant screen video preserved",
+      "deafen and subscription playback gates",
+      "finite gain clamping and nonfinite rejection",
+      "actual controller connect options disable automatic track subscription"
+    ],
+    "artifacts": [
+      {
+        "path": "YapperNative/Core/NativeCallAudioPolicy.swift",
+        "sha256": "6ce780e0179b25a2fca6e1233fc8272107b2bfeec45a9f916a19e5ab7db4d084"
+      },
+      {
+        "path": "YapperNativeTests/NativeCallAudioPolicyTests.swift",
+        "sha256": "321aa8d51bcfd7480a7702a7c610e70409531c35a09c8e5ee8df8e80ea1bb714"
+      },
+      {
+        "path": "YapperNative/Core/NativeCalls.swift",
+        "sha256": "ccef52678b4cf40fedc3a468be20207bf94558d430d298f78805920c303f8cc6"
+      },
+      {
+        "path": "YapperNative/UI/NativeCallViews.swift",
+        "sha256": "21989c5796a73003ae7f4f2e8c52ae2c597eebf5b7d2b8dd3001d977957891fb"
+      }
+    ]
+  },
+  "limitations": [
+    "No live account, room, microphone, camera or physical-device audio session was used in this subtask.",
+    "The reported doubled playback has not been reproduced here; these source findings do not prove its actual runtime cause.",
+    "A screen-audio publication can carry sound already present in microphone playback; avoiding its automatic playback prevents that possible second path without dropping ordinary voices.",
+    "This is a subscription/playback policy, not a finding that acoustic echo cancellation is defective or verified.",
+    "Manual subscription requests and defensive gain gates are not a measured zero-frame guarantee across all server or SDK races."
+  ],
+  "sdkEvidence": {
+    "package": "livekit/client-sdk-swift",
+    "version": "2.19.0",
+    "revision": "43c1c0870e51eedbfd95b20b1b5c43a767886786",
+    "sourceRoot": "Sources/LiveKit/",
+    "observations": [
+      {
+        "path": "Types/Options/ConnectOptions.swift",
+        "line": 99,
+        "observation": "Auto subscription defaults true; this client explicitly supplies false."
+      },
+      {
+        "path": "TrackPublications/RemoteTrackPublication.swift",
+        "line": 64,
+        "observation": "Repeated preference short-circuits; preference is stored at line71 before signaling, so failures must retain direction."
+      },
+      {
+        "path": "Core/Room+Engine.swift",
+        "line": 628,
+        "observation": "Quick reconnect restores desired subscription intent."
+      },
+      {
+        "path": "Participant/RemoteParticipant.swift",
+        "line": 88,
+        "observation": "Publication callbacks only while connected require an explicit initial pass after connect."
+      },
+      {
+        "path": "Participant/RemoteParticipant.swift",
+        "line": 170,
+        "observation": "Remote playback starts before subscription callback; manual initial subscription is stronger than callback-only muting."
+      },
+      {
+        "path": "Types/Options/AudioCaptureOptions.swift",
+        "line": 26,
+        "observation": "Echo cancellation already defaults true; no speculative microphone capture or AEC override added."
+      }
+    ]
+  }
+}

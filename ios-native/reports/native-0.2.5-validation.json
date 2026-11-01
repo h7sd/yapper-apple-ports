@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "version": "0.2.5",
+  "build": "8",
+  "channel": "development-prerelease",
+  "validationStatus": "passed-local-unit-build-package-and-exact-simulator-launch; live-call-acoustics-unverified",
+  "parentNativeCommit": "9412915a7c5f0db8f0149bd5b0f0fe9364551249",
+  "overallParityComplete": false,
+  "liveAccountVerified": false,
+  "implementedRequests": {
+    "receivedAudio": "Manual initial remote subscriptions; ordinary microphone and unknown-source audio retained. Extra screen_share_audio defaults off and is enabled explicitly per screen tile.",
+    "ownScreenCompanion": "All publications from the local authenticated UUID :screen companion are excluded.",
+    "screenSoundControl": "Stream-Ton an/aus selects at most one normalized owner; screen video remains independent. Selection clears when the owner audio disappears, call leaves or channel moves.",
+    "lifecycle": "Serialized deny-before-allow subscription changes, room/call/revision guards and new-publication/initial/reconnect application. Same policy gates playback gain and deafen.",
+    "failedSignaling": "Failed subscription direction retained; explicit retry safely rejoins with autoSubscribe=false without globally ending the connected call. Failed denies are never reset through a temporary true."
+  },
+  "contractEvidence": [
+    "call-audio-policy-0.2.5.json"
+  ],
+  "nativeUnitTests": {
+    "passed": true,
+    "logicalTests": 315,
+    "suites": 34,
+    "failed": 0,
+    "skipped": 0,
+    "evidence": "native-0.2.5-unit-shipping.xcresult",
+    "scope": "Shipping source frozen before unit/build. Synthetic fixtures; no authenticated room or media capture.",
+    "receivedAudioPolicy": {
+      "testFunctions": 11,
+      "expandedArgumentRuns": 38
+    },
+    "runtimeWarnings": []
+  },
+  "boundedCodeReview": {
+    "passed": true,
+    "scope": "Pinned SDK API, initial publication behavior, reconnect intent, serialized revision guards and callback loops.",
+    "correctedFindings": [
+      "Failed false must not be mistaken for successful retry after SDK preference no-op.",
+      "Failed true followed by disable must still write false; retain failed direction per SID."
+    ]
+  },
+  "builds": {
+    "deviceRelease": {
+      "passed": true,
+      "evidence": "native-0.2.5-archive.log",
+      "signing": "Unsigned; own Apple profile required."
+    },
+    "simulatorRelease": {
+      "passed": true,
+      "evidence": "native-0.2.5-simulator.log",
+      "architectures": [
+        "arm64",
+        "x86_64"
+      ]
+    },
+    "exactDeliveredSimulatorLaunch": {
+      "passed": true,
+      "device": "iPhone17Pro",
+      "simulatorID": "4D9ED43E-4B65-473B-B3A6-CF05C5D3A672",
+      "processID": 91737,
+      "fixtureArguments": false,
+      "artifactSHA256": "5769b414071263c7f3094f736e0dc4b7629e916e708ce63813fe404d8d51872b",
+      "image": "../docs/images/welcome-0.2.5-release-de-iphone-pro.png",
+      "imageSHA256": "0d2bd845675b3c75aea608e85e6fca33d56c6a81450d1fa8d8b981b87343f9d5"
+    },
+    "warnings": [
+      "Existing pinned LiveKit E2EEOptions deprecation; no encryption migration in this change.",
+      "AppIntents extraction skipped because this app has no AppIntents dependency."
+    ]
+  },
+  "packageInspection": {
+    "passed": true,
+    "checks": 237,
+    "shippingSwiftFiles": 92,
+    "report": "package-verification-0.2.5.json",
+    "artifacts": [
+      {
+        "name": "Yapinplugger-Native-0.2.5-iOS-Simulator.zip",
+        "bytes": 32144181,
+        "sha256": "5769b414071263c7f3094f736e0dc4b7629e916e708ce63813fe404d8d51872b"
+      },
+      {
+        "name": "Yapinplugger-Native-0.2.5-ios-unsigned.ipa",
+        "bytes": 12036080,
+        "sha256": "6c744dcf80f9c35809b9322a68a9f8cffc69b6429eedb28e300bae9f4c4c9ada"
+      }
+    ],
+    "recordedSourceHashesMatchFrozenSource": true
+  },
+  "historicalValidation": {
+    "version": "0.2.4",
+    "report": "native-0.2.4-validation.json",
+    "uiMatrixRerunForAudioChange": false
+  },
+  "verificationLimits": {
+    "reportedDoublePlaybackReproduced": false,
+    "screenSharePresentInReportedCall": null,
+    "physicalDeviceAcousticVerification": false,
+    "liveEncryptedCalls": false,
+    "realAccountSignIn": false,
+    "actualServerSubscriptionBehavior": false,
+    "measuredZeroUnexpectedAudioFrames": false,
+    "causalQualification": "Screen audio is a plausible extra playback path; this does not establish the reported live cause. AEC was already enabled in the pinned SDK and was not speculatively changed.",
+    "allVencordPlugins": false,
+    "backendPushAndNativePurchaseProvisioning": false,
+    "hostedCIExecuted": false,
+    "completeVisualAndFunctionalParity": false,
+    "securityScope": "Source/package/hash checks are bounded inspection evidence, not a comprehensive malware audit or a safety guarantee."
+  }
+}

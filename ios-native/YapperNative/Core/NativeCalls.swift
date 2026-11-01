@@ -17,6 +17,7 @@ import LiveKit
     private(set) var listener = false
     private(set) var moderatorMuted = false
     private(set) var safetyCode = ""
+    private(set) var screenAudioOwner: String?
     private(set) var outputVolume: Double = 1
     private(set) var speakerPreferred = true
     private(set) var noClip = false
@@ -41,13 +42,20 @@ import LiveKit
     @ObservationIgnored private var noAnswerTask: Task<Void, Never>?
     @ObservationIgnored private var retryTarget: NativeCallRetryTarget?
 
-    func join(store: NativeStore, channelID: String, title: String, serverID: String? = nil, startNewCall: Bool = true) async {
-        if self.channelID == channelID, room != nil { presented = true; return }
+    @ObservationIgnored private var subscriptionRevision = 0
+    @ObservationIgnored private var subscriptionTask: Task<Void, Never>?
+    @ObservationIgnored private var failedSubscriptions: [String: Bool] = [:]
+
+    // Select publications before receiving audio, including during initial join/reconnect.
+    static var connectionOptions: ConnectOptions { ConnectOptions(autoSubscribe: false) }
+
+    func join(store: NativeStore, channelID: String, title: String, serverID: String? = nil, startNewCall: Bool = true, reconnect: Bool = false) async {
+        if !reconnect, self.channelID == channelID, room != nil { presented = true; return }
         guard !isConnecting, store.authState == .signedIn, let accountID = store.user?.id else { return }
         let requestID = UUID()
         requestedJoinID = requestID
         isConnecting = true
-        await disconnectCurrent(preservingJoin: requestID)
+        await disconnectCurrent(preservingJoin: requestID, finishConnectedCall: !reconnect)
         // An old end_call for this account/channel must finish before starting a replacement call.
         while requestedJoinID == requestID {
             let waiting = pendingEnds.filter { $0.value.accountID == accountID && $0.value.channelID == channelID }
@@ -104,10 +112,12 @@ import LiveKit
             let connected = Room(delegate: self, roomOptions: options)
             attempt.room = connected
             room = connected
-            try await connected.connect(url: endpoint, token: token)
+            try await connected.connect(url: endpoint, token: token, connectOptions: Self.connectionOptions)
             attempt.didConnect = true
             guard revision == attempt.id, room === connected, store.authState == .signedIn, store.user?.id == accountID else { throw CancellationError() }
             guard connected.localParticipant.identity?.stringValue == accountID else { throw NativeClientError.invalidResponse }
+            await requestSubscriptionUpdate(in: connected)?.value
+            guard revision == attempt.id, room === connected, store.authState == .signedIn, store.user?.id == accountID else { throw CancellationError() }
             if let keys {
                 connected.setE2EEEnabled(true)
                 try await connected.localParticipant.set(attributes: ["e2ee": keys.publicKey])
@@ -126,6 +136,11 @@ import LiveKit
                 isConnecting = false
                 errorMessage = error is CancellationError ? nil : error.localizedDescription
                 status = "Nicht verbunden"
+                subscriptionTask?.cancel()
+                subscriptionTask = nil
+                subscriptionRevision += 1
+                screenAudioOwner = nil
+                failedSubscriptions = [:]
                 room = nil
                 activeAttempt = nil
                 // Clear only this attempt, synchronously, before any disconnect can suspend.
@@ -146,11 +161,28 @@ import LiveKit
 
     func retry() async {
         guard let target = retryTarget, target.store.authState == .signedIn, target.store.user?.id == target.accountID else { return }
+        if let room {
+            if !failedSubscriptions.isEmpty {
+                // Rejoin with autoSubscribe=false to resend failed deny preferences safely.
+                // A false -> true -> false reset could temporarily grant unwanted audio.
+                await join(store: target.store, channelID: target.channelID, title: target.title,
+                           serverID: target.serverID, startNewCall: false, reconnect: true)
+            } else {
+                errorMessage = nil
+                await requestSubscriptionUpdate(in: room)?.value
+            }
+            return
+        }
         await join(store: target.store, channelID: target.channelID, title: target.title, serverID: target.serverID, startNewCall: !target.store.activeCallChannels.contains(target.channelID))
     }
 
     private func disconnectCurrent(preservingJoin requestID: UUID?, finishConnectedCall: Bool = true) async {
         revision = UUID()
+        subscriptionTask?.cancel()
+        subscriptionTask = nil
+        subscriptionRevision += 1
+        failedSubscriptions = [:]
+        screenAudioOwner = nil
         let old = room
         let attempt = activeAttempt
         activeAttempt = nil
@@ -229,16 +261,12 @@ import LiveKit
         guard let room else { return }
         if enabled { await setMicrophone(false) }
         guard self.room === room else { return }
-        for participant in room.remoteParticipants.values {
-            for publication in participant.trackPublications.values {
-                if let audio = publication.track as? RemoteAudioTrack { audio.volume = enabled ? 0 : outputVolume }
-            }
-        }
+        deafened = enabled
+        applyRemoteAudioVolumes(in: room)
         do {
             var attributes = room.localParticipant.attributes
             attributes["deafened"] = enabled ? "1" : ""
             try await room.localParticipant.set(attributes: attributes)
-            if self.room === room { deafened = enabled }
         } catch { if self.room === room { errorMessage = error.localizedDescription } }
     }
 
@@ -252,13 +280,112 @@ import LiveKit
     }
 
     func setOutputVolume(_ value: Double) {
-        outputVolume = min(1, max(0, value))
+        outputVolume = value.isFinite ? min(1, max(0, value)) : 0
         guard let room else { return }
+        applyRemoteAudioVolumes(in: room)
+    }
+
+    func isScreenAudioEnabled(for participantIdentity: String) -> Bool {
+        screenAudioOwner == NativeCallAudioPolicy.normalizedOwner(remoteIdentity: participantIdentity)
+    }
+
+    func hasRemoteScreenAudio(for participantIdentity: String) -> Bool {
+        guard let room else { return false }
+        let owner = NativeCallAudioPolicy.normalizedOwner(remoteIdentity: participantIdentity)
+        return room.remoteParticipants.values.contains { participant in
+            let remote = participant.identity?.stringValue ?? ""
+            return NativeCallAudioPolicy.normalizedOwner(remoteIdentity: remote) == owner
+                && NativeCallAudioPolicy.shouldSubscribe(remoteIdentity: remote, localIdentity: identity,
+                    isScreenAudio: true, enabledScreenAudioOwner: owner)
+                && participant.trackPublications.values.contains { $0.source == .screenShareAudio }
+        }
+    }
+
+    func setScreenAudioEnabled(_ enabled: Bool, for participantIdentity: String) {
+        guard let room else { return }
+        if enabled {
+            guard hasRemoteScreenAudio(for: participantIdentity) else { return }
+            screenAudioOwner = NativeCallAudioPolicy.normalizedOwner(remoteIdentity: participantIdentity)
+        } else if isScreenAudioEnabled(for: participantIdentity) {
+            screenAudioOwner = nil
+        }
+        requestSubscriptionUpdate(in: room)
+    }
+
+    private func permits(_ publication: TrackPublication, from participant: RemoteParticipant) -> Bool {
+        NativeCallAudioPolicy.shouldSubscribe(remoteIdentity: participant.identity?.stringValue ?? "",
+            localIdentity: identity, isScreenAudio: publication.source == .screenShareAudio,
+            enabledScreenAudioOwner: screenAudioOwner)
+    }
+
+    private func applyRemoteAudioVolumes(in room: Room) {
         for participant in room.remoteParticipants.values {
             for publication in participant.audioTracks {
-                (publication.track as? RemoteAudioTrack)?.volume = deafened ? 0 : outputVolume
+                (publication.track as? RemoteAudioTrack)?.volume = NativeCallAudioPolicy.remoteAudioVolume(
+                    remoteIdentity: participant.identity?.stringValue ?? "", localIdentity: identity,
+                    isScreenAudio: publication.source == .screenShareAudio,
+                    enabledScreenAudioOwner: screenAudioOwner, deafened: deafened, requestedVolume: outputVolume)
             }
         }
+    }
+
+    @discardableResult private func requestSubscriptionUpdate(in room: Room) -> Task<Void, Never>? {
+        guard self.room === room else { return nil }
+        if let owner = screenAudioOwner, !hasRemoteScreenAudio(for: owner) { screenAudioOwner = nil }
+        // Silence denied tracks synchronously before awaiting signaling or switching owners.
+        applyRemoteAudioVolumes(in: room)
+        subscriptionRevision += 1
+        if let subscriptionTask { return subscriptionTask }
+        let expected = revision
+        let task = Task { [weak self] in
+            guard let self else { return }
+            while !Task.isCancelled, self.room === room, self.revision == expected {
+                let requested = self.subscriptionRevision
+                await self.applySubscriptions(in: room, callRevision: expected, requested: requested)
+                guard self.room === room, self.revision == expected else { return }
+                if self.subscriptionRevision == requested { self.subscriptionTask = nil; return }
+            }
+        }
+        subscriptionTask = task
+        return task
+    }
+
+    private func applySubscriptions(in room: Room, callRevision: UUID, requested: Int) async {
+        let targets = room.remoteParticipants.values.flatMap { participant in
+            participant.trackPublications.values.compactMap { publication -> (RemoteParticipant, RemoteTrackPublication)? in
+                guard let remote = publication as? RemoteTrackPublication else { return nil }
+                return (participant, remote)
+            }
+        }.sorted { $0.1.sid.stringValue < $1.1.sid.stringValue }
+        // Record explicit false preferences even for initially unsubscribed tracks: quick
+        // reconnect otherwise treats an unspecified publication preference as desired=true.
+        for allowed in [false, true] {
+            for (participant, publication) in targets {
+                guard !Task.isCancelled, self.room === room, revision == callRevision,
+                      subscriptionRevision == requested else { return }
+                guard permits(publication, from: participant) == allowed else { continue }
+                let key = publication.sid.stringValue
+                if !allowed, failedSubscriptions[key] == false { continue }
+                do {
+                    // The SDK stores a preference before sending it. Reset failed allows
+                    // so a user retry can send a fresh true request instead of a no-op.
+                    if allowed, failedSubscriptions[key] == true {
+                        try await publication.set(subscribed: false)
+                        guard !Task.isCancelled, self.room === room, revision == callRevision,
+                              subscriptionRevision == requested else { return }
+                    }
+                    try await publication.set(subscribed: allowed)
+                    guard !Task.isCancelled, self.room === room, revision == callRevision else { return }
+                    failedSubscriptions.removeValue(forKey: key)
+                } catch {
+                    guard !Task.isCancelled, self.room === room, revision == callRevision else { return }
+                    failedSubscriptions[key] = allowed
+                    errorMessage = "Eine Ton- oder Videospur konnte nicht geladen werden. Bitte erneut versuchen."
+                }
+            }
+        }
+        applyRemoteAudioVolumes(in: room)
+        updateParticipants()
     }
 
     func preferSpeaker(_ preferred: Bool) {
@@ -323,6 +450,8 @@ import LiveKit
     private func moved(to target: String, in room: Room) async {
         guard self.room === room, let store, let serverID, UUID(uuidString: target) != nil, target != channelID else { return }
         let expected = revision
+        screenAudioOwner = nil
+        requestSubscriptionUpdate(in: room)
         status = "Kanalwechsel …"
         do {
             let result = try await store.withAuthenticatedSession { api, session in
@@ -412,10 +541,10 @@ import LiveKit
     }
 
     nonisolated func room(_ room: Room, participantDidConnect participant: RemoteParticipant) {
-        Task { @MainActor [weak self] in guard let self, self.room === room else { return }; await self.shareKeys(); self.updateParticipants() }
+        Task { @MainActor [weak self] in guard let self, self.room === room else { return }; self.requestSubscriptionUpdate(in: room); await self.shareKeys(); self.updateParticipants() }
     }
     nonisolated func room(_ room: Room, participantDidDisconnect participant: RemoteParticipant) {
-        Task { @MainActor [weak self] in guard let self, self.room === room else { return }; self.updateParticipants(); self.rotateKey() }
+        Task { @MainActor [weak self] in guard let self, self.room === room else { return }; self.requestSubscriptionUpdate(in: room); self.updateParticipants(); self.rotateKey() }
     }
     nonisolated func room(_ room: Room, participant: Participant, didUpdateAttributes attributes: [String: String]) {
         Task { @MainActor [weak self] in guard let self, self.room === room else { return }; await self.shareKeys(); self.updateParticipants() }
@@ -425,10 +554,10 @@ import LiveKit
         Task { @MainActor [weak self] in await self?.receiveKey(data: data, participant: participant, in: room) }
     }
     nonisolated func roomDidReconnect(_ room: Room) {
-        Task { @MainActor [weak self] in guard let self, self.room === room else { return }; self.status = "Verbunden"; await self.shareKeys(force: true) }
+        Task { @MainActor [weak self] in guard let self, self.room === room else { return }; self.status = "Verbunden"; self.requestSubscriptionUpdate(in: room); await self.shareKeys(force: true) }
     }
     nonisolated func room(_ room: Room, didUpdateConnectionState connectionState: ConnectionState, from oldConnectionState: ConnectionState) {
-        Task { @MainActor [weak self] in guard let self, self.room === room else { return }; self.status = connectionState == .connected ? "Verbunden" : "Verbindung wird hergestellt …" }
+        Task { @MainActor [weak self] in guard let self, self.room === room else { return }; self.status = connectionState == .connected ? "Verbunden" : "Verbindung wird hergestellt …"; if connectionState == .connected { self.requestSubscriptionUpdate(in: room) } }
     }
     nonisolated func room(_ room: Room, didDisconnectWithError error: LiveKitError?) {
         Task { @MainActor [weak self] in guard let self, self.room === room else { return }; self.errorMessage = error?.localizedDescription ?? "Die Verbindung zum Anruf wurde getrennt."; await self.disconnectCurrent(preservingJoin: nil, finishConnectedCall: false) }
@@ -449,8 +578,19 @@ import LiveKit
             else { self.updateParticipants() }
         }
     }
+    nonisolated func room(_ room: Room, participant: RemoteParticipant, didPublishTrack publication: RemoteTrackPublication) {
+        Task { @MainActor [weak self] in guard let self, self.room === room else { return }; self.requestSubscriptionUpdate(in: room); self.updateParticipants() }
+    }
+    nonisolated func room(_ room: Room, participant: RemoteParticipant, didUnpublishTrack publication: RemoteTrackPublication) {
+        Task { @MainActor [weak self] in guard let self, self.room === room else { return }; self.requestSubscriptionUpdate(in: room); self.updateParticipants() }
+    }
     nonisolated func room(_ room: Room, participant: RemoteParticipant, didSubscribeTrack publication: RemoteTrackPublication) {
-        Task { @MainActor [weak self] in guard let self, self.room === room else { return }; self.updateParticipants(); self.setOutputVolume(Double(self.outputVolume)) }
+        Task { @MainActor [weak self] in
+            guard let self, self.room === room else { return }
+            self.applyRemoteAudioVolumes(in: room)
+            if !self.permits(publication, from: participant) { self.requestSubscriptionUpdate(in: room) }
+            self.updateParticipants()
+        }
     }
 
     nonisolated func room(_ room: Room, participant: Participant, didUpdatePermissions permissions: ParticipantPermissions) {
