@@ -1,0 +1,444 @@
+{
+  "schemaVersion": 1,
+  "version": "0.2.1",
+  "build": "4",
+  "channel": "local-development-candidate",
+  "validationStatus": "completed-local-validation-with-explicit-run-and-parity-qualifications",
+  "overallParityComplete": false,
+  "liveAccountVerified": false,
+  "evidenceLocation": "Local xcresult bundles and logs are under work/ios-native in the parent workspace; they are not release artifact contents.",
+  "unitTests": {
+    "passed": true,
+    "logicalTests": 202,
+    "suites": 23,
+    "devices": [
+      {
+        "model": "iPhone 17 Pro",
+        "runtime": "26.4.1",
+        "architecture": "arm64"
+      }
+    ],
+    "runs": [
+      {
+        "evidence": "original-ui-final-pro.xcresult",
+        "log": "original-ui-final-pro.log",
+        "unitPassed": 202,
+        "unitFailed": 0,
+        "unitSuites": 23,
+        "overallMixedRunResult": "Failed",
+        "mixedRunLogicalCases": 214,
+        "mixedRunLogicalFailed": 1
+      },
+      {
+        "evidence": "original-ui-settings-confirmation.xcresult",
+        "log": "original-ui-settings-confirmation.log",
+        "unitPassed": 202,
+        "unitFailed": 0,
+        "unitSuites": 23,
+        "overallMixedRunResult": "Failed",
+        "mixedRunLogicalCases": 203,
+        "mixedRunLogicalFailed": 1
+      }
+    ],
+    "derivation": "Both recorded Swift Testing terminal summaries say 202 tests in 23 suites passed. The xcresult trees independently contain 202 passing unit cases. Each enclosing mixed unit/UI run failed because of a UI case; neither enclosing bundle is represented as all green. The older original-ui-unit-confirmation.xcresult contains 191 logical tests in 20 suites and is historical."
+  },
+  "nativeUIFlows": {
+    "passed": true,
+    "coverageBasis": "Merged successful case/device results across the recorded full-matrix and targeted reruns.",
+    "singleRunAllPassed": false,
+    "logicalFunctionalFlows": 10,
+    "logicalVisualCaptureCases": 2,
+    "logicalCases": 12,
+    "successfulCaseDevicePairs": 36,
+    "syntheticFixtures": true,
+    "realAccount": false,
+    "devices": [
+      {
+        "model": "iPhone 17 Pro",
+        "runtime": "26.4.1",
+        "architecture": "arm64"
+      },
+      {
+        "model": "iPhone 17 Pro Max",
+        "runtime": "26.4.1",
+        "architecture": "arm64"
+      },
+      {
+        "model": "iPad Pro 13-inch (M5)",
+        "runtime": "26.4.1",
+        "architecture": "arm64"
+      }
+    ],
+    "caseCoverage": [
+      {
+        "identifier": "NativeFeatureFlowTests/testCommunityNavigationAndNativeBalances",
+        "kind": "functional-flow",
+        "result": "Passed on all three devices across merged evidence",
+        "evidenceByDevice": {
+          "iPhone 17 Pro": "original-ui-interaction-regression.xcresult",
+          "iPhone 17 Pro Max": "original-ui-interaction-regression.xcresult",
+          "iPad Pro 13-inch (M5)": "original-ui-interaction-regression.xcresult"
+        }
+      },
+      {
+        "identifier": "NativeFeatureFlowTests/testGermanWelcomeKeepsBothLegalLinksVisibleWithNativeTouchTargets",
+        "kind": "functional-flow",
+        "result": "Passed on all three devices across merged evidence",
+        "evidenceByDevice": {
+          "iPhone 17 Pro": "original-ui-interaction-regression.xcresult",
+          "iPhone 17 Pro Max": "original-ui-interaction-regression.xcresult",
+          "iPad Pro 13-inch (M5)": "original-ui-interaction-regression.xcresult"
+        }
+      },
+      {
+        "identifier": "NativeFeatureFlowTests/testHomeTabsPeopleSearchAndNativeProfileConversation",
+        "kind": "functional-flow",
+        "result": "Passed on all three devices across merged evidence",
+        "evidenceByDevice": {
+          "iPhone 17 Pro": "original-ui-interaction-regression.xcresult",
+          "iPhone 17 Pro Max": "original-ui-interaction-regression.xcresult",
+          "iPad Pro 13-inch (M5)": "original-ui-interaction-regression.xcresult"
+        }
+      },
+      {
+        "identifier": "NativeFeatureFlowTests/testServerChannelsMembersAndNativeConversation",
+        "kind": "functional-flow",
+        "result": "Passed on all three devices across merged evidence",
+        "evidenceByDevice": {
+          "iPhone 17 Pro": "original-ui-interaction-regression.xcresult",
+          "iPhone 17 Pro Max": "original-ui-interaction-regression.xcresult",
+          "iPad Pro 13-inch (M5)": "original-ui-interaction-regression.xcresult"
+        }
+      },
+      {
+        "identifier": "NativeFeatureFlowTests/testSettingsProfileEditorSecurityAndPluginControls",
+        "kind": "functional-flow",
+        "result": "Passed on all three devices across merged evidence",
+        "evidenceByDevice": {
+          "iPhone 17 Pro": "original-ui-settings-targeted.xcresult",
+          "iPhone 17 Pro Max": "original-ui-settings-targeted.xcresult",
+          "iPad Pro 13-inch (M5)": "original-ui-interaction-regression.xcresult"
+        }
+      },
+      {
+        "identifier": "NativeFlowTests/testEnglishWelcomeAndLegalFooter",
+        "kind": "functional-flow",
+        "result": "Passed on all three devices across merged evidence",
+        "evidenceByDevice": {
+          "iPhone 17 Pro": "original-ui-final-confirmation.xcresult",
+          "iPhone 17 Pro Max": "original-ui-final-confirmation.xcresult",
+          "iPad Pro 13-inch (M5)": "original-ui-final-confirmation.xcresult"
+        }
+      },
+      {
+        "identifier": "NativeFlowTests/testNativeAccountSignOut",
+        "kind": "functional-flow",
+        "result": "Passed on all three devices across merged evidence",
+        "evidenceByDevice": {
+          "iPhone 17 Pro": "original-ui-final-confirmation.xcresult",
+          "iPhone 17 Pro Max": "original-ui-final-confirmation.xcresult",
+          "iPad Pro 13-inch (M5)": "original-ui-final-confirmation.xcresult"
+        }
+      },
+      {
+        "identifier": "NativeFlowTests/testNativeLoginAndCenteredConversationList",
+        "kind": "functional-flow",
+        "result": "Passed on all three devices across merged evidence",
+        "evidenceByDevice": {
+          "iPhone 17 Pro": "original-ui-final-confirmation.xcresult",
+          "iPhone 17 Pro Max": "original-ui-final-confirmation.xcresult",
+          "iPad Pro 13-inch (M5)": "original-ui-final-confirmation.xcresult"
+        }
+      },
+      {
+        "identifier": "NativeFlowTests/testNativeMessagesSendAndDraftSurvivesNavigation",
+        "kind": "functional-flow",
+        "result": "Passed on all three devices across merged evidence",
+        "evidenceByDevice": {
+          "iPhone 17 Pro": "original-ui-final-confirmation.xcresult",
+          "iPhone 17 Pro Max": "original-ui-final-confirmation.xcresult",
+          "iPad Pro 13-inch (M5)": "original-ui-final-confirmation.xcresult"
+        }
+      },
+      {
+        "identifier": "NativeFlowTests/testOfficialWebLoginLoadsAndCancelsWithoutAccount",
+        "kind": "functional-flow",
+        "result": "Passed on all three devices across merged evidence",
+        "evidenceByDevice": {
+          "iPhone 17 Pro": "original-ui-phone-settings-web.xcresult",
+          "iPhone 17 Pro Max": "original-ui-phone-settings-web.xcresult",
+          "iPad Pro 13-inch (M5)": "original-ui-final-confirmation.xcresult"
+        }
+      },
+      {
+        "identifier": "NativeOriginalVisualTests/testDarkOriginalSurfaces",
+        "kind": "visual-capture",
+        "result": "Passed on all three devices across merged evidence",
+        "evidenceByDevice": {
+          "iPhone 17 Pro": "original-ui-final-confirmation.xcresult",
+          "iPhone 17 Pro Max": "original-ui-final-confirmation.xcresult",
+          "iPad Pro 13-inch (M5)": "original-ui-final-confirmation.xcresult"
+        }
+      },
+      {
+        "identifier": "NativeOriginalVisualTests/testLightOriginalSurfaces",
+        "kind": "visual-capture",
+        "result": "Passed on all three devices across merged evidence",
+        "evidenceByDevice": {
+          "iPhone 17 Pro": "original-ui-final-confirmation.xcresult",
+          "iPhone 17 Pro Max": "original-ui-final-confirmation.xcresult",
+          "iPad Pro 13-inch (M5)": "original-ui-final-confirmation.xcresult"
+        }
+      }
+    ],
+    "runs": [
+      {
+        "evidence": "original-ui-final-confirmation.xcresult",
+        "overallResult": "Failed",
+        "logicalCases": 12,
+        "logicalPassed": 8,
+        "logicalFailed": 4,
+        "devices": [
+          {
+            "model": "iPad Pro 13-inch (M5)",
+            "passed": 9,
+            "failed": 3,
+            "skipped": 0
+          },
+          {
+            "model": "iPhone 17 Pro",
+            "passed": 11,
+            "failed": 1,
+            "skipped": 0
+          },
+          {
+            "model": "iPhone 17 Pro Max",
+            "passed": 9,
+            "failed": 3,
+            "skipped": 0
+          }
+        ]
+      },
+      {
+        "evidence": "original-ui-interaction-regression.xcresult",
+        "overallResult": "Failed",
+        "logicalCases": 5,
+        "logicalPassed": 4,
+        "logicalFailed": 1,
+        "devices": [
+          {
+            "model": "iPad Pro 13-inch (M5)",
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "model": "iPhone 17 Pro",
+            "passed": 4,
+            "failed": 1,
+            "skipped": 0
+          },
+          {
+            "model": "iPhone 17 Pro Max",
+            "passed": 4,
+            "failed": 1,
+            "skipped": 0
+          }
+        ]
+      },
+      {
+        "evidence": "original-ui-phone-settings-web.xcresult",
+        "overallResult": "Failed",
+        "logicalCases": 2,
+        "logicalPassed": 1,
+        "logicalFailed": 1,
+        "devices": [
+          {
+            "model": "iPhone 17 Pro",
+            "passed": 1,
+            "failed": 1,
+            "skipped": 0
+          },
+          {
+            "model": "iPhone 17 Pro Max",
+            "passed": 1,
+            "failed": 1,
+            "skipped": 0
+          }
+        ]
+      },
+      {
+        "evidence": "original-ui-settings-targeted.xcresult",
+        "overallResult": "Passed",
+        "logicalCases": 1,
+        "logicalPassed": 1,
+        "logicalFailed": 0,
+        "devices": [
+          {
+            "model": "iPhone 17 Pro",
+            "passed": 1,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "model": "iPhone 17 Pro Max",
+            "passed": 1,
+            "failed": 0,
+            "skipped": 0
+          }
+        ]
+      }
+    ],
+    "derivation": "The normal-size full matrix passed both original-surface cases and the core flows. Interaction regression passed all five feature flows on iPad and four on both phones. Phone public-login reruns passed without credentials/CAPTCHA submission; the subsequent targeted Settings run passed on both phones. Failed aggregate bundle outcomes and earlier failures are retained; this does not assert one clean full-matrix run."
+  },
+  "largeFontCapture": {
+    "passed": true,
+    "evidence": "original-ui-large-final.xcresult",
+    "case": "NativeOriginalVisualTests/testDarkOriginalSurfaces",
+    "device": {
+      "model": "iPhone 17 Pro Max",
+      "runtime": "26.4.1",
+      "architecture": "arm64"
+    },
+    "contentSize": "accessibility-large",
+    "appearance": "dark",
+    "surfaces": [
+      "home",
+      "account-menu",
+      "profile",
+      "chat",
+      "settings"
+    ],
+    "captures": 5,
+    "applicationWebViewsObserved": 0,
+    "rawManifest": "work/ios-native/original-ui-large-final-captures/manifest.json",
+    "visualReviewStatus": "Bounded independent confirmation passed with qualifications. Reviewer inspected all five prior actual AX-large surfaces and the final corrected Home capture; final source five-surface case independently passed.",
+    "captureReport": "original-ui-captures-0.2.1.json:largeFontCaptures",
+    "previousEvidence": "original-ui-large-confirmation.xcresult"
+  },
+  "visualEvidence": {
+    "normalPrimaryCaptures": 30,
+    "normalAppearances": [
+      "dark",
+      "light"
+    ],
+    "normalDevices": [
+      "iPhone 17 Pro",
+      "iPhone 17 Pro Max",
+      "iPad Pro 13-inch (M5)"
+    ],
+    "report": "original-ui-captures-0.2.1.json",
+    "originalReference": "../docs/ORIGINAL-UI-SPEC.md",
+    "review": "original-ui-finish-review.json",
+    "scope": "Anonymous Debug fixtures, five primary surfaces; original geometry/font/vector comparison. Real device safe insets, browser/CoreText rasterization and requested localization are treated separately. Whole-app visual and functional parity remains incomplete.",
+    "largeFontCaptures": 5,
+    "reviewVerdict": "bounded_primary_visual_confirmation_pass_with_qualifications; complete_visual_and_functional_1_to_1_parity_not_achieved",
+    "reviewQualifications": [
+      "Consecutive33.6pt popover rows expanded by5.2pt vertically have overlapping44pt shapes. Source dimensions and static captures do not establish independent44pt effective tap height or boundary routing.",
+      "Expanded presence-menu overflow fallback, very long account names, other AX sizes, light AX appearance and Pro/iPad AX screens were not part of the supplied five-image large-font confirmation.",
+      "No physical-device interaction, performance, hardware call behavior or live-account authentication verification by this reviewer."
+    ]
+  },
+  "freshLoginBridge": {
+    "passed": true,
+    "checks": 89,
+    "report": "web-login-bridge-tests.json",
+    "scope": "Actual Swift-exported script with mocked browser transports. The separately rerun public sign-in form smoke never submits credentials or CAPTCHA; authenticated acceptance remains unverified."
+  },
+  "keychain": {
+    "passed": true,
+    "report": "keychain-0.2.1.json",
+    "operations": [
+      "preflight",
+      "write",
+      "read",
+      "update",
+      "delete",
+      "cleanup"
+    ],
+    "scope": "Shipping session-store source, own Simulator access group, synthetic tokens, no network or other application Keychain."
+  },
+  "builds": {
+    "status": "Final-source Release archive and Simulator build succeeded; exact packaged Simulator ZIP installed and launched.",
+    "deviceRelease": {
+      "passed": true,
+      "evidence": "original-ui-archive-final.log",
+      "artifact": "Yapinplugger-Native-0.2.1-ios-unsigned.ipa",
+      "signing": "Unsigned device archive; requires the user\u2019s own Apple signing."
+    },
+    "simulatorRelease": {
+      "passed": true,
+      "evidence": "original-ui-simulator-final.log",
+      "artifact": "Yapinplugger-Native-0.2.1-iOS-Simulator.zip",
+      "architectures": [
+        "arm64",
+        "x86_64"
+      ],
+      "signing": "Local ad-hoc host signature and Simulator-only identity section."
+    },
+    "releaseWelcome": {
+      "passed": true,
+      "device": {
+        "model": "iPad Pro 13-inch (M5)",
+        "id": "446C9451-4AD5-48BE-8033-E2717303B797",
+        "runtime": "26.4.1",
+        "architecture": "arm64"
+      },
+      "fixtureArguments": false,
+      "language": "de",
+      "processID": 36906,
+      "artifactSHA256": "4eb7679ea085e31f2f54690dbfb90a88e2f6a6d007e1b6a5fe81b9dea66ae1d5",
+      "image": "../docs/images/welcome-0.2.1-release-de-ipad.png",
+      "imageSHA256": "c62c74232d6d043511aeaeaecee15ae3f1fe4593d7d53aa394a24c5cd1f242b4",
+      "scope": "Parent performed final exact-ZIP extraction/install/launch on the owned Simulator. The refreshed actual Release screenshot was independently viewed: minimal mark, German welcome, sign-in action and bottom legal links; no Keychain error. No account credentials were submitted."
+    }
+  },
+  "packageInspection": {
+    "passed": true,
+    "checks": 208,
+    "report": "package-verification-0.2.1.json",
+    "artifacts": [
+      {
+        "name": "Yapinplugger-Native-0.2.1-iOS-Simulator.zip",
+        "bytes": 30887640,
+        "sha256": "4eb7679ea085e31f2f54690dbfb90a88e2f6a6d007e1b6a5fe81b9dea66ae1d5"
+      },
+      {
+        "name": "Yapinplugger-Native-0.2.1-ios-unsigned.ipa",
+        "bytes": 11617027,
+        "sha256": "82302eaea82c246146b16984926433311371d1cbc3cabe7f47fe25ba329191fe"
+      }
+    ],
+    "artifactSizesAndHashesIndependentlyMatched": true,
+    "recordedShippingSourceHashesMatchCurrentSource": true,
+    "sourceHashReference": "package-verification-0.2.1.json:sourceSHA256",
+    "scope": "Package checks and hashes apply to the final source after the decorative rail-initial font correction. README and this report are documentation and do not require rebuilding the application. A final trailing blank line was removed before the last successful rebuild; it has no behavioral effect."
+  },
+  "hostedCIExecuted": false,
+  "verificationLimits": {
+    "realAccountSignIn": false,
+    "liveMessageSend": false,
+    "physicalDevice": false,
+    "liveCallsAndE2EEInterop": false,
+    "fullWebParity": false,
+    "globalPresenceParity": false,
+    "fullVencordCompatibility": false,
+    "backendPushParity": false,
+    "secondaryManagementVisualParity": false,
+    "serverCaptchaEnforcement": "Public form loading and mocked policy checks do not establish human CAPTCHA completion or authenticated acceptance.",
+    "interactionHitBoundaryAudit": "Invisible interaction shapes exist, but contiguous popover-row boundary routing and a physical-device tap audit remain unverified.",
+    "remaining": "Legacy community/developer/call-management styling, source name-style/tint/custom-theme variants and rollout-specific states remain incomplete or unverified.",
+    "webContentScope": "Temporary official web sign-in/CAPTCHA only; application screens remain SwiftUI/UIKit and native media."
+  },
+  "sourceTiming": {
+    "unitAndMergedUIRuns": "The 202-test/23-suite unit portions and 36 merged successful normal-size UI case/device pairs precede the final one-line decorative rail-initial font correction.",
+    "finalCorrection": "NativeOriginalShellViews.swift uses OriginalYapper.fixedFont(16, numericWeight: 700) for the decorative server rail initial.",
+    "finalSourceEvidence": [
+      "original-ui-archive-final.log",
+      "original-ui-simulator-final.log",
+      "original-ui-large-final.xcresult",
+      "package-verification-0.2.1.json"
+    ],
+    "qualification": "The final source was rebuilt and package-inspected, and its five-surface Pro Max AX-large case passed. A fresh full unit/normal-size UI matrix was not run after this isolated font correction."
+  }
+}

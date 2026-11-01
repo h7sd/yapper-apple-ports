@@ -1,0 +1,158 @@
+{
+  "ids": {
+    "own": "11111111-1111-4111-8111-111111111111",
+    "nova": "33333333-3333-4333-8333-333333333333",
+    "milo": "44444444-4444-4444-8444-444444444444",
+    "dm": "77777777-7777-4777-8777-777777777777",
+    "group": "99999999-9999-4999-8999-999999999999",
+    "miloDM": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    "server": "66666666-6666-4666-8666-666666666666"
+  },
+  "state": {
+    "userId": "11111111-1111-4111-8111-111111111111",
+    "profiles": {
+      "11111111-1111-4111-8111-111111111111": {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "username": "yapper-demo",
+        "display_name": "Yapper Demo",
+        "presence": "online",
+        "bio": "Native iOS-Vorschau mit synthetischen Beispieldaten.",
+        "created_at": "2026-10-01T12:00:00Z"
+      },
+      "33333333-3333-4333-8333-333333333333": {
+        "id": "33333333-3333-4333-8333-333333333333",
+        "username": "nova",
+        "display_name": "Nova",
+        "presence": "online",
+        "created_at": "2026-10-01T12:00:00Z"
+      },
+      "44444444-4444-4444-8444-444444444444": {
+        "id": "44444444-4444-4444-8444-444444444444",
+        "username": "milo",
+        "display_name": "Milo",
+        "presence": "idle",
+        "created_at": "2026-10-01T12:00:00Z"
+      }
+    },
+    "channels": {
+      "77777777-7777-4777-8777-777777777777": {
+        "id": "77777777-7777-4777-8777-777777777777",
+        "kind": "dm",
+        "server_id": null,
+        "name": null,
+        "memberIds": [
+          "11111111-1111-4111-8111-111111111111",
+          "33333333-3333-4333-8333-333333333333"
+        ],
+        "created_at": "2026-10-01T12:00:00Z",
+        "last_message_at": "2026-10-31T12:03:00Z"
+      },
+      "99999999-9999-4999-8999-999999999999": {
+        "id": "99999999-9999-4999-8999-999999999999",
+        "kind": "group",
+        "server_id": null,
+        "name": "Yapper iOS",
+        "memberIds": [
+          "11111111-1111-4111-8111-111111111111",
+          "33333333-3333-4333-8333-333333333333",
+          "44444444-4444-4444-8444-444444444444"
+        ],
+        "created_at": "2026-10-01T12:00:00Z",
+        "last_message_at": "2026-10-31T12:02:00Z"
+      },
+      "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa": {
+        "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "kind": "dm",
+        "server_id": null,
+        "name": null,
+        "memberIds": [
+          "11111111-1111-4111-8111-111111111111",
+          "44444444-4444-4444-8444-444444444444"
+        ],
+        "created_at": "2026-10-01T12:00:00Z",
+        "last_message_at": "2026-10-31T12:01:00Z"
+      }
+    },
+    "messages": {
+      "77777777-7777-4777-8777-777777777777": [
+        {
+          "id": "88888888-8888-4888-8888-888888888881",
+          "channel_id": "77777777-7777-4777-8777-777777777777",
+          "author_id": "33333333-3333-4333-8333-333333333333",
+          "content": "Hey! Wie sieht die native App aus?",
+          "created_at": "2026-10-31T12:01:00Z",
+          "edited_at": null
+        },
+        {
+          "id": "88888888-8888-4888-8888-888888888882",
+          "channel_id": "77777777-7777-4777-8777-777777777777",
+          "author_id": "11111111-1111-4111-8111-111111111111",
+          "content": "Chats, Profile und Tastatur sind jetzt echte iOS-Oberflächen.",
+          "created_at": "2026-10-31T12:02:00Z",
+          "edited_at": null
+        },
+        {
+          "id": "88888888-8888-4888-8888-888888888883",
+          "channel_id": "77777777-7777-4777-8777-777777777777",
+          "author_id": "33333333-3333-4333-8333-333333333333",
+          "content": "Das läuft jetzt direkt in SwiftUI.",
+          "created_at": "2026-10-31T12:03:00Z",
+          "edited_at": null
+        }
+      ]
+    },
+    "servers": {
+      "66666666-6666-4666-8666-666666666666": {
+        "id": "66666666-6666-4666-8666-666666666666",
+        "name": "Demo Community",
+        "owner_id": "11111111-1111-4111-8111-111111111111",
+        "created_at": "2026-10-01T12:00:00Z"
+      }
+    },
+    "friends": {
+      "33333333-3333-4333-8333-333333333333": "accepted",
+      "44444444-4444-4444-8444-444444444444": "accepted"
+    },
+    "blocked": {},
+    "unread": {
+      "77777777-7777-4777-8777-777777777777": 2
+    },
+    "mentions": {},
+    "activeChannelId": null,
+    "activeServerId": null,
+    "showFriends": false,
+    "showDiscovery": false,
+    "flags": {
+      "mobile_nav": {
+        "mode": "everyone",
+        "users": [],
+        "servers": []
+      },
+      "ui_panel": {
+        "mode": "everyone",
+        "users": [],
+        "servers": []
+      },
+      "ui_refresh": {
+        "mode": "everyone",
+        "users": [],
+        "servers": []
+      },
+      "user_search": {
+        "mode": "everyone",
+        "users": [],
+        "servers": []
+      },
+      "mentions_inbox": {
+        "mode": "everyone",
+        "users": [],
+        "servers": []
+      }
+    },
+    "online": {
+      "11111111-1111-4111-8111-111111111111": "online",
+      "33333333-3333-4333-8333-333333333333": "online",
+      "44444444-4444-4444-8444-444444444444": "idle"
+    }
+  }
+}

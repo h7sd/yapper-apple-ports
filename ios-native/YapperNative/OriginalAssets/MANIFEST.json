@@ -1,0 +1,48 @@
+{
+  "assetsPurpose": "Exact official Inter/brand/vector geometry for native reconstruction; assets may have independent licenses.",
+  "assets": [
+    {
+      "path": "Brand/apple-icon.png",
+      "bytes": 4463,
+      "sha256": "620f493bd1712045860d4ab28b09d68a55bba77df97619672f5d65722c79b73a"
+    },
+    {
+      "path": "Brand/icon.svg",
+      "bytes": 35324,
+      "sha256": "4132dc1664b58b0bd4faa838523cbce96189bf1fc306be6c902adf532d72db6e"
+    },
+    {
+      "path": "Brand/yapper-tile.svg",
+      "bytes": 35423,
+      "sha256": "4963183d6f16b1ca12b4c0ca42266ef433ed11fe87e76b0c60144c42de439fad"
+    },
+    {
+      "path": "Fonts/Inter-Latin-Variable.ttf",
+      "bytes": 122912,
+      "sha256": "4555141acf75a7f89902d034afc7f66551ef0e7ab1579c982da1f1a0f3a5d7e6"
+    },
+    {
+      "path": "Icons/OriginalIconPaths.json",
+      "bytes": 206521,
+      "sha256": "af9e14a3a3ebd2c65ef768abbc462b95d7693a804695788feb353124150190c7"
+    },
+    {
+      "path": "Licenses/Inter-OFL.txt",
+      "bytes": 4380,
+      "sha256": "262481e844521b326f5ecd053e59b98c8b2da78c8ee1bdbb6e8174305e54935a"
+    }
+  ],
+  "licenseNotes": {
+    "Inter": "SIL Open Font License1.1. Original OFL text retained. TTF is losslessly reconstructed SFNT tables from official WOFF2 using system FreeType; original naming/metrics/outlines unchanged.",
+    "IconsAndBrand": "Recovered from official served client assets; no explicit provider/license header was found in the shipped icon module. User confirmed port rights. No unverified provider attribution added.",
+    "TwemojiFlags": "Not copied to application assets because separate provenance/license was not resolved.",
+    "FontCoverage": "Only Latin variable font registered. Latin-ext staging font has same PostScript name and was intentionally not co-registered. German glyphs verified with CoreText."
+  },
+  "notificationSound": {
+    "path": "Sounds/message.mp3",
+    "url": "https://www.yapin.gg/sounds/message.mp3",
+    "sha256": "fcc8825af2ca024b5295c13dc741e978d02349be3508fc28a7f3916ec6b3137a",
+    "rights": "Original Yapper sound; user supplied port permission.",
+    "playback": "Foreground authorized unread DMs/groups only, original sound preference/DND/mute/block checks; no audio session reconfiguration."
+  }
+}

@@ -18,6 +18,7 @@ nonisolated struct RealtimeEnvelope: Decodable, Sendable {
     let topic: String?
     let payload: RealtimeMutation?
     let approvedTopics: [String]?
+    let rawPayload: NativeJSON?
 
     // `subscribed.ok` is an array, whereas `auth.ok` is a Boolean.
     private enum CodingKeys: String, CodingKey { case type, ok, event, topic, payload }
@@ -29,6 +30,7 @@ nonisolated struct RealtimeEnvelope: Decodable, Sendable {
         event = try c.decodeIfPresent(String.self, forKey: .event)
         topic = try c.decodeIfPresent(String.self, forKey: .topic)
         payload = type == "event" && event == "message" ? try c.decodeIfPresent(RealtimeMutation.self, forKey: .payload) : nil
+        rawPayload = type == "event" ? try c.decodeIfPresent(NativeJSON.self, forKey: .payload) : nil
     }
 }
 
@@ -43,11 +45,14 @@ nonisolated struct RealtimeEnvelope: Decodable, Sendable {
     private var credentials: NativeSession?
     private var retryDelay = 1
     private var subscribedTopics: Set<String> = []
+    private var desiredTopics: Set<String> = []
+    private var authenticated = false
     private var lastReceivedAt = Date()
     private var hasConnected = false
     var onMutation: (@MainActor (RealtimeMutation) -> Void)?
     var onStatus: (@MainActor (String) -> Void)?
     var onReconnect: (@MainActor () -> Void)?
+    var onEvent: (@MainActor (String, NativeJSON) -> Void)?
 
     init() {
         let configuration = URLSessionConfiguration.ephemeral
@@ -60,7 +65,9 @@ nonisolated struct RealtimeEnvelope: Decodable, Sendable {
 
     func connect(session credentials: NativeSession) {
         let reconnectingSameAccount = self.credentials?.userID == credentials.userID && hasConnected
+        let retainedTopics = reconnectingSameAccount ? desiredTopics : []
         disconnect()
+        desiredTopics = retainedTopics
         self.credentials = credentials
         hasConnected = reconnectingSameAccount
         retryDelay = 1
@@ -71,6 +78,8 @@ nonisolated struct RealtimeEnvelope: Decodable, Sendable {
         generation += 1
         credentials = nil
         subscribedTopics = []
+        desiredTopics = []
+        authenticated = false
         receiveTask?.cancel()
         heartbeatTask?.cancel()
         reconnectTask?.cancel()
@@ -86,6 +95,7 @@ nonisolated struct RealtimeEnvelope: Decodable, Sendable {
         generation += 1
         let revision = generation
         subscribedTopics = []
+        authenticated = false
         lastReceivedAt = Date()
         let task = session.webSocketTask(with: URL(string: "wss://rt.yapper.website/ws")!)
         socket = task
@@ -113,6 +123,7 @@ nonisolated struct RealtimeEnvelope: Decodable, Sendable {
                             self.disconnect()
                             return
                         }
+                        self.authenticated = true
                         try await self.sendTopics(userID: credentials.userID, through: task)
                         guard self.generation == revision, !Task.isCancelled else { return }
                         self.retryDelay = 1
@@ -126,10 +137,17 @@ nonisolated struct RealtimeEnvelope: Decodable, Sendable {
                             self.hasConnected = true
                         }
                     } else if envelope.type == "event", envelope.event == "message",
-                              envelope.topic == "user:\(credentials.userID)" || envelope.topic == "all",
                               let topic = envelope.topic, self.subscribedTopics.contains(topic),
                               let payload = envelope.payload, payload.table == "messages" {
                         self.onMutation?(payload)
+                    } else if envelope.type == "event", envelope.event == "typing", self.authenticated,
+                              let payload = envelope.rawPayload,
+                              let channel = payload["channel_id"].string, UUID(uuidString: channel) != nil,
+                              let uid = payload["uid"].string, UUID(uuidString: uid) != nil {
+                        self.onEvent?("typing", payload)
+                    } else if envelope.type == "event", let event = envelope.event, let payload = envelope.rawPayload,
+                              let topic = envelope.topic, self.subscribedTopics.contains(topic) {
+                        self.onEvent?(event, payload)
                     } else if envelope.type == "revoked" {
                         self.onStatus?("Live-Zugriff geändert. Bitte Chats aktualisieren.")
                     }
@@ -149,9 +167,51 @@ nonisolated struct RealtimeEnvelope: Decodable, Sendable {
 
     private func sendTopics(userID: String, through socket: URLSessionWebSocketTask) async throws {
         nonisolated struct Subscription: Encodable { let type: String; let topics: [String] }
-        let bytes = try JSONEncoder().encode(Subscription(type: "subscribe", topics: ["all", "user:\(userID)"]))
+        let topics = desiredTopics.union(["all", "user:\(userID)"])
+        let removed = subscribedTopics.subtracting(topics)
+        if !removed.isEmpty {
+            let data = try JSONEncoder().encode(Subscription(type: "unsubscribe", topics: removed.sorted()))
+            if let text = String(data: data, encoding: .utf8) { try await socket.send(.string(text)) }
+            subscribedTopics.subtract(removed)
+        }
+        let bytes = try JSONEncoder().encode(Subscription(type: "subscribe", topics: topics.sorted()))
         guard let text = String(data: bytes, encoding: .utf8) else { throw NativeClientError.invalidResponse }
         try await socket.send(.string(text))
+    }
+
+    func observe(channelID: String?, serverID: String?) {
+        desiredTopics = Set([channelID.flatMap { UUID(uuidString: $0) == nil ? nil : "chan:\($0)" }, serverID.flatMap { UUID(uuidString: $0) == nil ? nil : "server:\($0)" }].compactMap { $0 })
+        guard authenticated, let socket, let credentials else { return }
+        let expected = generation
+        Task { [weak self] in
+            guard let self, self.generation == expected else { return }
+            do { try await self.sendTopics(userID: credentials.userID, through: socket) }
+            catch { if self.generation == expected { self.retry() } }
+        }
+    }
+
+    func typing(channelID: String, recipients: [String]?) {
+        guard authenticated, let socket else { return }
+        var payload: [String: NativeJSON] = ["type": .string("typing"), "channel": .string(channelID)]
+        if let recipients { payload["to"] = .array(recipients.map(NativeJSON.string)) }
+        sendEvent(payload, through: socket)
+    }
+
+    func read(channelID: String) {
+        guard authenticated, let socket else { return }
+        sendEvent(["type": .string("read"), "channel": .string(channelID)], through: socket)
+    }
+
+    private func sendEvent(_ payload: [String: NativeJSON], through socket: URLSessionWebSocketTask) {
+        let expected = generation
+        Task { [weak self] in
+            guard let self, self.generation == expected else { return }
+            do {
+                let data = try JSONEncoder().encode(NativeJSON.object(payload))
+                guard let text = String(data: data, encoding: .utf8) else { return }
+                try await socket.send(.string(text))
+            } catch { if self.generation == expected { self.retry() } }
+        }
     }
 
     private func startHeartbeat(_ socket: URLSessionWebSocketTask, revision: Int) {

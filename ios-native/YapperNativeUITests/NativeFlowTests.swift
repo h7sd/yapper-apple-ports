@@ -15,6 +15,12 @@ final class NativeFlowTests: XCTestCase {
         add(attachment)
     }
 
+    @MainActor private func leaveConversation(_ app: XCUIApplication) {
+        let back = app.buttons["native.conversation.back"]
+        if back.exists && back.isHittable { back.tap() }
+        else { app.buttons["Home"].firstMatch.tap() }
+    }
+
     @MainActor func testNativeLoginAndCenteredConversationList() throws {
         let app = app(signedIn: false)
         app.launch()
@@ -35,10 +41,21 @@ final class NativeFlowTests: XCTestCase {
         let account = app.buttons["native.account"]
         XCTAssertTrue(account.waitForExistence(timeout: 10))
         XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "native.fixture.notice").firstMatch.exists)
-        XCTAssertEqual(account.frame.minX - app.frame.minX, app.frame.maxX - account.frame.maxX, accuracy: 1)
-        XCTAssertLessThanOrEqual(account.frame.width, 380.5)
-        XCTAssertGreaterThanOrEqual(account.frame.minX - app.frame.minX, 12)
-        XCTAssertGreaterThanOrEqual(account.frame.height, 72)
+        let bar = app.descendants(matching: .any).matching(identifier: "native.original.accountBar").firstMatch
+        let sidebar = app.descendants(matching: .any).matching(identifier: "native.original.sidebar").firstMatch
+        let rail = app.descendants(matching: .any).matching(identifier: "native.original.rail").firstMatch
+        XCTAssertTrue(bar.exists && sidebar.exists && rail.exists)
+        if app.frame.width <= 760 {
+            XCTAssertEqual(rail.frame.width, 64, accuracy: 1)
+            XCTAssertEqual(bar.frame.minX - sidebar.frame.minX, sidebar.frame.maxX - bar.frame.maxX, accuracy: 1)
+            XCTAssertEqual(bar.frame.height, 64, accuracy: 1)
+        } else {
+            XCTAssertEqual(rail.frame.width, 72, accuracy: 1)
+            XCTAssertEqual(bar.frame.width, 316, accuracy: 1)
+            XCTAssertEqual(bar.frame.minX - rail.frame.minX, sidebar.frame.maxX - bar.frame.maxX, accuracy: 1)
+            XCTAssertEqual(bar.frame.height, 66, accuracy: 1)
+        }
+        XCTAssertGreaterThanOrEqual(account.frame.height, 44)
         XCTAssertTrue(account.isHittable)
         XCTAssertTrue(app.buttons["native.settings"].isHittable)
         XCTAssertEqual(app.webViews.count, 0)
@@ -54,16 +71,16 @@ final class NativeFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Das läuft jetzt direkt in SwiftUI."].waitForExistence(timeout: 10))
         let composer = app.descendants(matching: .any).matching(identifier: "native.composer").firstMatch
         XCTAssertTrue(composer.exists)
-        XCTAssertFalse(app.buttons["native.send"].isEnabled)
+        if app.frame.width <= 760 { XCTAssertFalse(app.buttons["native.send"].exists) } else { XCTAssertFalse(app.buttons["native.send"].isEnabled) }
         composer.tap()
         composer.typeText("Native Testnachricht")
         app.buttons["native.send"].tap()
         XCTAssertTrue(app.staticTexts["Native Testnachricht"].waitForExistence(timeout: 5))
-        XCTAssertFalse(app.buttons["native.send"].isEnabled)
+        if app.frame.width <= 760 { XCTAssertFalse(app.buttons["native.send"].exists) } else { XCTAssertFalse(app.buttons["native.send"].isEnabled) }
         screenshot(app, "Native messages and keyboard — synthetic fixture")
         composer.tap()
         composer.typeText("Lokaler Entwurf")
-        app.navigationBars.buttons["Nachrichten"].tap()
+        leaveConversation(app)
         app.buttons["native.conversation.fixture-chat"].tap()
         XCTAssertTrue(composer.waitForExistence(timeout: 5))
         XCTAssertEqual(composer.value as? String, "Lokaler Entwurf")
@@ -73,14 +90,11 @@ final class NativeFlowTests: XCTestCase {
     @MainActor func testNativeAccountSignOut() throws {
         let app = app()
         app.launch()
-        let account = app.buttons["native.account"]
-        XCTAssertTrue(account.waitForExistence(timeout: 10))
-        account.tap()
-        let signOut = app.buttons["native.settings.signOut"]
-        if !signOut.isHittable { app.swipeUp() }
-        XCTAssertTrue(signOut.waitForExistence(timeout: 5))
+        let signOut = app.buttons["native.account.signOut"]
+        XCTAssertTrue(signOut.waitForExistence(timeout: 10))
+        XCTAssertTrue(signOut.isHittable)
         signOut.tap()
-        let confirm = app.buttons.matching(NSPredicate(format: "label == %@ AND identifier != %@", "Abmelden", "native.settings.signOut")).firstMatch
+        let confirm = app.buttons.matching(identifier: "native.settings.signOut.confirm").firstMatch
         XCTAssertTrue(confirm.waitForExistence(timeout: 5))
         confirm.tap()
         XCTAssertTrue(app.staticTexts["native.welcome.title"].waitForExistence(timeout: 5))

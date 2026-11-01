@@ -1,0 +1,183 @@
+{
+  "schemaVersion": 1,
+  "checkedDate": "2026-10-31",
+  "scope": "Native email change requests and ordinary-user suggestion support",
+  "evidence": [
+    {
+      "snapshot": "web-complete",
+      "reaEvidenceID": "ev_6142d5da0be52935da21de4955bc1734f71172f47d8f84286fbe6fc27471aaec"
+    },
+    {
+      "snapshot": "invite-route",
+      "reaEvidenceID": "ev_a7281268d9156665fc46fd48911068efa2503943124615700f6c3ad453dff3ae"
+    }
+  ],
+  "primaryDocumentation": {
+    "url": "https://supabase.com/docs/reference/swift/auth-updateuser",
+    "checkedDate": "2026-10-31",
+    "supports": "An authenticated user can request an email update; secure email change normally confirms both current and proposed addresses."
+  },
+  "implementation": [
+    "PUT auth/v1/user with normalized email and the official website confirmation target, validating returned own user identity in either Auth SDK supported response shape. No pending address is represented as a confirmed native-account change.",
+    "Pending new_email is read from the own authenticated auth user and displayed separately. Links are confirmed outside this native UI on the official service.",
+    "Own latest20suggestion rows, explicit status and staff reply, observed suggestion_votes aggregate and own thumbs-up/down reaction toggling.",
+    "Submission is available only for actual visible text channels named suggestions-new or suggestions in the source-specified official HQ server. No management/staff-list API or fabricated join permission is used.",
+    "Form uses source title5–100UTF16 characters, body10–1500, explicit category selection and server-enforced daily limits. In-session draft fields are account/channel bound and cleared on successful submission or account logout.",
+    "The existing native channel view lets the user browse and react to other posted suggestions; this screen lists the own history and does not query the staff moderation queue."
+  ],
+  "knownLimits": [
+    "Account switching and a multiple-session Keychain vault are not implemented by this checkpoint. No Safari, external browser or other-client session storage is read.",
+    "No email or suggestion was actually changed/submitted/voted by the agent. Email delivery, dual-address confirmation, pending-state refresh and account-specific HQ permissions remain runtime-unverified.",
+    "Suggestion limits and access are enforced by the existing backend; staff decisions and queue controls are not exposed to ordinary users."
+  ],
+  "productionFiles": [
+    "YapperNative/Core/NativeSecurityService.swift",
+    "YapperNative/UI/NativeSecurityViews.swift",
+    "YapperNative/Core/NativeSuggestionService.swift",
+    "YapperNative/UI/NativeSuggestionViews.swift",
+    "YapperNative/UI/NativeCommunityViews.swift"
+  ],
+  "tests": {
+    "file": "YapperNativeTests/AccountSupportFeatureTests.swift",
+    "count": 10,
+    "typecheck": "Swift6 MainActor iOS17 simulator passed in temporary harness; existing compiled Security symbols aliased in harness only to avoid duplicate imported overloads. Root integrated build remains authoritative."
+  },
+  "sourceEvidence": [
+    {
+      "snapshot": "web-complete",
+      "artifact": "27w8rh0cq5u7r.js",
+      "sha256": "cd403f0121331fdbba77455943a658228ff86674d50ed6b437e4695e57ff58ef",
+      "literal": "auth.updateUser({email:e}",
+      "utf8ByteOffset": 24880,
+      "observation": "Static public shipped client source; not an authenticated runtime transaction."
+    },
+    {
+      "snapshot": "web-complete",
+      "artifact": "27w8rh0cq5u7r.js",
+      "sha256": "cd403f0121331fdbba77455943a658228ff86674d50ed6b437e4695e57ff58ef",
+      "literal": "emailRedirectTo:window.location.origin",
+      "utf8ByteOffset": 24907,
+      "observation": "Static public shipped client source; not an authenticated runtime transaction."
+    },
+    {
+      "snapshot": "web-complete",
+      "artifact": "1wdb3w49bvmss.js",
+      "sha256": "957a20a7675bd3f014f03a102f7b750793e587d9349929a4852cf812a51b3fa1",
+      "literal": "async _updateUser",
+      "utf8ByteOffset": 100776,
+      "observation": "Static public shipped client source; not an authenticated runtime transaction."
+    },
+    {
+      "snapshot": "web-complete",
+      "artifact": "1wdb3w49bvmss.js",
+      "sha256": "957a20a7675bd3f014f03a102f7b750793e587d9349929a4852cf812a51b3fa1",
+      "literal": "code_challenge:o",
+      "utf8ByteOffset": 78744,
+      "observation": "Static public shipped client source; not an authenticated runtime transaction."
+    },
+    {
+      "snapshot": "web-complete",
+      "artifact": "1wdb3w49bvmss.js",
+      "sha256": "957a20a7675bd3f014f03a102f7b750793e587d9349929a4852cf812a51b3fa1",
+      "literal": "redirect_to=s.redirectTo",
+      "utf8ByteOffset": 48414,
+      "observation": "Static public shipped client source; not an authenticated runtime transaction."
+    },
+    {
+      "snapshot": "web-complete",
+      "artifact": "1wdb3w49bvmss.js",
+      "sha256": "957a20a7675bd3f014f03a102f7b750793e587d9349929a4852cf812a51b3fa1",
+      "literal": "function eb(e)",
+      "utf8ByteOffset": 49751,
+      "observation": "Static public shipped client source; not an authenticated runtime transaction."
+    },
+    {
+      "snapshot": "web-complete",
+      "artifact": "26uoqp3al_bay.js",
+      "sha256": "12fbbd17c98b7a97805d19aa4bd18a9ffef04379cc01cc3845b02a83b77b9d91",
+      "literal": "c479964e-033e-44ae-a4bf-523c4afe5c5c",
+      "utf8ByteOffset": 90821,
+      "observation": "Static public shipped client source; not an authenticated runtime transaction."
+    },
+    {
+      "snapshot": "web-complete",
+      "artifact": "26uoqp3al_bay.js",
+      "sha256": "12fbbd17c98b7a97805d19aa4bd18a9ffef04379cc01cc3845b02a83b77b9d91",
+      "literal": "submit_suggestion",
+      "utf8ByteOffset": 91126,
+      "observation": "Static public shipped client source; not an authenticated runtime transaction."
+    },
+    {
+      "snapshot": "web-complete",
+      "artifact": "26uoqp3al_bay.js",
+      "sha256": "12fbbd17c98b7a97805d19aa4bd18a9ffef04379cc01cc3845b02a83b77b9d91",
+      "literal": "suggestion_votes",
+      "utf8ByteOffset": 91465,
+      "observation": "Static public shipped client source; not an authenticated runtime transaction."
+    },
+    {
+      "snapshot": "web-complete",
+      "artifact": "26uoqp3al_bay.js",
+      "sha256": "12fbbd17c98b7a97805d19aa4bd18a9ffef04379cc01cc3845b02a83b77b9d91",
+      "literal": "suggestions-new",
+      "utf8ByteOffset": 91719,
+      "observation": "Static public shipped client source; not an authenticated runtime transaction."
+    },
+    {
+      "snapshot": "invite-route",
+      "artifact": "43-wg54flesmh.js",
+      "sha256": "db4535af7f516e08e042253411a44627f9f7c790c3738d7124a1319ac38e7bfb",
+      "literal": "Send suggestion",
+      "utf8ByteOffset": 29145,
+      "observation": "Static public shipped client source; not an authenticated runtime transaction."
+    },
+    {
+      "snapshot": "invite-route",
+      "artifact": "43-wg54flesmh.js",
+      "sha256": "db4535af7f516e08e042253411a44627f9f7c790c3738d7124a1319ac38e7bfb",
+      "literal": "maxLength:100",
+      "utf8ByteOffset": 27733,
+      "observation": "Static public shipped client source; not an authenticated runtime transaction."
+    },
+    {
+      "snapshot": "invite-route",
+      "artifact": "43-wg54flesmh.js",
+      "sha256": "db4535af7f516e08e042253411a44627f9f7c790c3738d7124a1319ac38e7bfb",
+      "literal": "maxLength:1500",
+      "utf8ByteOffset": 28366,
+      "observation": "Static public shipped client source; not an authenticated runtime transaction."
+    },
+    {
+      "snapshot": "invite-route",
+      "artifact": "43-wg54flesmh.js",
+      "sha256": "db4535af7f516e08e042253411a44627f9f7c790c3738d7124a1319ac38e7bfb",
+      "literal": "b.trim().length>=5",
+      "utf8ByteOffset": 27167,
+      "observation": "Static public shipped client source; not an authenticated runtime transaction."
+    },
+    {
+      "snapshot": "invite-route",
+      "artifact": "43-wg54flesmh.js",
+      "sha256": "db4535af7f516e08e042253411a44627f9f7c790c3738d7124a1319ac38e7bfb",
+      "literal": "Posted here so people can react. 3 a day",
+      "utf8ByteOffset": 28738,
+      "observation": "Static public shipped client source; not an authenticated runtime transaction."
+    },
+    {
+      "snapshot": "invite-route",
+      "artifact": "43-wg54flesmh.js",
+      "sha256": "db4535af7f516e08e042253411a44627f9f7c790c3738d7124a1319ac38e7bfb",
+      "literal": "Votes are reactions on the posted message.",
+      "utf8ByteOffset": 32241,
+      "observation": "Static public shipped client source; not an authenticated runtime transaction."
+    },
+    {
+      "snapshot": "invite-route",
+      "artifact": "43-wg54flesmh.js",
+      "sha256": "db4535af7f516e08e042253411a44627f9f7c790c3738d7124a1319ac38e7bfb",
+      "literal": "Reactions on the post",
+      "utf8ByteOffset": 34952,
+      "observation": "Static public shipped client source; not an authenticated runtime transaction."
+    }
+  ]
+}

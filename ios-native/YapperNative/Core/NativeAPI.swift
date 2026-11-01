@@ -9,13 +9,18 @@ nonisolated enum NativeConfiguration {
     static func permits(_ url: URL) -> Bool {
         guard url.scheme == "https", url.port == nil || url.port == 443,
               url.user == nil, url.password == nil, url.fragment == nil else { return false }
-        return url.host == apiHost || (url.host == "yapin.gg" && url.path == "/api/login")
+        return url.host == apiHost || (["yapin.gg", "www.yapin.gg"].contains(url.host ?? "") && url.path.hasPrefix("/api/"))
     }
 
     static func publicAsset(bucket: String, path: String?) -> URL? {
         guard let path, !path.isEmpty, !path.contains(".."), !path.contains("://") else { return nil }
         if path.hasPrefix("/") { return URL(string: "https://yapin.gg")?.appendingPathComponent(path) }
         return URL(string: "https://files.yapper.website")?.appendingPathComponent(bucket).appendingPathComponent(path)
+    }
+
+    static func communityCosmeticAsset(_ value: String?, prefix: String) -> URL? {
+        guard let value, ["c:", "p:"].contains(prefix), value.hasPrefix(prefix) else { return nil }
+        return publicAsset(bucket: "avatars", path: String(value.dropFirst(2)))
     }
 }
 
@@ -73,18 +78,26 @@ nonisolated final class RejectRedirects: NSObject, URLSessionTaskDelegate, Senda
     }
 
     func response<T: Decodable>(_ type: T.Type, request: URLRequest) async throws -> T {
+        let data = try await dataResponse(request: request)
+        do { return try JSONDecoder().decode(type, from: data) }
+        catch { throw NativeClientError.malformedResponse(String(describing: type)) }
+    }
+
+    func dataResponse(request: URLRequest, maximumBytes: Int = 8 * 1024 * 1024) async throws -> Data {
+        guard let url = request.url, NativeConfiguration.permits(url) else { throw NativeClientError.invalidEndpoint }
         try Task.checkCancellation()
+        try NativeAuthenticationContext.check?()
         let (data, response) = try await transport(request)
         try Task.checkCancellation()
+        try NativeAuthenticationContext.check?()
         guard response.url == request.url else { throw NativeClientError.invalidEndpoint }
         guard (200...299).contains(response.statusCode) else {
             let error = try? JSONDecoder().decode(APIErrorBody.self, from: data)
             let message = error?.safeMessage ?? "Serverfehler (\(response.statusCode)). Bitte erneut versuchen."
             throw NativeClientError.api(status: response.statusCode, message: message)
         }
-        guard data.count <= 8 * 1024 * 1024 else { throw NativeClientError.invalidResponse }
-        do { return try JSONDecoder().decode(type, from: data) }
-        catch { throw NativeClientError.malformedResponse(String(describing: type)) }
+        guard maximumBytes > 0, data.count <= maximumBytes else { throw NativeClientError.invalidResponse }
+        return data
     }
 
     func signIn(identifier: String, password: String) async throws -> NativeSession {
@@ -134,7 +147,7 @@ nonisolated final class RejectRedirects: NSObject, URLSessionTaskDelegate, Senda
     }
 
     func profile(id: String, session: NativeSession) async throws -> ProfileRow {
-        let query = [URLQueryItem(name: "id", value: "eq.\(id)"), URLQueryItem(name: "select", value: "id,username,display_name,avatar_path,bio,custom_status")]
+        let query = [URLQueryItem(name: "id", value: "eq.\(id)"), URLQueryItem(name: "select", value: "id,username,display_name,avatar_path,bio,custom_status,avatar_deco,profile_effect,name_banner,avatar_x,avatar_y,avatar_zoom,avatar_rot,plus_until")]
         let profile = try await response(ProfileRow.self, request: request(path: "rest/v1/profiles", query: query, token: session.accessToken, single: true))
         guard profile.id == id, !profile.username.isEmpty else { throw NativeClientError.invalidResponse }
         return profile
@@ -145,7 +158,8 @@ nonisolated final class RejectRedirects: NSObject, URLSessionTaskDelegate, Senda
         return try await response(HistoryResponse.self, request: request(path: "rest/v1/rpc/channel_messages", method: "POST", token: session.accessToken, body: body))
     }
 
-    func send(id: String, text: String, channelID: String, session: NativeSession) async throws -> MessageRow {
+    func send(id: String, text: String, channelID: String, session: NativeSession, messagePolicy: NativeMessagePolicy = .standard) async throws -> MessageRow {
+        try messagePolicy.validate(text, for: session.userID)
         let row = MessageInsert(id: id, channel_id: channelID, author_id: session.userID, content: text)
         do {
             return try await response(MessageRow.self, request: request(path: "rest/v1/messages", query: [URLQueryItem(name: "select", value: "*")], method: "POST", token: session.accessToken, body: JSONEncoder().encode(row), single: true))
@@ -231,9 +245,22 @@ nonisolated struct ProfileRow: Decodable, Sendable {
     let display_name: String?
     let avatar_path: String?
     let bio: String?
+    let avatar_deco: String?
+    let profile_effect: String?
+    let name_banner: String?
+    let avatar_x: Double?
+    let avatar_y: Double?
+    let avatar_zoom: Double?
+    let avatar_rot: Double?
+    let plus_until: String?
     func user() -> YapperUser {
         YapperUser(id: id, username: username, displayName: display_name,
-                   avatarURL: NativeConfiguration.publicAsset(bucket: "avatars", path: avatar_path), bio: bio)
+                   avatarURL: NativeConfiguration.publicAsset(bucket: "avatars", path: avatar_path), bio: bio,
+                   avatarDecorationURL: NativeConfiguration.communityCosmeticAsset(avatar_deco, prefix: "c:"),
+                   profileEffectURL: NativeConfiguration.communityCosmeticAsset(profile_effect, prefix: "p:"),
+                   nameBannerURL: NativeConfiguration.communityCosmeticAsset(name_banner, prefix: "c:"),
+                   avatarCrop: NativeImageCrop(x: avatar_x ?? 50, y: avatar_y ?? 50, zoom: avatar_zoom ?? 1, rotation: avatar_rot ?? 0),
+                   plusUntil: plus_until.flatMap { try? NativeDate.parse($0) })
     }
 }
 
@@ -256,6 +283,25 @@ nonisolated struct BootstrapResponse: Decodable, Sendable {
     let dm_members: [[String]]
     let profiles: [ProfileRow]
     let unread: [UnreadRow]?
+    let is_admin: Bool?
+    let mod: NativeJSON?
+    let flags: NativeJSON?
+    let calls: [BootstrapCallRow]?
+    let servers: [NativeJSON]?
+
+    var capabilities: NativeCapabilities {
+        NativeCapabilities(isAdministrator: is_admin == true, isModerator: mod?.object != nil && mod?["suspended_at"] == .null, flags: flags ?? .object([:]), joinedServerIDs: Set((servers ?? []).compactMap { row in
+            guard let id = row["id"].string, UUID(uuidString: id) != nil else { return nil }
+            return id
+        }))
+    }
+
+    func activeCallChannels(now: Date) -> Set<String> {
+        Set((calls ?? []).compactMap { row in
+            guard let started = try? NativeDate.parse(row.started_at), (0..<21_600).contains(now.timeIntervalSince(started)) else { return nil }
+            return row.channel_id
+        })
+    }
 
     func conversations(currentUserID: String) throws -> [Conversation] {
         guard dm_channels.allSatisfy({ !$0.id.isEmpty && ($0.kind == "dm" || $0.kind == "group") && $0.server_id == nil }),
@@ -274,14 +320,27 @@ nonisolated struct BootstrapResponse: Decodable, Sendable {
             let title = row.name.flatMap { $0.isEmpty ? nil : $0 } ?? participants.map(\.displayName).joined(separator: ", ")
             return Conversation(id: row.id, title: title.isEmpty ? "Direktnachricht" : title, participants: participants,
                                 avatarURL: NativeConfiguration.publicAsset(bucket: "icons", path: row.icon_path) ?? participants.first?.avatarURL,
-                                unreadCount: unreadByID[row.id] ?? 0, isGroup: row.kind == "group")
+                                unreadCount: unreadByID[row.id] ?? 0, isGroup: row.kind == "group", lastMessageAt: row.last_message_at.flatMap { try? NativeDate.parse($0) })
         }
     }
+}
+
+nonisolated struct BootstrapCallRow: Decodable, Sendable {
+    let channel_id: String
+    let started_by: String
+    let started_at: String
 }
 
 nonisolated struct HistoryResponse: Decodable, Sendable {
     let messages: [MessageRow]
     let profiles: [ProfileRow]
+}
+
+nonisolated struct MessageContextResponse: Decodable, Sendable {
+    let found: Bool
+    let at_end: Bool?
+    let messages: [MessageRow]?
+    let profiles: [ProfileRow]?
 }
 
 nonisolated struct MessageRow: Decodable, Sendable {
@@ -293,6 +352,9 @@ nonisolated struct MessageRow: Decodable, Sendable {
     let edited_at: String?
     let attachment_path: String?
     let attachment_name: String?
+    let system: NativeJSON?
+    let reply_to_id: String?
+    let webhook: NativeJSON?
 
     func message(profiles: [String: YapperUser]) throws -> ChatMessage {
         guard !id.isEmpty, !channel_id.isEmpty else { throw NativeClientError.malformedResponse("Message identity") }
@@ -300,6 +362,14 @@ nonisolated struct MessageRow: Decodable, Sendable {
         let attachments = attachment_path.map { path in
             [MessageAttachment(id: id + ":attachment", url: NativeConfiguration.publicAsset(bucket: "attachments", path: path), filename: attachment_name ?? "Anhang", contentType: nil)]
         } ?? []
-        return ChatMessage(id: id, channelID: channel_id, author: author, content: content ?? "", createdAt: try NativeDate.parse(created_at), attachments: attachments, isEdited: edited_at != nil)
+        return ChatMessage(id: id, channelID: channel_id, author: author, content: content ?? "", createdAt: try NativeDate.parse(created_at), attachments: attachments, isEdited: edited_at != nil, grouping: .from(system: system ?? .null, replyToID: reply_to_id, webhook: webhook ?? .null))
+    }
+}
+
+nonisolated extension NativeMessageGroupingMetadata {
+    static func from(system: NativeJSON, replyToID: String?, webhook: NativeJSON) -> Self {
+        Self(isSystem: system.bool ?? (system != .null), replyToID: replyToID,
+             webhookID: webhook["id"].string, webhookName: webhook["name"].string,
+             webhookAvatarURL: webhook["avatar_url"].string, webhookAvatarPath: webhook["avatar_path"].string)
     }
 }

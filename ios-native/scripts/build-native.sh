@@ -6,14 +6,31 @@ DERIVED_DATA="${DERIVED_DATA:-$PROJECT_ROOT/.build/DerivedData}"
 OUTPUT_DIR="${OUTPUT_DIR:-$PROJECT_ROOT/.build/artifacts}"
 ARCHIVE_PATH="${ARCHIVE_PATH:-$PROJECT_ROOT/.build/YapperNative.xcarchive}"
 MODE="${1:-simulator}"
-VERSION="0.1.1"
+VERSION="0.2.1"
 mkdir -p "$OUTPUT_DIR"
 args=(-project "$PROJECT_ROOT/YapperNative.xcodeproj" -scheme YapperNative -derivedDataPath "$DERIVED_DATA" CODE_SIGNING_ALLOWED=NO)
+args+=(-onlyUsePackageVersionsFromResolvedFile)
+if [[ -n "${SOURCE_PACKAGES_DIR:-}" ]]; then
+  args+=(-clonedSourcePackagesDirPath "$SOURCE_PACKAGES_DIR")
+fi
 
 case "$MODE" in
   simulator)
     xcodebuild "${args[@]}" -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' build
-    ditto --norsrc --noextattr --noqtn -c -k --keepParent "$DERIVED_DATA/Build/Products/Release-iphonesimulator/YapperNative.app" "$OUTPUT_DIR/Yapinplugger-Native-$VERSION-iOS-Simulator.zip"
+    # Sign outside synced build directories, whose Finder metadata can be recreated while signing.
+    simulator_staging="$(mktemp -d "${TMPDIR:-/tmp}/yapper-native-simulator.XXXXXX")"
+    trap 'rm -rf "$simulator_staging"' EXIT
+    simulator_app="$simulator_staging/YapperNative.app"
+    ditto --norsrc --noextattr --noqtn "$DERIVED_DATA/Build/Products/Release-iphonesimulator/YapperNative.app" "$simulator_app"
+    xattr -cr "$simulator_app"
+    for dependency in "$simulator_app"/Frameworks/*.framework "$simulator_app"/Frameworks/*.dylib; do
+      if [[ -e "$dependency" ]]; then codesign --force --sign - "$dependency"; fi
+    done
+    # Host signatures must not claim iOS-only restricted entitlements. The linker section above
+    # supplies the Simulator's own identity, independently from the plain local host signature.
+    codesign --force --sign - --identifier website.yapper.native.ios "$simulator_app"
+    codesign --verify --deep --strict "$simulator_app"
+    ditto --norsrc --noextattr --noqtn -c -k --keepParent "$simulator_app" "$OUTPUT_DIR/Yapinplugger-Native-$VERSION-iOS-Simulator.zip"
     ;;
   archive)
     xcodebuild "${args[@]}" -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' -archivePath "$ARCHIVE_PATH" SKIP_INSTALL=NO archive

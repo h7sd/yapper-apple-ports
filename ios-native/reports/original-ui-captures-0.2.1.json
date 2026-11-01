@@ -1,0 +1,504 @@
+{
+  "schemaVersion": 1,
+  "version": "0.2.1",
+  "defaultCaptures": [
+    {
+      "file": "docs/images/original-ui-0.2.1-iphone-pro-dark-settings.png",
+      "device": "Yapper Appearance Verification",
+      "appearance": "dark",
+      "surface": "settings",
+      "pixels": [
+        1206,
+        2622
+      ],
+      "sha256": "aee2af156c913fb7fc52305c6409f9ac1edd8db254d12525ed926fc861cb72ec",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-final-confirmation.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-iphone-pro-dark-chat.png",
+      "device": "Yapper Appearance Verification",
+      "appearance": "dark",
+      "surface": "chat",
+      "pixels": [
+        1206,
+        2622
+      ],
+      "sha256": "1f7a69f001d604bcabaaed784f700b057d4bd7925b137e8927ed04b3e9d2e310",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-final-confirmation.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-iphone-pro-dark-profile.png",
+      "device": "Yapper Appearance Verification",
+      "appearance": "dark",
+      "surface": "profile",
+      "pixels": [
+        1206,
+        2622
+      ],
+      "sha256": "088e1940af660e77e4cc46e330c6ab8225055d03bf6d45a3152abc2ff333ff18",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-final-confirmation.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-iphone-pro-dark-account-menu.png",
+      "device": "Yapper Appearance Verification",
+      "appearance": "dark",
+      "surface": "account-menu",
+      "pixels": [
+        1206,
+        2622
+      ],
+      "sha256": "e4022ac97adff3fff49c3f0ddcb65135ca161f21b35f1d6bebe54e760dd87981",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-final-confirmation.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-iphone-pro-dark-home.png",
+      "device": "Yapper Appearance Verification",
+      "appearance": "dark",
+      "surface": "home",
+      "pixels": [
+        1206,
+        2622
+      ],
+      "sha256": "5202c46537b41f4d4038f90f19c62fe158e72ba1099cfae4b34036bd81f2b2fa",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-final-confirmation.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-iphone-promax-dark-settings.png",
+      "device": "iPhone 17 Pro Max",
+      "appearance": "dark",
+      "surface": "settings",
+      "pixels": [
+        1320,
+        2868
+      ],
+      "sha256": "f6884fa92547626624b859ad02b93907a0427794e07b75633cc9521b43f0ecab",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-final-confirmation.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-iphone-promax-dark-chat.png",
+      "device": "iPhone 17 Pro Max",
+      "appearance": "dark",
+      "surface": "chat",
+      "pixels": [
+        1320,
+        2868
+      ],
+      "sha256": "84e0596b53cdf7db0735571b5a5493f4aa41cfac4f1651590a79bc25a0a435e4",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-final-confirmation.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-iphone-promax-dark-profile.png",
+      "device": "iPhone 17 Pro Max",
+      "appearance": "dark",
+      "surface": "profile",
+      "pixels": [
+        1320,
+        2868
+      ],
+      "sha256": "603371dfed58df452e37c30b6d147d9b3426a167b7a90bb85ebfc9143da1f61d",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-final-confirmation.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-iphone-promax-dark-account-menu.png",
+      "device": "iPhone 17 Pro Max",
+      "appearance": "dark",
+      "surface": "account-menu",
+      "pixels": [
+        1320,
+        2868
+      ],
+      "sha256": "7f7baecfe0df30a4c23089814f93359bdc3d0bedb7792b2b437e2c883fecbcf9",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-final-confirmation.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-iphone-promax-dark-home.png",
+      "device": "iPhone 17 Pro Max",
+      "appearance": "dark",
+      "surface": "home",
+      "pixels": [
+        1320,
+        2868
+      ],
+      "sha256": "84dd91598ee7600c346e45464c9467bea3eaafb4f833cac9b97b1c08546dea47",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-final-confirmation.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-ipad-dark-settings.png",
+      "device": "iPad Pro 13-inch (M5)",
+      "appearance": "dark",
+      "surface": "settings",
+      "pixels": [
+        2064,
+        2752
+      ],
+      "sha256": "c2ee65b86942cc2b5cb64189930f482606d4b49fbb0b04f45d8c11d981d15414",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-final-confirmation.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-ipad-dark-chat.png",
+      "device": "iPad Pro 13-inch (M5)",
+      "appearance": "dark",
+      "surface": "chat",
+      "pixels": [
+        2064,
+        2752
+      ],
+      "sha256": "73febe3fdeac3a9970eebf895cee31d8223ee7ff9854b24d153fcf5cfeab1c68",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-final-confirmation.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-ipad-dark-profile.png",
+      "device": "iPad Pro 13-inch (M5)",
+      "appearance": "dark",
+      "surface": "profile",
+      "pixels": [
+        2064,
+        2752
+      ],
+      "sha256": "31d4dfcbc762ffe3f9d256ab6263ffc4bb0a72aff90120b2f11c35e64dc15b62",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-final-confirmation.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-ipad-dark-account-menu.png",
+      "device": "iPad Pro 13-inch (M5)",
+      "appearance": "dark",
+      "surface": "account-menu",
+      "pixels": [
+        2064,
+        2752
+      ],
+      "sha256": "44f8ee8192cb6a5aebae550768bd8d225afee6a2d7d4ab0ff92228388cf43eb4",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-final-confirmation.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-ipad-dark-home.png",
+      "device": "iPad Pro 13-inch (M5)",
+      "appearance": "dark",
+      "surface": "home",
+      "pixels": [
+        2064,
+        2752
+      ],
+      "sha256": "9d97fb43505a473b267e716c48dcab8a5b043db1d9721706026013fbd6524014",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-final-confirmation.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-iphone-pro-light-settings.png",
+      "device": "Yapper Appearance Verification",
+      "appearance": "light",
+      "surface": "settings",
+      "pixels": [
+        1206,
+        2622
+      ],
+      "sha256": "bf7b6d317c992243639e6a81ba1bb57383b396c6cf4ec311a67cb3b486f3da5a",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-final-confirmation.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-iphone-pro-light-chat.png",
+      "device": "Yapper Appearance Verification",
+      "appearance": "light",
+      "surface": "chat",
+      "pixels": [
+        1206,
+        2622
+      ],
+      "sha256": "0722cbfb565672a45ba6ca8b7e3aa8b4add6d627060dc1e78a8906f23fd5ac55",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-final-confirmation.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-iphone-pro-light-profile.png",
+      "device": "Yapper Appearance Verification",
+      "appearance": "light",
+      "surface": "profile",
+      "pixels": [
+        1206,
+        2622
+      ],
+      "sha256": "ba39427fefbe05b6bc7258d72cc9b886a8b26e4efa92c6798904ab1e6341954f",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-final-confirmation.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-iphone-pro-light-account-menu.png",
+      "device": "Yapper Appearance Verification",
+      "appearance": "light",
+      "surface": "account-menu",
+      "pixels": [
+        1206,
+        2622
+      ],
+      "sha256": "f57f199fbfc956d075d0d6f972b3273cc8290996d4e3823d5a862a26ee6c6441",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-final-confirmation.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-iphone-pro-light-home.png",
+      "device": "Yapper Appearance Verification",
+      "appearance": "light",
+      "surface": "home",
+      "pixels": [
+        1206,
+        2622
+      ],
+      "sha256": "5ac095de5796bcd55b72fffccc29b3fb97053463d9f214a935e1fc8e2cf129ee",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-final-confirmation.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-iphone-promax-light-settings.png",
+      "device": "iPhone 17 Pro Max",
+      "appearance": "light",
+      "surface": "settings",
+      "pixels": [
+        1320,
+        2868
+      ],
+      "sha256": "c0ece8699e50da6b9845abc5805212527ef121a9bdcf1083f6a23a9ac233550e",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-final-confirmation.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-iphone-promax-light-chat.png",
+      "device": "iPhone 17 Pro Max",
+      "appearance": "light",
+      "surface": "chat",
+      "pixels": [
+        1320,
+        2868
+      ],
+      "sha256": "810a2f5e17f382ad862b9d47ade8f3f99588a9b4b95114af42377a10a0ce27e9",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-final-confirmation.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-iphone-promax-light-profile.png",
+      "device": "iPhone 17 Pro Max",
+      "appearance": "light",
+      "surface": "profile",
+      "pixels": [
+        1320,
+        2868
+      ],
+      "sha256": "92fb80a6b75f6aa07bd50f6d85dfa6d7fcf97d5b43d7f291d2746cb6c46042f4",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-final-confirmation.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-iphone-promax-light-account-menu.png",
+      "device": "iPhone 17 Pro Max",
+      "appearance": "light",
+      "surface": "account-menu",
+      "pixels": [
+        1320,
+        2868
+      ],
+      "sha256": "b9e8650094757bad0f7cdf794eb1697b04d0287ac3bc82263283b7c6bf2a34af",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-final-confirmation.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-iphone-promax-light-home.png",
+      "device": "iPhone 17 Pro Max",
+      "appearance": "light",
+      "surface": "home",
+      "pixels": [
+        1320,
+        2868
+      ],
+      "sha256": "24c421171f0fa0727c7320dd0a3f745d94189fb06c1d01a062690605bf52b9c8",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-final-confirmation.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-ipad-light-settings.png",
+      "device": "iPad Pro 13-inch (M5)",
+      "appearance": "light",
+      "surface": "settings",
+      "pixels": [
+        2064,
+        2752
+      ],
+      "sha256": "a258a7b013a2eae5eb5eeffe84143a4b360cc5b7b101cfeb6397399f1148b7bf",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-final-confirmation.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-ipad-light-chat.png",
+      "device": "iPad Pro 13-inch (M5)",
+      "appearance": "light",
+      "surface": "chat",
+      "pixels": [
+        2064,
+        2752
+      ],
+      "sha256": "a9da474104ec6ac405a6a6332c43651f4c7d02f444e4eb44b258a3e5765372b3",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-final-confirmation.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-ipad-light-profile.png",
+      "device": "iPad Pro 13-inch (M5)",
+      "appearance": "light",
+      "surface": "profile",
+      "pixels": [
+        2064,
+        2752
+      ],
+      "sha256": "7a0ecb2ad8c14d0962f7231c17a6d7f780e711cc83073be930af3b0b8c1b940e",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-final-confirmation.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-ipad-light-account-menu.png",
+      "device": "iPad Pro 13-inch (M5)",
+      "appearance": "light",
+      "surface": "account-menu",
+      "pixels": [
+        2064,
+        2752
+      ],
+      "sha256": "f9a15b7f842b6dd506b008d05f29ec7041dbd27fbc3d66901fbb2dcc42dfe339",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-final-confirmation.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-ipad-light-home.png",
+      "device": "iPad Pro 13-inch (M5)",
+      "appearance": "light",
+      "surface": "home",
+      "pixels": [
+        2064,
+        2752
+      ],
+      "sha256": "5ddc55bbe60ad4551bb80ed79af0efa3888da51ee45a3cefd0ccae36f1fc587f",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-final-confirmation.xcresult"
+    }
+  ],
+  "note": "Actual anonymous Debug application screenshots; source shape/geometry comparison, not a whole-app pixel-equivalence claim. Interaction regressions are tracked separately.",
+  "largeFontCaptures": [
+    {
+      "file": "docs/images/original-ui-0.2.1-iphone-promax-accessibility-large-dark-settings.png",
+      "device": "iPhone 17 Pro Max",
+      "appearance": "dark",
+      "surface": "settings",
+      "contentSize": "accessibility-large",
+      "pixels": [
+        1320,
+        2868
+      ],
+      "sha256": "095edbf2e5db18c1ecbc0cda1062459b01fd53b8fc2b6913701f50c0a1090618",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-large-final.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-iphone-promax-accessibility-large-dark-chat.png",
+      "device": "iPhone 17 Pro Max",
+      "appearance": "dark",
+      "surface": "chat",
+      "contentSize": "accessibility-large",
+      "pixels": [
+        1320,
+        2868
+      ],
+      "sha256": "0d93cb41a43e678e68e4161abdd65fc23a55f8a7bab044b6e891534aade96e74",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-large-final.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-iphone-promax-accessibility-large-dark-profile.png",
+      "device": "iPhone 17 Pro Max",
+      "appearance": "dark",
+      "surface": "profile",
+      "contentSize": "accessibility-large",
+      "pixels": [
+        1320,
+        2868
+      ],
+      "sha256": "232f1ed751d80e7f2bbb5e07d5658e8cba2dd6c113a9e75f7d0329915171bf7b",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-large-final.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-iphone-promax-accessibility-large-dark-account-menu.png",
+      "device": "iPhone 17 Pro Max",
+      "appearance": "dark",
+      "surface": "account-menu",
+      "contentSize": "accessibility-large",
+      "pixels": [
+        1320,
+        2868
+      ],
+      "sha256": "4693d3c049015da7eecd49061b5c98a3483adf9f84ddd34dd81f0096beb8411c",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-large-final.xcresult"
+    },
+    {
+      "file": "docs/images/original-ui-0.2.1-iphone-promax-accessibility-large-dark-home.png",
+      "device": "iPhone 17 Pro Max",
+      "appearance": "dark",
+      "surface": "home",
+      "contentSize": "accessibility-large",
+      "pixels": [
+        1320,
+        2868
+      ],
+      "sha256": "0d41d75254132ad1460261c5ad2f8b898f67cc93174c69ff7a7e1f642c489344",
+      "synthetic": true,
+      "realAccount": false,
+      "evidence": "original-ui-large-final.xcresult"
+    }
+  ]
+}

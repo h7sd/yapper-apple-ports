@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-31",
+  "passed": true,
+  "testDeclarations": 5,
+  "parameterCases": 7,
+  "platform": "macOS host Swift Testing using actual copied CryptoKit production source",
+  "scope": "Independent Node WebCrypto ECDH/AES-GCM vector, participant transcript/key-index authentication, malformed input rejection and safety-code equivalence. Does not establish LiveKit media interoperability or actual account calls.",
+  "realAccountCalls": false,
+  "physicalDevice": false,
+  "sourcesSHA256": {
+    "YapperNative/Core/NativeCallCrypto.swift": "d8864cec23b032b56de8e81b5d5a4f90b9b3aecee448c4f79f259def1f9f2f1e",
+    "YapperNativeTests/NativeCallCryptoTests.swift": "91d2389079ad127ab4fc421568ab2c8197886c92067edccbd9dd54a87c8a779f",
+    "tests/call-crypto-vector.cjs": "15d1e3c0abd269ee57c6f697cb6168d6fd9e32fae0627cc8a01ba51430df2b36"
+  }
+}

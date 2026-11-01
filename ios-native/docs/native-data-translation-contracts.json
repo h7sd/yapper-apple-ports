@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "source": "frozen public web-client text; no account execution",
+  "liveVerified": false,
+  "implementations": [
+    {
+      "feature": "data-export",
+      "artifact": "27w8rh0cq5u7r.js",
+      "sha256": "cd403f0121331fdbba77455943a658228ff86674d50ed6b437e4695e57ff58ef",
+      "literal": "/api/me/export",
+      "utf8ByteOffset": 128020
+    },
+    {
+      "feature": "account-delete",
+      "artifact": "0sn16tkxmqvqh.js",
+      "sha256": "531b7507b86acf59ffac4695386f12491b4fd6d5c0905c1cb2687c619f9b067b",
+      "literal": "delete_my_account",
+      "utf8ByteOffset": 14242
+    },
+    {
+      "feature": "translation",
+      "artifact": "237eu4ysm7qd_.js",
+      "sha256": "1540bf674e9374342d394574033119fdcb7e6d5dfd95e99f6aadb7dc38f617ff",
+      "literal": "/api/translate",
+      "utf8ByteOffset": 52935
+    }
+  ],
+  "limits": [
+    "Export preserves received JSON bytes and reports cut_short/could_not_load; Export requests use a separate 128 MiB bound; large JSON decoding runs off the main actor. Ordinary API responses retain the 8 MiB bound.",
+    "Deletion reauthenticates before cleanup, selects the observed feature-flag endpoint, and signs out only after success. Cleanup is best effort, matching the reference. No real account deletion was performed.",
+    "Translation uses the official service with protected code/URLs/mentions; no local/browser translation runtime is embedded."
+  ]
+}

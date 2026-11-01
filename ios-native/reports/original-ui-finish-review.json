@@ -1,0 +1,165 @@
+{
+  "review": "Fresh independent Impeccable primary-screen finish review",
+  "reviewedAt": "2026-11-01",
+  "verdict": "bounded_primary_visual_confirmation_pass_with_qualifications; complete_visual_and_functional_1_to_1_parity_not_achieved",
+  "appEdits": false,
+  "briefAuthority": "Exact original Yapper client visual world; native UI except the already-approved temporary official web login/CAPTCHA. Standard iOS/SF/Form/TabView styling does not override this brief.",
+  "evidence": {
+    "source": [
+      "PRODUCT.md",
+      "ios-native/DESIGN.md",
+      "ios-native/docs/ORIGINAL-UI-SPEC.md",
+      "ios-native/docs/ORIGINAL-UI-SPEC.json",
+      "ios-native/docs/original-ui-reference/original-react-runtime.json",
+      "all eight original React reference PNGs"
+    ],
+    "native": [
+      "10 Pro primary dark/light screenshots in work/ios-native/original-ui-pro-overlay-captures/manifest.json",
+      "20 Pro Max/iPad primary dark/light screenshots in work/ios-native/original-ui-cross-captures/manifest.json",
+      "work/ios-native/original-ui-promax-accessibility-home.png",
+      "Current default matrix: work/ios-native/original-ui-final-captures/manifest.json, all30 primary captures inspected.",
+      "Current AX-large dark Pro Max matrix: work/ios-native/original-ui-large-captures/manifest.json, all five primary captures inspected.",
+      "Final rail-initial confirmation: ios-native/docs/images/original-ui-0.2.1-iphone-promax-accessibility-large-dark-home.png, from parent-reported passing original-ui-large-final.xcresult."
+    ],
+    "exclusions": "The two Pro Settings captures have the obsolete narrow fallback banner; the current Pro Max/iPad Settings captures supersede that defect. English source text versus requested German native text, real native safe areas, 3x/2x raster scales and CoreText rasterization are not source-fidelity failures. The final default matrix now supersedes both historical default matrices for the confirmation verdict.",
+    "units": "Original viewport402x874 CSS px at1x. Native Pro402x874pt/3x; Pro Max440x956pt/3x; iPad1032x1376pt/2x."
+  },
+  "positiveChecks": [
+    "The supplied normal-size primary shell/profile/chat/settings capture matrix preserves the original visual identity, density, colors, vectors and main structure.",
+    "Pro Max account bar and profile fit the width and remain centered; primary phone shell backgrounds fill the screen without unrelated gray bands.",
+    "Current Pro Max/iPad Settings fallback banner fills its account card width.",
+    "The supplied accessibility Home capture keeps the heading, list actions, conversation names and bottom labels readable without additional visible clipping beyond the known fixed-glyph/avatar issue."
+  ],
+  "findings": [
+    {
+      "id": "P2-AX-FIXED-GLYPH",
+      "priority": "P2",
+      "status": "resolved_for_at_avatar_and_rail_initials_in_actual_AX_large_captures",
+      "title": "Large Dynamic Type clips the account @ glyph inside its fixed icon box",
+      "evidence": "original-ui-promax-accessibility-home.png visibly shows a severed @ in the account tools. Avatar fallback initials and unread numerals also scale inside fixed visual geometry.",
+      "code": [
+        "ios-native/YapperNative/UI/OriginalYapper.swift:61",
+        "ios-native/YapperNative/UI/OriginalYapper.swift:45"
+      ],
+      "action": "Use a non-scaling font for fixed decorative glyph/avatar geometry, retain accessible labels, and capture the same large Home state after the fix.",
+      "confirmationStatus": "Final repository Home image original-ui-0.2.1-iphone-promax-accessibility-large-dark-home.png shows complete @, fixed-size avatar initials and fixed-size DC rail initials. NativeOriginalShellViews.swift:47 now uses OriginalYapper.fixedFont(16,numericWeight:700)."
+    },
+    {
+      "id": "P2-PROFILE-BOTTOM-INSET",
+      "priority": "P2",
+      "status": "resolved_in_current_default_and_AX_large_profile_captures",
+      "title": "Profile footer actions occupy the bottom system safe-area inset",
+      "evidence": "Pro and Pro Max own-profile captures place the Edit control only about17pt above the physical bottom. NativeProfileView ignores the bottom safe area and profileBody reserves only16pt beneath its final control. The 34pt phone bottom inset is therefore not applied to interactive content.",
+      "captures": [
+        "original-ui-pro-overlay-captures/AD376D8C-4EAA-4E5C-8AED-DB5968406ECB.png",
+        "original-ui-cross-captures/09ED5737-D6ED-41E9-8720-D4A798759E35.png"
+      ],
+      "code": [
+        "ios-native/YapperNative/UI/NativeSocialViews.swift:266",
+        "ios-native/YapperNative/UI/NativeSocialViews.swift:390",
+        "ios-native/YapperNative/UI/NativeSocialViews.swift:398"
+      ],
+      "action": "Reserve the actual bottom safe inset for profile interactive content while extending the original card background to the screen edge. Check own Edit and friend composer/send with normal and large Dynamic Type.",
+      "confirmationStatus": "Current30 default matrix and large ProfileB11EF6C4-78C3-40DD-8484-B764DEBF31C8.png show the Edit footer above the real bottom inset while the background extends to the edge."
+    },
+    {
+      "id": "P2-PRIMARY-HIT-REGIONS",
+      "priority": "P2",
+      "status": "source_shapes_expanded; effective_boundary_hit_routing_not_independently_verified",
+      "title": "Several primary controls retain source visual sizes without the promised native44pt hit regions",
+      "evidence": "Account popover edit is30x30 and menu rows are33.6pt high; own-profile close/edit are40pt; Settings navigation and dismiss are40pt high, and account-row Edit is36pt. These plain buttons have no44pt interaction shape expansion. The normal screenshots correctly preserve the small visible geometry, so the fix belongs to hit regions rather than artwork size.",
+      "code": [
+        "ios-native/YapperNative/UI/OriginalProfileSettings.swift:127",
+        "ios-native/YapperNative/UI/OriginalProfileSettings.swift:141",
+        "ios-native/YapperNative/UI/OriginalProfileSettings.swift:155",
+        "ios-native/YapperNative/UI/NativeSocialViews.swift:297",
+        "ios-native/YapperNative/UI/NativeSocialViews.swift:390",
+        "ios-native/YapperNative/UI/NativeRootView.swift:200",
+        "ios-native/YapperNative/UI/NativeRootView.swift:208",
+        "ios-native/YapperNative/UI/NativeRootView.swift:291"
+      ],
+      "action": "Expand native interaction regions to at least44x44pt without changing visible source geometry. Keep adjacent hit regions unambiguous; where source rows are contiguous, expose an equivalent accessible native action rather than overlapping multiple invisible buttons.",
+      "confirmationStatus": "Reviewed source applies expanded interaction shapes to the reported primary controls. Static screenshots confirm unchanged visible geometry. A physical-device or boundary-coordinate routing audit was not performed."
+    },
+    {
+      "id": "P2-AX-LINE-BOXES",
+      "priority": "P2",
+      "status": "resolved_in_supplied_AX_large_Menu_and_Settings_states",
+      "title": "Scaled Menu and Account text is placed in unscaled fixed-height line boxes",
+      "evidence": "OriginalYapper.uiFont scales through UIFontMetrics, but the account popover fixes20pt name and13pt handle to24/18.2pt heights. Settings accountRow fixes11pt labels and15pt values to15.4/21pt. At the supplied accessibility scaling, line metrics outgrow those heights and risk truncation or overlap. No supplied large Menu/Settings capture verifies these states.",
+      "code": [
+        "ios-native/YapperNative/UI/OriginalYapper.swift:45",
+        "ios-native/YapperNative/UI/OriginalProfileSettings.swift:130",
+        "ios-native/YapperNative/UI/OriginalProfileSettings.swift:131",
+        "ios-native/YapperNative/UI/NativeRootView.swift:284",
+        "ios-native/YapperNative/UI/NativeRootView.swift:285"
+      ],
+      "action": "Retain exact default-size minimum heights while allowing scaled text to grow. Add vertical overflow handling for the account popover and capture large Menu, expanded status menu, Settings and Profile on a phone.",
+      "confirmationStatus": "Menu9764775B-42EA-4A45-90CA-9989E443F230.png shows readable name/handle and growing wrapped menu rows. Settings61BB55D2-946F-49E0-813A-01C582CD7A66.png shows complete account labels/values and naturally wrapped privacy selection. The expanded presence menu overflow fallback was not captured."
+    }
+  ],
+  "minorSourceObservation": {
+    "title": "Sidebar title is16pt in native versus15px/700 in the actual React runtime",
+    "code": "ios-native/YapperNative/UI/NativeOriginalConversationList.swift:21",
+    "source": "original-react-runtime.json captures[0].geometry[.sidebar-head][0].fontSize=15px, fontWeight=700",
+    "action": "Use the recorded15pt default-size value in the next source-fidelity pass; rasterization differences do not explain a numeric size mismatch.",
+    "confirmationStatus": "resolved_in_current_source:15pt/700"
+  },
+  "claimLimits": {
+    "wholeAppParity": false,
+    "readmeAccurate": "README explicitly limits0.2.1 and states that complete visual/functional1:1 parity is not claimed.",
+    "remaining": [
+      "Secondary community/developer/call management screens retain native List/dialog structure.",
+      "Global presence, custom source name-style/tint variants and some rollout-specific states remain incomplete/unverified.",
+      "Full Vencord/native call UI and backend/background push parity remain incomplete/unverified.",
+      "Live-account authentication, call behavior and physical-device interaction were not established by these anonymous Debug captures."
+    ],
+    "tests": "Reviewer performed no test reruns. Parent reports the AX-large five-surface run passed, targeted Settings regression passed on both phones, all five feature flows passed on all3 devices via merged runs, and public phone login retry passed. These are reported test outcomes, not a claim of one wholly green all-feature suite or live-account acceptance. Parent additionally reports final five-surface AX-large run original-ui-large-final.xcresult passed after the isolated decorative initial-font correction; this reviewer confirmed its final Home PNG."
+  },
+  "notApplicable": [
+    "HTML detector: SwiftUI/UIKit native views.",
+    "A new decorative design direction.",
+    "Mandatory SF typography, system Form/List/TabView chrome or new large-title navigation, which conflict with the binding exact-original brief."
+  ],
+  "confirmation": {
+    "status": "Bounded default/source/AX-large confirmation complete, including final rail-initial Home confirmation; no production edits by reviewer.",
+    "defaultEvidence": "work/ios-native/original-ui-final-captures/manifest.json: all30 primary captures (Pro/Pro Max/iPad, dark/light, Home/Menu/Profile/Chat/Settings).",
+    "defaultResult": "No new primary-screen visual issue found in the bounded confirmation. Profile footer clears the bottom inset while card background reaches the edge. Normal fit/centering/fill and full-width Settings banners hold across the matrix.",
+    "largeEvidence": "work/ios-native/original-ui-large-captures/manifest.json: actual AX-large dark Pro Max five-surface run. Final Home-only confirmation inspected the repository Home PNG after the decorative rail-initial correction; parent reports original-ui-large-final.xcresult passed all five surfaces. Other four observations below were established by the prior actual five-surface capture set and the production change since was limited to rail initials.",
+    "largeObservations": [
+      {
+        "surface": "Home",
+        "file": "ios-native/docs/images/original-ui-0.2.1-iphone-promax-accessibility-large-dark-home.png",
+        "observation": "Final screenshot confirms a complete account @, fixed-size avatar initials and fixed-size DC rail initials. Heading, list actions, conversation names and bottom-navigation labels remain readable."
+      },
+      {
+        "surface": "Menu",
+        "file": "9764775B-42EA-4A45-90CA-9989E443F230.png",
+        "observation": "Name and handle are readable without line-box clipping. Long localized menu rows wrap and grow inside the card. No expanded presence selector captured."
+      },
+      {
+        "surface": "Profile",
+        "file": "B11EF6C4-78C3-40DD-8484-B764DEBF31C8.png",
+        "observation": "Profile fits, identity and sections are readable, and Edit control stays above the bottom inset."
+      },
+      {
+        "surface": "Chat",
+        "file": "037E42F8-F055-43CB-B3DC-538C448109E4.png",
+        "observation": "Author/date/message text is readable; body and introductory text wrap naturally. Header actions and composer remain visible."
+      },
+      {
+        "surface": "Settings",
+        "file": "61BB55D2-946F-49E0-813A-01C582CD7A66.png",
+        "observation": "Account label/value lines no longer use clipped fixed-height boxes. Name/handle and account edit actions fit. Privacy text grows below the fold in its ScrollView; horizontal settings navigation remains a horizontal strip."
+      }
+    ],
+    "sourceResult": "Confirmed fixedFont for @, avatar and rail initials;15pt sidebar title; scalable minimum line heights; bounded popover ScrollView fallback; safe-area-aware profile footer; and expanded primary interaction shapes.",
+    "remainingQualifications": [
+      "Consecutive33.6pt popover rows expanded by5.2pt vertically have overlapping44pt shapes. Source dimensions and static captures do not establish independent44pt effective tap height or boundary routing.",
+      "Expanded presence-menu overflow fallback, very long account names, other AX sizes, light AX appearance and Pro/iPad AX screens were not part of the supplied five-image large-font confirmation.",
+      "No physical-device interaction, performance, hardware call behavior or live-account authentication verification by this reviewer."
+    ],
+    "functionalResult": "Reviewer performed no test reruns. Parent reports the AX-large five-surface run passed, targeted Settings regression passed on both phones, all five feature flows passed on all3 devices via merged runs, and public phone login retry passed. These are reported test outcomes, not a claim of one wholly green all-feature suite or live-account acceptance. Parent additionally reports final five-surface AX-large run original-ui-large-final.xcresult passed after the isolated decorative initial-font correction; this reviewer confirmed its final Home PNG.",
+    "wholeAppParity": false
+  }
+}

@@ -1,0 +1,210 @@
+{
+  "schemaVersion": 1,
+  "version": "0.2.0",
+  "build": "3",
+  "channel": "local-development-candidate",
+  "overallParityComplete": false,
+  "liveAccountVerified": false,
+  "unitTests": {
+    "passed": true,
+    "logicalTests": 189,
+    "suites": 19,
+    "expandedCasesPerDevice": 197,
+    "devices": [
+      {
+        "model": "iPad Pro 13-inch (M5)",
+        "runtime": "26.4.1",
+        "architecture": "arm64"
+      },
+      {
+        "model": "iPhone 17 Pro",
+        "runtime": "26.4.1",
+        "architecture": "arm64"
+      },
+      {
+        "model": "iPhone 17 Pro Max",
+        "runtime": "26.4.1",
+        "architecture": "arm64"
+      }
+    ],
+    "evidence": "Parity-Focused-Regression.xcresult",
+    "derivation": "The run contains all 189 unit tests plus 3 UI cases. Its only failure was the sign-out UI selector; every unit case passed on each device."
+  },
+  "nativeUIFlows": {
+    "passed": true,
+    "logicalFlows": 10,
+    "deviceRuns": 30,
+    "flows": [
+      "NativeFeatureFlowTests/testHomeTabsPeopleSearchAndNativeProfileConversation",
+      "NativeFeatureFlowTests/testSettingsProfileEditorSecurityAndPluginControls",
+      "NativeFeatureFlowTests/testCommunityNavigationAndNativeBalances",
+      "NativeFeatureFlowTests/testServerChannelsMembersAndNativeConversation",
+      "NativeFeatureFlowTests/testGermanWelcomeKeepsBothLegalLinksVisibleWithNativeTouchTargets",
+      "NativeFlowTests/testNativeLoginAndCenteredConversationList",
+      "NativeFlowTests/testNativeMessagesSendAndDraftSurvivesNavigation",
+      "NativeFlowTests/testNativeAccountSignOut",
+      "NativeFlowTests/testEnglishWelcomeAndLegalFooter",
+      "NativeFlowTests/testOfficialWebLoginLoadsAndCancelsWithoutAccount"
+    ],
+    "devices": [
+      {
+        "model": "iPad Pro 13-inch (M5)",
+        "runtime": "26.4.1",
+        "architecture": "arm64"
+      },
+      {
+        "model": "iPhone 17 Pro",
+        "runtime": "26.4.1",
+        "architecture": "arm64"
+      },
+      {
+        "model": "iPhone 17 Pro Max",
+        "runtime": "26.4.1",
+        "architecture": "arm64"
+      }
+    ],
+    "evidence": [
+      "Parity-Integrated-Confirmation.xcresult",
+      "Parity-Focused-Regression.xcresult",
+      "Parity-SignOut-Regression.xcresult"
+    ],
+    "derivation": "The first full run passed 7 flows on every device. Focused reruns passed the add-people/profile/DM flow, member-sheet dismissal, then the sign-out flow on every device. Earlier failures are retained in the local result bundles."
+  },
+  "freshLoginBridge": {
+    "passed": true,
+    "checks": 89,
+    "report": "web-login-bridge-tests.json",
+    "scope": "Actual Swift-exported response script with mocked browser transports; public sign-in page loads separately without credentials or CAPTCHA submission."
+  },
+  "builds": {
+    "deviceRelease": {
+      "passed": true,
+      "artifact": "Yapinplugger-Native-0.2.0-ios-unsigned.ipa",
+      "signing": "Unsigned device archive; requires the user\u2019s own Apple signing."
+    },
+    "simulatorRelease": {
+      "passed": true,
+      "artifact": "Yapinplugger-Native-0.2.0-iOS-Simulator.zip",
+      "architectures": [
+        "arm64",
+        "x86_64"
+      ],
+      "signing": "Plain local ad-hoc host signature; Simulator-only identity in the Mach-O linker section."
+    }
+  },
+  "sourceSHA256": {
+    "YapperNative/Authentication/BrowserLoginPolicy.swift": "e6d13a317ae2033e7aff283a03bffa81bf10ea0f639b6812bb8a0d7fa0be8b94",
+    "YapperNative/Authentication/BrowserLoginScript.swift": "37269461e02106f61980c29f96e7b5055fb13a685a2ba5f9ac28a18fdff5cbd6",
+    "YapperNative/Authentication/WebLoginSheet.swift": "22822f0a0df0fc617ecef701479f3c4561382eb27b89d53e0ec5a580edb27742",
+    "YapperNative/Core/MessageFeatures.swift": "d43e7ddc684b74d1814586359458b04b70820913d8b0fc971a5ac084256501f5",
+    "YapperNative/Core/Models.swift": "86f7f441ab13cd4787f7b588bb9fb7f596619a8fa6d606485678b2f47fb8acb9",
+    "YapperNative/Core/NativeAPI.swift": "d93a24c8fdf610743449ec50d461a2b32813d4c341dba7528ec5901bb0e71b92",
+    "YapperNative/Core/NativeAccountDataService.swift": "407f37baf797001fd846ba703fa14a9fa23ed7a3bb65064c93ef4ccca8d4e2ed",
+    "YapperNative/Core/NativeAuthenticationContext.swift": "2e15d738d9a737ddc74fff66db9e17d5d304501bf3ce86c4e1723b358b78a7a0",
+    "YapperNative/Core/NativeBotMessageComponents.swift": "3850c34d1fe00f35e9f0e5c04c391ed3d99bffea536d394e117d7cd93c35c21a",
+    "YapperNative/Core/NativeCallCrypto.swift": "d8864cec23b032b56de8e81b5d5a4f90b9b3aecee448c4f79f259def1f9f2f1e",
+    "YapperNative/Core/NativeCalls.swift": "b116fe46d8cd23f3c5c7d033d60be65ee343fa8cecccab723d5fe91f18af6370",
+    "YapperNative/Core/NativeCommunityModels.swift": "c26ff094a1b1e69f09ec8012ddc4975cbf5371a873dd648163b482b8dd2a9d66",
+    "YapperNative/Core/NativeCommunityService.swift": "509709b670c8dc2132f2bb90b71a5144d703e21eb561b6710c74b2837a37d96a",
+    "YapperNative/Core/NativeConversationPreferences.swift": "98dcebbd1232f4f8d87f5a7fbfb96877a81774a428de72b91df55562cc61c4da",
+    "YapperNative/Core/NativeDeveloperModels.swift": "d254ae863391448d504f83a7eec41d093ab7b0005a7d99a1031a20c61cfa32fc",
+    "YapperNative/Core/NativeDeveloperService.swift": "a4d9c5e1d16bb2a0b2ece3b285374c9c38c8fffe967d8699deab11c0fab8bd7e",
+    "YapperNative/Core/NativeImageCrop.swift": "f81d013f092dac58245ea570171e6f92b7fc5273e1eb053b43c10995ea0be23c",
+    "YapperNative/Core/NativeMediaUpload.swift": "9c3ae40ab19dc781ee30507034c6a8f41d9d87a435e3e279c32f715781db2d85",
+    "YapperNative/Core/NativeMessageEmoji.swift": "754dc4329b5efb21f2ae7e147ce72e235a9f01381f8a1d7f6891c3b145e01b16",
+    "YapperNative/Core/NativeMessagePolls.swift": "b528ff78c68817270d14e4e70a6b6c76224106268ab488f7874e962beb3f8667",
+    "YapperNative/Core/NativeMessageSearchNavigation.swift": "5dd745ca163b00a785264207bcd0800dd9b3bc7916a863425f26146839229d36",
+    "YapperNative/Core/NativeMessageService.swift": "3b3f3d1c6f8b23c9de8d9189b28a663fdc27b162179eb6ce11edb1dfc2ef5af9",
+    "YapperNative/Core/NativeMessageTranslation.swift": "9b8719aad8a90e42e2fc1d4fde3e96e0bc2e91da6b8b396d00d7daffce4b6607",
+    "YapperNative/Core/NativePluginPreferences.swift": "9c22393cd765759567908400cdcaf24015fa2cbb0fe3d729a9e465251a1a1aa1",
+    "YapperNative/Core/NativePollVoters.swift": "7f86d4459042797f7ba05b1db16b9f3919cc35e1b5171d9509d271fd084e1418",
+    "YapperNative/Core/NativeSecurityService.swift": "c2b9cba2b13cfd245dc4bb0a51fa2d7bde5118e43aea0829f7afc3d5ef9f2e84",
+    "YapperNative/Core/NativeServerFixtures.swift": "9b5954784caed98e00df89797692b727a300a3708e1f1b30eacbf75fde336af2",
+    "YapperNative/Core/NativeServerOrganization.swift": "5ea406d640776d5ee1e30847ea297fb856b7a1145c3dd508be8d40dee172fb73",
+    "YapperNative/Core/NativeServerService.swift": "ed6c0d339c53fcbed2d4aa214f76220680591d5bb1301dd1e8bd968d660b6a0c",
+    "YapperNative/Core/NativeServerTools.swift": "2e4d519b8b55775566d9e703aff11e00f677feb0f208c33f7491dbc75f4b0817",
+    "YapperNative/Core/NativeService.swift": "0944165ddb2d6bcbe3a7c7fbb61a9d33411df251d7f7822bfa159fba33234f40",
+    "YapperNative/Core/NativeSocialService.swift": "5f9affaad6c0fa1a272d0fd4e4d925efa99f13b59890cdf1a99fe293d083aa60",
+    "YapperNative/Core/NativeStore.swift": "cc50a41e07b5ac4b5f8c15a41288c3759fb6af0a18fcef23618d810bcf3a5107",
+    "YapperNative/Core/NativeSuggestionService.swift": "d4d1a5a58a3099fd1624d3a7c8f6957d3f6a6bf67966151f6c64f6d20047ec12",
+    "YapperNative/Core/NativeVoiceService.swift": "92fe70e50bd2eee0b56f9cde7377ba77709bbf1d2ea44275131ff3e67c6456ed",
+    "YapperNative/Core/RealtimeClient.swift": "1a583cb93026ca4c68420b7ab541750ecd2935dd40de6e510c2b5dbf126b15b1",
+    "YapperNative/Core/ServerFeatures.swift": "a7e24fd2e44466b96cdd50dfcdec1ea54dada08502dd09178482881af14fad2e",
+    "YapperNative/Core/ServerInvites.swift": "a4844cb37a7a46f3d3e2c545e5d4fcdde0cd5623e036b5b0a457ec894d22fb2a",
+    "YapperNative/Core/SessionVault.swift": "f50db51f4a42266160b3240871a59dfd33bdae79d46d9661f7edf753e9e58111",
+    "YapperNative/Core/SocialFeatureModels.swift": "5db48d7b6ba8cc5e7391b72f195dae2a01cd9604fedd8a3be40d2200c0672e9b",
+    "YapperNative/UI/NativeAccountDataView.swift": "f4f2764de8e72b3ca984d27cd76d3a13a1189938e0599513e3998f5e6d1283ce",
+    "YapperNative/UI/NativeAppShell.swift": "0cdf278cee43fd2bd27b09d80c7240dcb9c6e23ef362324e0844816e2ff30d49",
+    "YapperNative/UI/NativeBotViews.swift": "36278892bd17a076a8cc12982ec5f01ee40997fd9654e582422194e522174eac",
+    "YapperNative/UI/NativeCallViews.swift": "a91417e0479d4cf5a5c39cabe4efdf242e1f193cd77a6648f88984a2a4da913f",
+    "YapperNative/UI/NativeCommunityViews.swift": "27cd82add7cdcad50c09e740e0c95b924525c27dcb5a89f167e50413528dfb19",
+    "YapperNative/UI/NativeConversationPreferencesView.swift": "a81069f5bac024e173e2a3868b4f0456a03e37321959527c81ee0f5c2506eec0",
+    "YapperNative/UI/NativeConversationView.swift": "90272256ef8044dcb849bac6fd5c6eb3c985fc50a081b3cf8bea3a50620787a3",
+    "YapperNative/UI/NativeDeveloperViews.swift": "60e72b94647c974061863053ab30b8caae788dea2bf973c26d87d5dcd37e4100",
+    "YapperNative/UI/NativeLicensesView.swift": "0996aae93c8c9a8b8359fa530ee0a889426f034901e24d371be1078dac527336",
+    "YapperNative/UI/NativeMessageComponentsView.swift": "6e9f0f22eb5754d1f71bf8fd64a986481e8382447280b927b6266617218bc3cc",
+    "YapperNative/UI/NativeMessageEmbed.swift": "4623be37a4e3a7a48242d7f1b1c978d9abaa5601110e495d866a36be29375414",
+    "YapperNative/UI/NativeMessagePollViews.swift": "d9f067a9b3ba057b2a0fec3a447caf430f8d627d30abae8a0524d3d333f31305",
+    "YapperNative/UI/NativeMessageRichText.swift": "b0ede49bf69fcee7671cabc0ffd166be14ccd31fd88847acd89dc2f197d96d27",
+    "YapperNative/UI/NativeMessageSearchDestination.swift": "6816b57e2ed798e69a27f00cd6966f179a1be267a678a6291d272098c053d425",
+    "YapperNative/UI/NativeMessageTools.swift": "7e97b55b3b5ec10a9d00e1b1f3baf98d830d08b8d3cb979a37c49010e131e4d6",
+    "YapperNative/UI/NativeMessageTranslationView.swift": "e3cac405373ab18e93c2e3a923c29660baf6dcdef4073f70e0fc43b471b43087",
+    "YapperNative/UI/NativeMessageVoiceRecorder.swift": "4c3192a20c680bc1eff19092bfb7c225981729f191ec836b6f41e5cdd0b3c59a",
+    "YapperNative/UI/NativePluginsView.swift": "7160427e8714532cadfe69db1c6610d214c8e297c6fe1b52d4bd1d2b547a64ca",
+    "YapperNative/UI/NativePollVoterViews.swift": "c3fd559a508d5abab9960164d447393c774ca3144f389600b714e15d2a8632af",
+    "YapperNative/UI/NativeProfileCropViews.swift": "d227062d3065481c42825b394bb96198c0cbf8a03fcb9e12c595ad828f0cc4e1",
+    "YapperNative/UI/NativeRemoteImage.swift": "245065d976c7ec13ec2058a2cefcc3dd9fc22dbc2ff81437916a13267fd881b5",
+    "YapperNative/UI/NativeRootView.swift": "57a655e3a86df9d2ba1c9f933239233b45ab05ae2881a01b426ae14eeb3f12a3",
+    "YapperNative/UI/NativeSecurityViews.swift": "e377a860c1e80291abdc475b87d7c823147a9149716350c48bfd61500a54e85a",
+    "YapperNative/UI/NativeServerInviteView.swift": "f63c7d7d8f56ccac257105d8f8ba12a6ed9898a2447a5decf58bc90f7c993132",
+    "YapperNative/UI/NativeServerOrganizationViews.swift": "02e50912bd6ee52264e865546422a732ced24224eee52622f39f9de20fcc644e",
+    "YapperNative/UI/NativeServerPermissionViews.swift": "635b9211dbbe352dabc7cd2f9182f10a5281e578c442fca0304bc43d669d4901",
+    "YapperNative/UI/NativeServerToolsViews.swift": "fe44aee067081061296316824c800c28c56ef3edb987f4c065631c98c92c92be",
+    "YapperNative/UI/NativeServerViews.swift": "db92e152f0c30355d5566046dc5d0ad99fe727ae446f0072b79d6070851c7623",
+    "YapperNative/UI/NativeSocialExtrasViews.swift": "90103ef3b738e19f954bf88de220a5257e608979731da8449e515bb78a6443c8",
+    "YapperNative/UI/NativeSocialViews.swift": "6d59afadfd3bd903a10cf2e03db3639258d9adc24f1aa640eecb661ad3e83b46",
+    "YapperNative/UI/NativeSuggestionViews.swift": "b6a4062bec6afb95d7e718ab24e06331fb13cd930a7341707879e345c2e3775a",
+    "YapperNative/UI/NativeSupportViews.swift": "175899b8933ed33e9cc8f5813176edb82bc22ec59b268d3019254f0a64595bd7",
+    "YapperNative/UI/NativeVoiceToolsView.swift": "d291c9f8133c1e176ad95d489fb4046be4fddfbdf9b33fa84943eeac87352d38",
+    "YapperNative/UI/YapperTheme.swift": "838bf40beb97a7168ad0ecc77b0d212a2eba64c6e549f573b6578da307912b7a",
+    "YapperNative/YapperNativeApp.swift": "0840c0d6a6a3d5898631cbe19de376bd25255e166b67ad159293246933f779a7"
+  },
+  "evidenceSummarySHA256": {
+    "confirmation-summary.json": "7bb38fb9933c32acd02eea9ca7bd007bfe042c1327b0f4194b02d34bfd280a14",
+    "focused-summary.json": "707bc5c7876c713ac2740b94cdaef12048e8c3ddc729e461a80e353a9f155f0d",
+    "signout-summary.json": "d0d9cec2fc4bdf45b4d482f8175b8ac2cdbbda3fc7d7b3240564a99614e29c05"
+  },
+  "limits": [
+    "No real-account sign-in, live delivery, live calls, purchases or physical-device acceptance was performed.",
+    "Native UI fixture checks cover the listed flows, not every control or role-gated action.",
+    "Full parity remains incomplete; see docs/native-parity.json for client gaps and operator/platform dependencies.",
+    "Only the temporary official sign-in component uses WebKit.",
+    "The unsigned IPA requires the user\u2019s own Apple signing profile; it is not an App Store or TestFlight build."
+  ],
+  "keychainIntegration": {
+    "passed": true,
+    "operations": [
+      "write",
+      "read",
+      "update",
+      "delete"
+    ],
+    "report": "keychain-0.2.0.json",
+    "scope": "Dedicated Simulator probe compiling unchanged shipping source, isolated own access group; no real credentials or network."
+  },
+  "releaseBootSmoke": {
+    "passed": true,
+    "model": "iPhone 17 Pro",
+    "runtime": "iOS26.4.1",
+    "fromDeliveredZIP": true,
+    "fixtureArguments": false,
+    "accountSubmitted": false,
+    "keychainErrorOnWelcome": false,
+    "image": "docs/images/welcome-0.2.0-release-de-iphone-pro.png"
+  },
+  "packageInspection": {
+    "passed": true,
+    "checks": 192,
+    "report": "package-verification-0.2.0.json"
+  }
+}

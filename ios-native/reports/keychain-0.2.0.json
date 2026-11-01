@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "version": "0.2.0",
+  "checkedAtUTC": "2026-10-31T22:27:04.657889+00:00",
+  "scope": "Actual local Simulator Keychain integration using the exact shipping source, not MemorySessionVault",
+  "simulator": {
+    "model": "iPhone17Pro",
+    "runtime": "iOS26.4.1",
+    "applicationIdentifier": "website.yapper.native.ios.keychain-probe",
+    "keychainAccessGroups": [
+      "website.yapper.native.ios.keychain-probe"
+    ]
+  },
+  "compiledShippingSources": {
+    "YapperNative/Core/SessionVault.swift": "f50db51f4a42266160b3240871a59dfd33bdae79d46d9661f7edf753e9e58111",
+    "YapperNative/Core/Models.swift": "86f7f441ab13cd4787f7b588bb9fb7f596619a8fa6d606485678b2f47fb8acb9",
+    "YapperNative/Core/NativeImageCrop.swift": "f81d013f092dac58245ea570171e6f92b7fc5273e1eb053b43c10995ea0be23c"
+  },
+  "probeSourceSha256": "23f3fddf35c23758c7f3df65917ca9bca450ddbc443c3be68971d5fb6465f675",
+  "driverSha256": "e53071b3cef30ebd4771e5c8a204b10960432acb21eab858b987e1965a71145f",
+  "method": {
+    "entrypoint": "scripts/test-simulator-keychain.sh",
+    "selectedSimulatorRequired": true,
+    "simulatorOnly": true,
+    "embeddedEntitlements": "Mach-O __TEXT,__entitlements with own probe application identifier and sole probe Keychain group",
+    "hostCodeSignature": "Local ad-hoc signature with own identifier; no restrictive iOS entitlement blob in the host signature",
+    "signedOutsideWorkspace": true,
+    "networkOrBrowserAccess": false,
+    "otherApplicationKeychainGroupsAccessed": false,
+    "credentials": "Only synthetic fixed-date sessions. No token values, private paths, or raw account data are included in this report."
+  },
+  "checks": {
+    "all_passed": true,
+    "cleanup": true,
+    "cleanup_status": 0,
+    "delete": true,
+    "delete_status": 0,
+    "preflight": true,
+    "preflight_status": 0,
+    "read": true,
+    "read_status": 0,
+    "update": true,
+    "update_status": 0,
+    "write": true,
+    "write_status": 0
+  },
+  "cleanup": {
+    "ownKeychainItemAbsentAfterClear": true,
+    "probeApplicationUninstalled": true,
+    "ownedTemporaryBuildRemoved": true
+  },
+  "limits": [
+    "This validates the unchanged SessionVault implementation and Simulator entitlement mechanism in an isolated probe. It does not claim successful login, CAPTCHA, refresh against the remote service, or physical-device provisioning.",
+    "The physical IPA still requires the user's own Apple provisioning profile; this local Simulator signature is never used for an iPhone archive."
+  ]
+}

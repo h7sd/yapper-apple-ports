@@ -3,6 +3,7 @@ import SwiftUI
 struct NativeRootView: View {
     let store: NativeStore
     @State private var didRestoreSession = false
+    @State private var call = NativeCallController()
     @AppStorage("native.appearance") private var appearance = "dark"
 
     private var colorScheme: ColorScheme? {
@@ -17,7 +18,7 @@ struct NativeRootView: View {
         Group {
             switch store.authState {
             case .signedIn:
-                NativeConversationList(store: store)
+                NativeAppShell(store: store)
             case .restoring:
                 ZStack {
                     YapperPalette.background.ignoresSafeArea()
@@ -36,7 +37,15 @@ struct NativeRootView: View {
         }
         .foregroundStyle(YapperPalette.text)
         .tint(YapperPalette.accent)
+        .environment(call)
         .preferredColorScheme(colorScheme)
+        .onChange(of: store.authState) { _, state in
+            if state != .signedIn {
+                NativeMediaPlayback.stopAll()
+                NativeRemoteImage.clearCache()
+                Task { await call.leave() }
+            }
+        }
         .task {
             guard !didRestoreSession else { return }
             didRestoreSession = true
@@ -59,7 +68,7 @@ private struct NativeLoginView: View {
                         .frame(width: 88, height: 88)
                         .accessibilityHidden(true)
                     Text("welcome.title")
-                        .font(.largeTitle.bold())
+                        .font(OriginalYapper.font(32, weight: .bold))
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityAddTraits(.isHeader)
@@ -110,7 +119,7 @@ private struct NativeLegalFooter: View {
                 privacy
             }
         }
-        .font(.footnote)
+        .font(OriginalYapper.font(13))
         .multilineTextAlignment(.center)
         .foregroundStyle(YapperPalette.secondary)
         .padding(.horizontal, 24)
@@ -139,183 +148,6 @@ private struct NativeLegalFooter: View {
     }
 }
 
-struct NativeConversationList: View {
-    let store: NativeStore
-    @State private var search = ""
-    @State private var showingAccount = false
-
-    private var filteredConversations: [Conversation] {
-        guard !search.isEmpty else { return store.conversations }
-        return store.conversations.filter {
-            $0.title.localizedCaseInsensitiveContains(search)
-                || ($0.lastMessage?.localizedCaseInsensitiveContains(search) ?? false)
-        }
-    }
-
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                LazyVStack(spacing: 0) {
-                    fixtureNotice
-                    if let message = store.errorMessage {
-                        NativeErrorBanner(message: message) {
-                            Task { await store.loadConversations() }
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
-                    }
-                    if store.isLoading && store.conversations.isEmpty {
-                        ProgressView("Gespräche werden geladen …")
-                            .padding(.vertical, 64)
-                    } else if filteredConversations.isEmpty {
-                        ContentUnavailableView(
-                            search.isEmpty ? "Noch keine Gespräche" : "Keine Treffer",
-                            systemImage: search.isEmpty ? "bubble.left.and.bubble.right" : "magnifyingglass",
-                            description: Text(search.isEmpty
-                                ? "Deine bestehenden Direktnachrichten erscheinen hier. Ziehe nach unten, um sie zu aktualisieren."
-                                : "Versuche einen anderen Namen oder Suchbegriff.")
-                        )
-                        .padding(.top, 44)
-                    } else {
-                        ForEach(filteredConversations) { conversation in
-                            NavigationLink {
-                                NativeConversationView(store: store, conversation: conversation)
-                            } label: {
-                                NativeConversationRow(conversation: conversation)
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityIdentifier("native.conversation.\(conversation.id)")
-                        }
-                    }
-                }
-                .frame(maxWidth: 760)
-                .frame(maxWidth: .infinity)
-                .padding(.bottom, 12)
-            }
-            .accessibilityIdentifier("native.conversations.list")
-            .background(YapperPalette.background.ignoresSafeArea())
-            .refreshable { await store.loadConversations() }
-            .searchable(text: $search, prompt: "Gespräche durchsuchen")
-            .navigationTitle("Nachrichten")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showingAccount = true
-                    } label: {
-                        Image(systemName: "gearshape").frame(minWidth: 44, minHeight: 44)
-                    }
-                    .accessibilityLabel("Konto und Einstellungen")
-                    .accessibilityIdentifier("native.settings")
-                }
-            }
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                if let user = store.user {
-                    NativeAccountBar(user: user) { showingAccount = true }
-                        .padding(.horizontal, 12)
-                        .padding(.top, 8)
-                        .padding(.bottom, 8)
-                        .frame(maxWidth: .infinity)
-                        .background(YapperPalette.background)
-                }
-            }
-            .sheet(isPresented: $showingAccount) {
-                NativeAccountView(store: store)
-            }
-            .task { await store.loadConversations() }
-            .yapperNavigation()
-        }
-    }
-
-    @ViewBuilder private var fixtureNotice: some View {
-        #if DEBUG
-        if ProcessInfo.processInfo.arguments.contains("--native-ui-fixtures") {
-            Label("Testansicht · Beispieldaten", systemImage: "testtube.2")
-                .font(.footnote.weight(.medium))
-                .foregroundStyle(YapperPalette.secondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 12)
-                .accessibilityIdentifier("native.fixture.notice")
-        }
-        #endif
-    }
-}
-
-private struct NativeConversationRow: View {
-    let conversation: Conversation
-
-    var body: some View {
-        HStack(alignment: .center, spacing: 14) {
-            NativeAvatar(name: conversation.title, url: conversation.avatarURL, size: 48)
-            VStack(alignment: .leading, spacing: 5) {
-                Text(conversation.title)
-                    .font(.body.weight(conversation.unreadCount > 0 ? .bold : .semibold))
-                    .foregroundStyle(YapperPalette.text)
-                    .lineLimit(2)
-                Text(conversation.lastMessage ?? (conversation.isGroup ? "Gruppengespräch" : "Direktnachricht"))
-                    .font(.subheadline)
-                    .foregroundStyle(YapperPalette.secondary)
-                    .lineLimit(2)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            if conversation.unreadCount > 0 {
-                Text(conversation.unreadCount > 99 ? "99+" : "\(conversation.unreadCount)")
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(YapperPalette.accentLabel)
-                    .padding(.horizontal, 7)
-                    .padding(.vertical, 4)
-                    .background(YapperPalette.accent, in: .capsule)
-                    .accessibilityLabel("\(conversation.unreadCount) ungelesene Nachrichten")
-            }
-            Image(systemName: "chevron.right")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(YapperPalette.secondary)
-                .accessibilityHidden(true)
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 15)
-        .frame(minHeight: 78)
-        .contentShape(.rect)
-    }
-}
-
-private struct NativeAccountBar: View {
-    let user: YapperUser
-    let action: () -> Void
-    @Environment(\.dynamicTypeSize) private var dynamicType
-
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 12) {
-                NativeAvatar(name: user.displayName, url: user.avatarURL, presence: user.presence, size: 44)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(user.displayName)
-                        .font(.headline)
-                        .foregroundStyle(YapperPalette.text)
-                        .lineLimit(dynamicType.isAccessibilitySize ? 3 : 1)
-                    Text(user.presence.nativePresenceLabel)
-                        .font(.subheadline)
-                        .foregroundStyle(YapperPalette.secondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                Image(systemName: "chevron.up")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(YapperPalette.secondary)
-                    .accessibilityHidden(true)
-            }
-            .padding(14)
-            .frame(maxWidth: 380, minHeight: 72)
-            .background(YapperPalette.sidebar, in: .rect(cornerRadius: 22))
-            .contentShape(.rect(cornerRadius: 22))
-        }
-        .buttonStyle(.plain)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(user.displayName), \(user.presence.nativePresenceLabel). Konto öffnen")
-        .accessibilityIdentifier("native.account")
-        .frame(maxWidth: .infinity, alignment: .center)
-    }
-}
-
 private extension String {
     var nativePresenceLabel: String {
         switch self {
@@ -330,79 +162,204 @@ private extension String {
 
 struct NativeAccountView: View {
     let store: NativeStore
+    var isSheet = true
+    var onOpenConversation: @MainActor (Conversation) -> Void = { _ in }
     @Environment(\.dismiss) private var dismiss
     @AppStorage("native.appearance") private var appearance = "dark"
     @AppStorage("native.showAvatars") private var showAvatars = true
     @AppStorage("native.showImages") private var showImages = true
     @State private var confirmingSignOut = false
-
+    @State private var tab: Tab = .account
+    @State private var ownProfile: NativeProfileDetail?
+    @State private var showingEditor = false
+    @State private var flags = Set<String>()
+    @State private var privacy: NativeDMPrivacy = .servers
+    @State private var email: String?
+    @State private var savingPrivacy = false
+    @State private var settingsError: String?
+    private enum Tab: String, CaseIterable, Identifiable {
+        case account, profile, appearance, security, plugins, community, developer, data, about
+        var id: Self { self }
+        var title: String {
+            switch self { case .account: "Mein Konto"; case .profile: "Mein Profil"; case .appearance: "Darstellung"; case .security: "Sicherheit & Datenschutz"; case .plugins: "Yapinplugger"; case .community: "Community, Shards & Hilfe"; case .developer: "Apps & Bots"; case .data: "Meine Daten & Konto"; case .about: "Über Yapper" }
+        }
+        var icon: String {
+            switch self { case .account: "H"; case .profile: "friends"; case .appearance: "settings"; case .security: "settings"; case .plugins: "plus"; case .community: "compass"; case .developer: "createGroup"; case .data: "folder"; case .about: "inbox" }
+        }
+    }
     var body: some View {
         NavigationStack {
-            Form {
-                if let user = store.user {
-                    Section {
-                        HStack(spacing: 16) {
-                            NativeAvatar(name: user.displayName, url: user.avatarURL, presence: user.presence, size: 64)
-                            VStack(alignment: .leading, spacing: 5) {
-                                Text(user.displayName).font(.title2.bold())
-                                    .fixedSize(horizontal: false, vertical: true)
-                                Text("@\(user.username)").font(.subheadline)
-                                    .foregroundStyle(YapperPalette.secondary)
-                                Text(user.presence.nativePresenceLabel).font(.subheadline)
-                                    .foregroundStyle(YapperPalette.secondary)
+            VStack(spacing: 0) {
+                HStack(spacing: 0) {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(Tab.allCases) { item in
+                                Button { if item == .profile { showingEditor = true } else { tab = item } } label: {
+                                    HStack(spacing: 8) { OriginalYapperIcon(item.icon, size: 16); Text(item.title) }
+                                        .font(OriginalYapper.font(15, weight: .semibold)).lineLimit(1)
+                                        .frame(minHeight: 40).padding(.horizontal, 14).contentShape(.interaction, Rectangle().inset(by: -2))
+                                        .foregroundStyle(tab == item ? YapperPalette.onAccent : YapperPalette.secondary)
+                                        .background(tab == item ? YapperPalette.accentFill : YapperPalette.elevated, in: .capsule)
+                                }.buttonStyle(.plain).accessibilityIdentifier("native.settings.tab.\(item.rawValue)")
                             }
-                        }
-                        .padding(.vertical, 12)
+                        }.padding(.leading, 12).padding(.trailing, isSheet ? 0 : 12)
+                    }.accessibilityIdentifier("native.settings.tabs")
+                    if isSheet {
+                        Button { dismiss() } label: { OriginalYapperIcon("close", size: 20).frame(width: 44, height: 40).contentShape(.interaction, Rectangle().inset(by: -2)) }.buttonStyle(.plain).accessibilityLabel("Fertig").padding(.trailing, 8)
                     }
-                    .listRowBackground(YapperPalette.sidebar)
-                }
-                Section("Darstellung") {
-                    Picker("Design", selection: $appearance) {
-                        Text("Dunkel").tag("dark")
-                        Text("Hell").tag("light")
-                        Text("Wie das System").tag("system")
+                }.padding(.top, 12).padding(.bottom, 8).background(YapperPalette.sidebar)
+                Group {
+                    switch tab {
+                    case .account, .profile: accountPage
+                    case .appearance: appearancePage
+                    case .security: NativeSecurityView(store: store)
+                    case .plugins: NativePluginsView()
+                    case .community: NativeCommunityView(store: store)
+                    case .developer: NativeDeveloperView(store: store)
+                    case .data: NativeAccountDataView(store: store)
+                    case .about: aboutPage
                     }
-                    Toggle("Profilbilder laden", isOn: $showAvatars)
-                    Toggle("Bildvorschauen laden", isOn: $showImages)
-                }
-                .listRowBackground(YapperPalette.sidebar)
-                Section {
-                    LabeledContent("Oberfläche", value: "SwiftUI")
-                    LabeledContent("Version", value: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0")
-                    Text("Native Vorschau für Anmeldung und Direktnachrichten. Anrufe, Push-Mitteilungen und die JavaScript-Plugins sind in dieser Version noch nicht enthalten.")
-                        .font(.footnote)
-                        .foregroundStyle(YapperPalette.secondary)
-                } header: {
-                    Text("Yapper Native")
-                }
-                .listRowBackground(YapperPalette.sidebar)
-                Section {
-                    Button("Abmelden", role: .destructive) {
-                        confirmingSignOut = true
-                    }
-                    .frame(minHeight: 44)
-                    .accessibilityIdentifier("native.settings.signOut")
-                }
-                .listRowBackground(YapperPalette.sidebar)
+                }.frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .scrollContentBackground(.hidden)
+            .font(OriginalYapper.font(14)).foregroundStyle(YapperPalette.text)
             .background(YapperPalette.background.ignoresSafeArea())
-            .navigationTitle("Konto & Einstellungen")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Fertig") { dismiss() }.frame(minHeight: 44)
-                }
-            }
+            .toolbar(.hidden, for: .navigationBar)
             .confirmationDialog("Von Yapper abmelden?", isPresented: $confirmingSignOut, titleVisibility: .visible) {
-                Button("Abmelden", role: .destructive) {
-                    dismiss()
-                    store.signOut()
-                }
-            } message: {
-                Text("Die Anmeldung und ungesendete Entwürfe werden auf diesem Gerät entfernt.")
+                Button("Abmelden", role: .destructive) { dismiss(); store.signOut() }.accessibilityIdentifier("native.settings.signOut.confirm")
+            } message: { Text("Die Anmeldung und ungesendete Entwürfe werden auf diesem Gerät entfernt.") }
+            .sheet(isPresented: $showingEditor) {
+                if let ownProfile { NavigationStack { NativeProfileEditor(store: store, profile: ownProfile, featureFlags: flags) { self.ownProfile = $0 } } }
             }
-            .yapperNavigation()
+            .task { await loadProfile(); await loadAccountSettings() }
         }
+    }
+    private var accountPage: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Mein Konto").font(OriginalYapper.font(20, weight: .bold))
+                if let user = store.user {
+                    VStack(spacing: 0) {
+                        if let profile = ownProfile, let banner = profile.bannerURL {
+                            NativeCroppedImage(url: banner, crop: NativeImageCrop(x: profile.bannerX, y: profile.bannerY, zoom: profile.bannerZoom))
+                                .aspectRatio(3, contentMode: .fit).frame(maxWidth: .infinity).clipped()
+                        } else { YapperPalette.accent.frame(height: 90).frame(maxWidth: .infinity) }
+                        VStack(alignment: .leading, spacing: 0) {
+                            HStack(alignment: .bottom, spacing: 14) {
+                                NativeAvatar(name: user.displayName, identity: user.id, username: user.username, url: user.avatarURL, presence: user.presence, size: 80, decorationURL: user.avatarDecorationURL, crop: user.avatarCrop).padding(6).background(YapperPalette.sidebar, in: .circle).padding(.top, -34)
+                                VStack(alignment: .leading, spacing: 3) {
+                                    NativeDisplayName(name: user.displayName, bannerURL: user.nameBannerURL).font(OriginalYapper.font(20, weight: .heavy)).fixedSize(horizontal: false, vertical: true)
+                                    Text("@\(user.username)").font(OriginalYapper.font(13)).foregroundStyle(YapperPalette.secondary)
+                                }.padding(.bottom, 4)
+                                Spacer(minLength: 0)
+                            }
+                            Button { showingEditor = true } label: { Text("Profil bearbeiten").font(OriginalYapper.font(14, weight: .semibold)).frame(maxWidth: .infinity, minHeight: 36).foregroundStyle(.white).background(YapperPalette.accentFill, in: .rect(cornerRadius: 8)).padding(.vertical, 4).contentShape(.rect) }.buttonStyle(.plain).padding(.top, 10).disabled(ownProfile == nil).accessibilityIdentifier("native.profile.edit")
+                            VStack(spacing: 0) {
+                                editableAccountRow("Anzeigename", value: user.displayName)
+                                Rectangle().fill(YapperPalette.border).frame(height: 1)
+                                editableAccountRow("Benutzername", value: user.username)
+                                Rectangle().fill(YapperPalette.border).frame(height: 1)
+                                accountRow("E-Mail", value: email ?? "…")
+                            }.padding(.horizontal, 14).padding(.vertical, 6).background(YapperPalette.background, in: .rect(cornerRadius: 10)).padding(.top, 8)
+                        }.padding(.horizontal, 16).padding(.bottom, 16)
+                    }.background(YapperPalette.sidebar).clipShape(.rect(cornerRadius: 14))
+                }
+                OriginalSettingsSection("Datenschutz") {
+                    OriginalSettingsField("Wer kann dir schreiben?") {
+                        Menu {
+                            ForEach(NativeDMPrivacy.allCases) { option in Button(option.label) { Task { await setPrivacy(option) } } }
+                        } label: { HStack { Text(privacy.label); Spacer(); OriginalYapperIcon("chevronDown", size: 14) }.font(OriginalYapper.font(16)).padding(.horizontal, 12).frame(minHeight: 42).background(YapperPalette.rail, in: .rect(cornerRadius: 8)) }.buttonStyle(.plain).disabled(savingPrivacy).accessibilityIdentifier("native.security.dmPrivacy")
+                    }
+                    Text("Freunde können dir immer schreiben. Blockierte Personen können dir keine Nachrichten senden.").font(OriginalYapper.font(13)).foregroundStyle(YapperPalette.secondary)
+                }
+                OriginalSettingsSection("Bug Hunting") {
+                    Text("Etwas funktioniert nicht richtig? Melde es und erhalte das Bug-Hunter-Abzeichen.").font(OriginalYapper.font(13)).foregroundStyle(YapperPalette.secondary)
+                    NavigationLink { NativeBugReportsView(store: store, canEdit: flags.contains("bug_edit")) } label: { Text("Fehler melden") }.buttonStyle(OriginalYapperButtonStyle(primary: true))
+                }
+                if let settingsError { NativeErrorBanner(message: settingsError) }
+            }.padding(16).padding(.bottom, 28)
+        }
+    }
+    private func accountRow(_ label: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label.uppercased()).font(OriginalYapper.font(11, weight: .heavy)).tracking(0.55).foregroundStyle(YapperPalette.secondary).frame(minHeight: 15.4, alignment: .leading)
+            Text(value).font(OriginalYapper.font(15)).frame(minHeight: 21, alignment: .leading).textSelection(.enabled)
+        }.frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 10)
+    }
+    private func editableAccountRow(_ label: String, value: String) -> some View {
+        HStack(spacing: 12) {
+            accountRow(label, value: value)
+            Button("Ändern") { showingEditor = true }.font(OriginalYapper.font(14, weight: .semibold)).padding(.horizontal, 12).frame(height: 36).background(YapperPalette.active, in: .rect(cornerRadius: 8)).contentShape(.interaction, Rectangle().inset(by: -4)).buttonStyle(.plain)
+        }
+    }
+    private var appearancePage: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                Text("Darstellung").font(OriginalYapper.font(20, weight: .bold))
+                OriginalSettingsSection("Design") {
+                    HStack(spacing: 8) {
+                        appearanceChoice("Dunkel", value: "dark", color: Color(red: 34/255, green: 35/255, blue: 41/255))
+                        appearanceChoice("Hell", value: "light", color: .white)
+                        appearanceChoice("System", value: "system", color: YapperPalette.sidebar)
+                    }
+                }
+                OriginalSettingsSection("Bilder") {
+                    Toggle("Profilbilder laden", isOn: $showAvatars).toggleStyle(OriginalYapperToggleStyle())
+                    Rectangle().fill(YapperPalette.border).frame(height: 1)
+                    Toggle("Bildvorschauen laden", isOn: $showImages).toggleStyle(OriginalYapperToggleStyle())
+                }
+            }.padding(16).padding(.bottom, 28)
+        }
+    }
+    private func appearanceChoice(_ title: String, value: String, color: Color) -> some View {
+        Button { appearance = value } label: {
+            VStack(spacing: 10) {
+                RoundedRectangle(cornerRadius: 8).fill(color).frame(height: 64).overlay(alignment: .topTrailing) { if appearance == value { Image(systemName: "checkmark.circle.fill").foregroundStyle(YapperPalette.accent).padding(6) } }
+                Text(title).font(OriginalYapper.font(13, weight: .semibold))
+            }.padding(8).frame(maxWidth: .infinity).overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(appearance == value ? YapperPalette.accent : YapperPalette.border, lineWidth: appearance == value ? 2 : 1))
+        }.buttonStyle(.plain)
+    }
+    private var aboutPage: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                Text("Über Yapper").font(OriginalYapper.font(20, weight: .bold))
+                OriginalSettingsSection("Yapper Native") {
+                    accountRow("Version", value: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0")
+                    Text("Eigenständiger nativer Yapper-Client. Funktionsumfang und geprüfte Grenzen sind im öffentlichen Quellcode dokumentiert.").font(OriginalYapper.font(13)).foregroundStyle(YapperPalette.secondary)
+                    NavigationLink { NativeLicensesView() } label: { OriginalSettingsRow(title: "Open-Source-Lizenzen", icon: "folder") }.buttonStyle(.plain)
+                    Button { confirmingSignOut = true } label: { OriginalSettingsRow(title: "Abmelden", icon: "logout", destructive: true, disclosure: false) }.buttonStyle(.plain).accessibilityIdentifier("native.settings.signOut")
+                }
+            }.padding(16).padding(.bottom, 28)
+        }
+    }
+    private func loadAccountSettings() async {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--native-ui-fixtures") { email = "demo@example.invalid"; return }
+        #endif
+        do {
+            let result = try await store.withAuthenticatedSession { api, session in
+                let account = try await api.securityAccount(session: session)
+                let privacy = try await api.securityDMPrivacy(session: session)
+                return (account.email, privacy)
+            }
+            email = result.0; privacy = result.1
+        } catch is CancellationError {} catch { settingsError = error.localizedDescription }
+    }
+    private func setPrivacy(_ value: NativeDMPrivacy) async {
+        guard !savingPrivacy else { return }; savingPrivacy = true; defer { savingPrivacy = false }
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--native-ui-fixtures") { privacy = value; return }
+        #endif
+        do { try await store.withAuthenticatedSession { api, session in try await api.saveSecurityDMPrivacy(value, session: session) }; privacy = value }
+        catch is CancellationError {} catch { settingsError = error.localizedDescription }
+    }
+    private func loadProfile() async {
+        guard let id = store.user?.id else { return }
+        do {
+            #if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("--native-ui-fixtures") { ownProfile = try NativeSocialModel(store: store).fixtureProfile(userID: id); flags = ["server_tags", "tag_icons", "temp_avatar"]; return }
+            #endif
+            ownProfile = try await store.withAuthenticatedSession { api, session in try await api.socialProfiles(ids: [id], session: session).first }
+            flags = try await store.withAuthenticatedSession { api, session in try await api.communityFlags(session: session) }
+        } catch is CancellationError {} catch { /* The account remains usable if optional profile artwork fails. */ }
     }
 }

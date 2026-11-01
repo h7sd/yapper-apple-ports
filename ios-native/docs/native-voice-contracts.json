@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "liveCallsVerified": false,
+  "sourceEvidence": [
+    {
+      "artifact": "1n1ncrh77psz0.js",
+      "sha256": "cbff62aa3ebb12f9b77ec28271c8434cb14f2ab701ade26905dcad8949c922fb",
+      "literal": "/api/voice/moderate",
+      "utf8ByteOffset": 45708
+    },
+    {
+      "artifact": "1n1ncrh77psz0.js",
+      "sha256": "cbff62aa3ebb12f9b77ec28271c8434cb14f2ab701ade26905dcad8949c922fb",
+      "literal": "report_voice",
+      "utf8ByteOffset": 47429
+    },
+    {
+      "artifact": "1n1ncrh77psz0.js",
+      "sha256": "cbff62aa3ebb12f9b77ec28271c8434cb14f2ab701ade26905dcad8949c922fb",
+      "literal": "voice_unban",
+      "utf8ByteOffset": 46513
+    },
+    {
+      "artifact": "1n1ncrh77psz0.js",
+      "sha256": "cbff62aa3ebb12f9b77ec28271c8434cb14f2ab701ade26905dcad8949c922fb",
+      "literal": "function tL(",
+      "utf8ByteOffset": 43541
+    },
+    {
+      "artifact": "3qps8wbtg_17r.js",
+      "sha256": "438430b1943df9cb7f92a988e9859840b601913e9c627e8ad0fb234bb1ec5522",
+      "literal": "No answer",
+      "utf8ByteOffset": 13074
+    }
+  ],
+  "nativeAdaptations": [
+    "AVRoutePickerView and the native LiveKit speaker preference replace desktop audio-device selectors.",
+    "Camera flipping uses the native camera capturer.",
+    "Voice reports currently send text; no report clip is recorded."
+  ],
+  "limits": [
+    "Native SDK RoomMoved events are validated against an accessible voice channel on the same server. The older yapper-move data-packet fallback is not accepted: the selected SDK delegate does not expose original sender identity when no RemoteParticipant exists, so server-origin attribution cannot be proven.",
+    "Microphone, camera, screen sharing, audio routing, interruptions and E2EE media interoperability still require physical-device/live-account validation."
+  ]
+}

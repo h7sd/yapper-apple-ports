@@ -59,7 +59,11 @@ jobs:
             -default-test-execution-time-allowance 90 \
             -derivedDataPath "$RUNNER_TEMP/native-ios-tests" \
             -resultBundlePath dist/native-ios/tests.xcresult CODE_SIGNING_ALLOWED=NO
-      - name: Build both unsigned Release targets and inspect artifacts
+      - name: Exercise the shipping Keychain implementation in an isolated Simulator app
+        env:
+          SIMULATOR_ID: ${{ steps.simulator.outputs.udid }}
+        run: PROBE_REPORT_PATH="$GITHUB_WORKSPACE/dist/native-ios/keychain-report.json" bash ios-native/scripts/test-simulator-keychain.sh
+      - name: Build the unsigned IPA and locally signed Simulator bundle, then inspect artifacts
         env:
           DERIVED_DATA: ${{ runner.temp }}/native-ios-release
           OUTPUT_DIR: ${{ github.workspace }}/dist/native-ios
@@ -71,8 +75,8 @@ jobs:
           ios-native/scripts/build-native.sh archive
           python3 ios-native/scripts/verify-native.py \
             --app "$DERIVED_DATA/Build/Products/Release-iphonesimulator/YapperNative.app" \
-            --simulator-zip "$OUTPUT_DIR/Yapinplugger-Native-0.1.1-iOS-Simulator.zip" \
-            --ipa "$OUTPUT_DIR/Yapinplugger-Native-0.1.1-ios-unsigned.ipa" \
+            --simulator-zip "$OUTPUT_DIR/Yapinplugger-Native-0.2.1-iOS-Simulator.zip" \
+            --ipa "$OUTPUT_DIR/Yapinplugger-Native-0.2.1-ios-unsigned.ipa" \
             --report "$OUTPUT_DIR/package-verification.json"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()

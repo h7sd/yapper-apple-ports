@@ -6,6 +6,7 @@ struct YapperNativeApp: App {
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
+        OriginalYapper.registerFonts()
         #if DEBUG
         let arguments = ProcessInfo.processInfo.arguments
         if arguments.contains("--native-ui-fixtures") {
@@ -21,6 +22,7 @@ struct YapperNativeApp: App {
     var body: some Scene {
         WindowGroup {
             NativeRootView(store: store)
+                .font(OriginalYapper.font(15))
                 .onChange(of: scenePhase) { _, phase in
                     store.setActive(phase == .active)
                 }

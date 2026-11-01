@@ -13,8 +13,18 @@ import Observation
     private(set) var isSending = false
     var errorMessage: String?
     private(set) var authState: AuthState = .signedOut
+    private(set) var capabilities = NativeCapabilities()
+    var messagePolicy: NativeMessagePolicy { NativeMessagePolicy(user: user, capabilities: capabilities) }
+    var messageCharacterLimit: Int { messagePolicy.maximumLength(for: user?.id, at: now()) }
     var drafts: [String: String] = [:]
     private(set) var realtimeStatus = "Nicht verbunden"
+    private(set) var typingUsers: [String: [YapperUser]] = [:]
+    private(set) var incomingCall: NativeIncomingCall?
+    private(set) var activeCallChannels: Set<String> = []
+    @ObservationIgnored private var callExpiryTask: Task<Void, Never>?
+    @ObservationIgnored private var typingExpiry: [String: [String: Date]] = [:]
+    @ObservationIgnored private var typingTasks: [String: Task<Void, Never>] = [:]
+    @ObservationIgnored private var lastTypingSent: [String: Date] = [:]
 
     @ObservationIgnored private let api: NativeAPI
     @ObservationIgnored private let vault: any SessionVault
@@ -35,6 +45,11 @@ import Observation
     @ObservationIgnored private var reconnectSyncTask: Task<Void, Never>?
     @ObservationIgnored private var isActive = true
     @ObservationIgnored private var seenRealtimeInserts: Set<String> = []
+    @ObservationIgnored private var notificationSound = NativeNotificationSound()
+    @ObservationIgnored private var notificationPolicy: NativeNotificationSoundPolicy?
+    @ObservationIgnored private var notificationPolicyAt: Date?
+    @ObservationIgnored private var notificationPreferences: NativeConversationPreferenceSnapshot?
+    @ObservationIgnored private var refreshingNotificationPolicy = false
     @ObservationIgnored private var profiles: [String: YapperUser] = [:]
     @ObservationIgnored private var pendingSendIDs: [String: (text: String, id: String)] = [:]
     @ObservationIgnored private var oldestMessageCursor: String?
@@ -54,9 +69,177 @@ import Observation
         realtime?.onMutation = { [weak self] mutation in self?.apply(mutation) }
         realtime?.onStatus = { [weak self] status in self?.realtimeStatus = status }
         realtime?.onReconnect = { [weak self] in self?.resyncAfterReconnect() }
+        realtime?.onEvent = { [weak self] event, payload in self?.applyEvent(event, payload: payload) }
     }
 
     func setDraft(_ text: String, for conversationID: String) { drafts[conversationID] = text }
+
+    /// All feature services share token refresh and the same logout/account boundary.
+    func withAuthenticatedSession<T: Sendable>(_ operation: @MainActor (NativeAPI, NativeSession) async throws -> T) async throws -> T {
+        try Task.checkCancellation()
+        guard authState == .signedIn else { throw NativeClientError.missingSession }
+        let revision = epoch
+        do {
+            let valid = try await validSession(revision: revision)
+            guard epoch == revision, authState == .signedIn else { throw CancellationError() }
+            try Task.checkCancellation()
+            let result = try await NativeAuthenticationContext.$check.withValue({ [weak self] in
+                guard let self, self.epoch == revision, self.authState == .signedIn else { throw CancellationError() }
+                try Task.checkCancellation()
+            }) {
+                try await operation(api, valid)
+            }
+            guard epoch == revision, authState == .signedIn else { throw CancellationError() }
+            try Task.checkCancellation()
+            return result
+        } catch {
+            guard epoch == revision else { throw CancellationError() }
+            if error as? NativeClientError == .sessionExpired { handle(error) }
+            else if case let NativeClientError.api(status, _) = error, status == 401 { handle(error) }
+            throw error
+        }
+    }
+
+    func refreshOwnProfile() async {
+        #if DEBUG
+        if isFixture { return }
+        #endif
+        do {
+            let profile = try await withAuthenticatedSession { api, session in
+                try await api.profile(id: session.userID, session: session)
+            }
+            guard profile.id == user?.id else { return }
+            let fresh = profile.user()
+            profiles[fresh.id] = fresh
+            user = fresh
+        } catch is CancellationError { }
+        catch { errorMessage = error.localizedDescription }
+    }
+
+    func verifyNativeSecurityFactor(factorID: String, code: String) async throws {
+        let revision = epoch
+        let fresh = try await withAuthenticatedSession { api, session in
+            let verified = try await api.verifyTOTP(factorID: factorID, code: code, session: session)
+            guard verified.userID == session.userID else { throw NativeClientError.invalidResponse }
+            return verified
+        }
+        guard epoch == revision, authState == .signedIn, user?.id == fresh.userID else { throw CancellationError() }
+        try vault.save(fresh)
+        refreshTask?.cancel()
+        refreshTask = nil
+        refreshID = nil
+        session = fresh
+        if isActive { realtime?.connect(session: fresh) }
+    }
+
+    func focusMessage(id: String, in conversation: Conversation) async -> Bool {
+        guard authState == .signedIn, selectedConversation?.id == conversation.id else { return false }
+        if messages.contains(where: { $0.id == id && $0.channelID == conversation.id }) { return true }
+        let revision = epoch
+        historyRevision += 1
+        let historyID = historyRevision
+        historyTask?.cancel()
+        isLoadingMessages = true
+        defer { if epoch == revision, historyRevision == historyID { isLoadingMessages = false } }
+        do {
+            let context = try await withAuthenticatedSession { api, session in
+                let body = try JSONEncoder().encode(["cid": conversation.id, "mid": id])
+                return try await api.response(MessageContextResponse.self, request: api.request(path: "rest/v1/rpc/channel_messages_around", method: "POST", token: session.accessToken, body: body))
+            }
+            guard epoch == revision, historyRevision == historyID, selectedConversation?.id == conversation.id else { return false }
+            guard context.found, let rows = context.messages, rows.contains(where: { $0.id == id }), rows.allSatisfy({ $0.channel_id == conversation.id }) else {
+                throw NativeClientError.api(status: 404, message: "Diese Nachricht ist nicht mehr verfügbar.")
+            }
+            var profiles = profiles
+            for profile in context.profiles ?? [] { profiles[profile.id] = profile.user() }
+            let displayed = try rows.map { try $0.message(profiles: profiles) }
+            self.profiles = profiles
+            messages = Self.merged(displayed)
+            oldestMessageCursor = rows.min { $0.created_at < $1.created_at }?.created_at
+            hasMoreMessages = rows.count >= 50
+            return true
+        } catch is CancellationError { return false }
+        catch {
+            if epoch == revision, historyRevision == historyID { errorMessage = error.localizedDescription }
+            return false
+        }
+    }
+
+    func noteTyping(in conversation: Conversation) {
+        guard authState == .signedIn, UUID(uuidString: conversation.id) != nil,
+              now().timeIntervalSince(lastTypingSent[conversation.id] ?? .distantPast) >= 3 else { return }
+        lastTypingSent[conversation.id] = now()
+        realtime?.typing(channelID: conversation.id, recipients: conversation.serverID == nil ? conversation.participants.map(\.id) : nil)
+    }
+
+    func markConversationRead(_ conversation: Conversation) async {
+        #if DEBUG
+        if isFixture { return }
+        #endif
+        do {
+            _ = try await withAuthenticatedSession { api, session in
+                try await api.rpc("mark_read", arguments: ["cid": .string(conversation.id)], session: session)
+            }
+            if let index = conversations.firstIndex(where: { $0.id == conversation.id }) { conversations[index].unreadCount = 0 }
+            realtime?.read(channelID: conversation.id)
+        } catch is CancellationError { }
+        catch { errorMessage = error.localizedDescription }
+    }
+
+    private func applyEvent(_ event: String, payload: NativeJSON) {
+        guard authState == .signedIn else { return }
+        if event == "call" {
+            applyCall(payload["record"])
+            return
+        }
+        if event == "typing", let channel = payload["channel_id"].string, let uid = payload["uid"].string, uid != user?.id {
+            guard channel == selectedConversation?.id else { return }
+            typingExpiry[channel, default: [:]][uid] = now().addingTimeInterval(6)
+            let people = selectedConversation?.participants ?? []
+            typingUsers[channel] = typingExpiry[channel, default: [:]].keys.map { id in profiles[id] ?? people.first(where: { $0.id == id }) ?? YapperUser(id: id, username: "Jemand") }
+            typingTasks[channel]?.cancel()
+            let revision = epoch
+            typingTasks[channel] = Task { [weak self] in
+                while !Task.isCancelled {
+                    do { try await Task.sleep(for: .seconds(1)) } catch { return }
+                    guard let self, self.epoch == revision else { return }
+                    self.typingExpiry[channel] = self.typingExpiry[channel, default: [:]].filter { $0.value > self.now() }
+                    let ids = Set(self.typingExpiry[channel, default: [:]].keys)
+                    self.typingUsers[channel]?.removeAll { !ids.contains($0.id) }
+                    if ids.isEmpty { self.typingTasks.removeValue(forKey: channel); return }
+                }
+            }
+        }
+    }
+
+    func dismissIncomingCall() { incomingCall = nil; callExpiryTask?.cancel(); callExpiryTask = nil }
+
+    private func applyCall(_ record: NativeJSON) {
+        guard let channel = record["channel_id"].string else { return }
+        if record["ended_at"].string != nil {
+            activeCallChannels.remove(channel)
+            if incomingCall?.channelID == channel { dismissIncomingCall() }
+            return
+        }
+        activeCallChannels.insert(channel)
+        if record["answered_at"].string != nil {
+            if incomingCall?.channelID == channel { dismissIncomingCall() }
+            return
+        }
+        guard let caller = record["started_by"].string, caller != user?.id,
+              let date = record["started_at"].string.flatMap({ try? NativeDate.parse($0) }),
+              (-30..<30).contains(now().timeIntervalSince(date)),
+              let conversation = conversations.first(where: { $0.id == channel }) else { return }
+        incomingCall = NativeIncomingCall(channelID: channel, fromUserID: caller, title: conversation.title, startedAt: date)
+        callExpiryTask?.cancel()
+        let revision = epoch
+        let remaining = max(1, 30 - now().timeIntervalSince(date))
+        callExpiryTask = Task { [weak self] in
+            do { try await Task.sleep(for: .seconds(remaining)) } catch { return }
+            guard let self, self.epoch == revision, self.incomingCall?.channelID == channel else { return }
+            self.incomingCall = nil
+        }
+    }
 
     func restoreSession() async {
         #if DEBUG
@@ -258,6 +441,8 @@ import Observation
         session = tokens
         didExplicitlySignOut = false
         user = profile.user()
+        capabilities = bootstrap.capabilities
+        activeCallChannels = bootstrap.activeCallChannels(now: now())
         profiles = Dictionary(bootstrap.profiles.map { ($0.id, $0.user()) }, uniquingKeysWith: { _, new in new })
         profiles[tokens.userID] = user
         conversations = list
@@ -290,7 +475,10 @@ import Observation
                 try Task.checkCancellation()
                 guard self.epoch == revision, self.listRevision == listID else { return }
                 for profile in data.profiles { self.profiles[profile.id] = profile.user() }
+                if let own = data.profiles.first(where: { $0.id == valid.userID }) { self.user = own.user() }
                 self.conversations = list
+                self.capabilities = data.capabilities
+                self.activeCallChannels = data.activeCallChannels(now: self.now())
             } catch {
                 guard self.epoch == revision, self.listRevision == listID, !Task.isCancelled else { return }
                 self.handle(error)
@@ -303,6 +491,7 @@ import Observation
     func loadMessages(for conversation: Conversation) async {
         guard authState == .signedIn else { return }
         selectedConversation = conversation
+        realtime?.observe(channelID: conversation.id, serverID: conversation.serverID)
         #if DEBUG
         if isFixture {
             messages = Self.fixtureMessages(conversationID: conversation.id, selfUser: user!)
@@ -378,7 +567,7 @@ import Observation
         drafts[conversation.id] = text
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { errorMessage = NativeClientError.emptyMessage.localizedDescription; return false }
-        guard trimmed.utf16.count <= 2000 else { errorMessage = NativeClientError.messageTooLong.localizedDescription; return false }
+        guard trimmed.utf16.count <= messageCharacterLimit else { errorMessage = NativeClientError.messageTooLong.localizedDescription; return false }
         #if DEBUG
         if isFixture, let user {
             messages = Self.merged(messages + [ChatMessage(id: UUID().uuidString, channelID: conversation.id, author: user, content: trimmed, createdAt: Date(), attachments: [], isEdited: false)])
@@ -396,7 +585,7 @@ import Observation
             defer { if self.epoch == revision { self.isSending = false } }
             do {
                 let valid = try await self.validSession(revision: revision)
-                let row = try await self.api.send(id: sendID, text: trimmed, channelID: conversation.id, session: valid)
+                let row = try await self.api.send(id: sendID, text: trimmed, channelID: conversation.id, session: valid, messagePolicy: self.messagePolicy)
                 guard row.id == sendID, row.channel_id == conversation.id, row.author_id == valid.userID else { throw NativeClientError.invalidResponse }
                 let message = try row.message(profiles: self.profiles)
                 try Task.checkCancellation()
@@ -404,7 +593,10 @@ import Observation
                 if self.selectedConversation?.id == conversation.id { self.messages = Self.merged(self.messages + [message]) }
                 if self.drafts[conversation.id] == text { self.drafts[conversation.id] = "" }
                 self.pendingSendIDs[conversation.id] = nil
-                if let index = self.conversations.firstIndex(where: { $0.id == conversation.id }) { self.conversations[index].lastMessage = trimmed }
+                if let index = self.conversations.firstIndex(where: { $0.id == conversation.id }) {
+                    self.conversations[index].lastMessage = trimmed
+                    self.conversations[index].lastMessageAt = max(self.conversations[index].lastMessageAt ?? .distantPast, message.createdAt)
+                }
                 return true
             } catch {
                 guard self.epoch == revision, !Task.isCancelled else { return false }
@@ -416,7 +608,64 @@ import Observation
         return await task.value
     }
 
+    private var notificationMutedIDs: Set<String>? {
+        notificationPreferences.map { snapshot in
+            Set(snapshot.muted.filter { snapshot.muteUntil[$0].map { $0 > now() } ?? true }).union(snapshot.hidden)
+        }
+    }
+
+    func updateNotificationPreferences(_ snapshot: NativeConversationPreferenceSnapshot?) {
+        notificationPreferences = snapshot
+        if let policy = notificationPolicy, let muted = notificationMutedIDs {
+            notificationPolicy = NativeNotificationSoundPolicy(ownerID: policy.ownerID, status: policy.status, blockedIDs: policy.blockedIDs, mutedIDs: muted)
+        } else { notificationPolicy = nil }
+    }
+
+    func refreshNotificationSoundContext() async {
+        #if DEBUG
+        if isFixture { return }
+        #endif
+        guard !refreshingNotificationPolicy, authState == .signedIn, let ownerID = user?.id,
+              let muted = notificationMutedIDs else { return }
+        let revision = epoch
+        refreshingNotificationPolicy = true
+        defer { if epoch == revision { refreshingNotificationPolicy = false } }
+        do {
+            let policy = try await withAuthenticatedSession { api, session in try await api.nativeNotificationSoundPolicy(mutedIDs: muted, session: session) }
+            guard epoch == revision, !Task.isCancelled, user?.id == ownerID, policy.ownerID == ownerID,
+                  let currentMuted = notificationMutedIDs else { return }
+            notificationPolicy = NativeNotificationSoundPolicy(ownerID: ownerID, status: policy.status, blockedIDs: policy.blockedIDs, mutedIDs: currentMuted)
+            notificationPolicyAt = now()
+            user?.presence = policy.status
+        } catch { if epoch == revision { notificationPolicy = nil; notificationPolicyAt = nil } }
+    }
+
+    private func soundForUnreadDM(_ message: ChatMessage) {
+        guard authState == .signedIn, isActive, message.author.id != user?.id,
+              selectedConversation?.id != message.channelID,
+              conversations.contains(where: { $0.id == message.channelID && $0.serverID == nil }),
+              notificationMutedIDs != nil else { return }
+        let revision = epoch
+        Task { [weak self] in
+            guard let self, self.epoch == revision else { return }
+            if self.notificationPolicyAt.map({ self.now().timeIntervalSince($0) >= 60 }) ?? true { await self.refreshNotificationSoundContext() }
+            guard self.epoch == revision, self.authState == .signedIn, let userID = self.user?.id,
+                  let policy = self.notificationPolicy else { return }
+            let effective = NativeNotificationSoundPolicy(ownerID: policy.ownerID, status: policy.status, blockedIDs: policy.blockedIDs, mutedIDs: self.notificationMutedIDs ?? policy.mutedIDs)
+            self.notificationSound.receive(message: message, currentUserID: userID, currentConversationID: self.selectedConversation?.id, isActive: self.isActive, policy: effective)
+        }
+    }
+
     func signOut() {
+        notificationSound.reset(); notificationPolicy = nil; notificationPolicyAt = nil; notificationPreferences = nil; refreshingNotificationPolicy = false
+        capabilities = NativeCapabilities()
+        dismissIncomingCall()
+        activeCallChannels = []
+        for task in typingTasks.values { task.cancel() }
+        typingTasks = [:]
+        typingUsers = [:]
+        typingExpiry = [:]
+        lastTypingSent = [:]
         epoch += 1
         didExplicitlySignOut = true
         authTask?.cancel()
@@ -577,14 +826,20 @@ import Observation
             return
         }
         guard let row = mutation.record else { return }
-        guard conversations.contains(where: { $0.id == row.channel_id }) else { return }
+        guard conversations.contains(where: { $0.id == row.channel_id }) || selectedConversation?.id == row.channel_id else { return }
         do {
             let message = try row.message(profiles: profiles)
             if selectedConversation?.id == row.channel_id { messages = Self.merged(messages + [message]) }
             if let index = conversations.firstIndex(where: { $0.id == row.channel_id }) {
                 conversations[index].lastMessage = message.content
+                if mutation.operation == "INSERT" {
+                    conversations[index].lastMessageAt = max(conversations[index].lastMessageAt ?? .distantPast, message.createdAt)
+                }
                 if mutation.operation == "INSERT", seenRealtimeInserts.insert(row.id).inserted,
-                   selectedConversation?.id != row.channel_id, row.author_id != user?.id { conversations[index].unreadCount += 1 }
+                   selectedConversation?.id != row.channel_id, row.author_id != user?.id {
+                    conversations[index].unreadCount += 1
+                    soundForUnreadDM(message)
+                }
             }
             if seenRealtimeInserts.count > 5000 { seenRealtimeInserts = [row.id] }
         } catch { realtimeStatus = "Live-Nachricht konnte nicht gelesen werden. Bitte Chat aktualisieren." }
@@ -606,12 +861,16 @@ import Observation
     }
 
     private func populateFixture() {
-        let selfUser = YapperUser(id: "fixture-self", username: "yapper-demo", displayName: "Yapper Demo", presence: "online", bio: "Native iOS-Vorschau mit synthetischen Beispieldaten.")
-        let friend = YapperUser(id: "fixture-friend", username: "nova", displayName: "Nova", presence: "online")
-        let other = YapperUser(id: "fixture-other", username: "milo", displayName: "Milo", presence: "idle")
+        let selfUser = YapperUser(id: "11111111-1111-4111-8111-111111111111", username: "yapper-demo", displayName: "Yapper Demo", presence: "online", bio: "Native iOS-Vorschau mit synthetischen Beispieldaten.")
+        let friend = YapperUser(id: "33333333-3333-4333-8333-333333333333", username: "nova", displayName: "Nova", presence: "online")
+        let other = YapperUser(id: "44444444-4444-4444-8444-444444444444", username: "milo", displayName: "Milo", presence: "idle")
         user = selfUser
+        // Explicit anonymous fixture rollout, matching the offline original-React comparison.
+        capabilities = NativeCapabilities(flags: .object(Dictionary(uniqueKeysWithValues:
+            ["calls", "user_search", "mentions_inbox", "mobile_nav", "ui_panel", "ui_refresh", "voice_messages"].map { ($0, .object(["mode": .string("everyone")])) }
+        )))
         profiles = [selfUser.id: selfUser, friend.id: friend, other.id: other]
-        conversations = [Conversation(id: "fixture-chat", title: "Nova", participants: [friend], lastMessage: "Das läuft jetzt direkt in SwiftUI.", unreadCount: 2),
+        conversations = [Conversation(id: "fixture-chat", title: "Nova", participants: [friend], lastMessage: "Das läuft jetzt direkt in SwiftUI.", unreadCount: 2, lastMessageAt: Date()),
                          Conversation(id: "fixture-group", title: "Yapper iOS", participants: [friend, other], lastMessage: "Willkommen im nativen Client!", isGroup: true),
                          Conversation(id: "fixture-milo", title: "Milo", participants: [other], lastMessage: "Bis später 👋")]
         authState = .signedIn
@@ -620,7 +879,7 @@ import Observation
     }
 
     private static func fixtureMessages(conversationID: String, selfUser: YapperUser) -> [ChatMessage] {
-        let friend = YapperUser(id: "fixture-friend", username: "nova", displayName: "Nova", presence: "online")
+        let friend = YapperUser(id: "33333333-3333-4333-8333-333333333333", username: "nova", displayName: "Nova", presence: "online")
         let date = Date(timeIntervalSince1970: 1_793_360_000)
         return [ChatMessage(id: "fixture-message-1", channelID: conversationID, author: friend, content: "Hey! Wie sieht die native App aus?", createdAt: date, attachments: [], isEdited: false),
                 ChatMessage(id: "fixture-message-2", channelID: conversationID, author: selfUser, content: "Chats, Profile und Tastatur sind jetzt echte iOS-Oberflächen.", createdAt: date.addingTimeInterval(60), attachments: [], isEdited: false),

@@ -11,14 +11,24 @@ nonisolated struct YapperUser: Identifiable, Codable, Hashable, Sendable {
     var avatarURL: URL?
     var presence: String
     var bio: String?
+    var avatarDecorationURL: URL?
+    var profileEffectURL: URL?
+    var nameBannerURL: URL?
+    var avatarCrop: NativeImageCrop
+    var plusUntil: Date?
 
-    init(id: String, username: String, displayName: String? = nil, avatarURL: URL? = nil, presence: String = "unknown", bio: String? = nil) {
+    init(id: String, username: String, displayName: String? = nil, avatarURL: URL? = nil, presence: String = "unknown", bio: String? = nil, avatarDecorationURL: URL? = nil, profileEffectURL: URL? = nil, nameBannerURL: URL? = nil, avatarCrop: NativeImageCrop = .centered, plusUntil: Date? = nil) {
         self.id = id
         self.username = username
         self.displayName = displayName.flatMap { $0.isEmpty ? nil : $0 } ?? username
         self.avatarURL = avatarURL
         self.presence = presence
         self.bio = bio
+        self.avatarDecorationURL = avatarDecorationURL
+        self.profileEffectURL = profileEffectURL
+        self.nameBannerURL = nameBannerURL
+        self.avatarCrop = avatarCrop
+        self.plusUntil = plusUntil
     }
 }
 
@@ -30,8 +40,10 @@ nonisolated struct Conversation: Identifiable, Hashable, Sendable {
     var lastMessage: String?
     var unreadCount: Int
     var isGroup: Bool
+    var serverID: String?
+    var lastMessageAt: Date?
 
-    init(id: String, title: String, participants: [YapperUser], avatarURL: URL? = nil, lastMessage: String? = nil, unreadCount: Int = 0, isGroup: Bool = false) {
+    init(id: String, title: String, participants: [YapperUser], avatarURL: URL? = nil, lastMessage: String? = nil, unreadCount: Int = 0, isGroup: Bool = false, serverID: String? = nil, lastMessageAt: Date? = nil) {
         self.id = id
         self.title = title
         self.participants = participants
@@ -39,6 +51,8 @@ nonisolated struct Conversation: Identifiable, Hashable, Sendable {
         self.lastMessage = lastMessage
         self.unreadCount = unreadCount
         self.isGroup = isGroup
+        self.serverID = serverID
+        self.lastMessageAt = lastMessageAt
     }
 }
 
@@ -57,6 +71,31 @@ nonisolated struct ChatMessage: Identifiable, Hashable, Sendable {
     let createdAt: Date
     var attachments: [MessageAttachment]
     var isEdited: Bool
+    var grouping = NativeMessageGroupingMetadata()
+}
+
+nonisolated struct NativeMessageGroupingMetadata: Hashable, Sendable {
+    var isSystem = false
+    var replyToID: String? = nil
+    var webhookID: String? = nil
+    var webhookName: String? = nil
+    var webhookAvatarURL: String? = nil
+    var webhookAvatarPath: String? = nil
+}
+
+nonisolated enum NativeMessageGrouping {
+    /// Exact shipped seven-minute rule, with the source's system/reply/webhook exclusions.
+    static func groups(_ current: ChatMessage, after previous: ChatMessage?, firstUnreadID: String? = nil, calendar: Calendar = .current) -> Bool {
+        guard let previous, current.author.id == previous.author.id,
+              !current.grouping.isSystem, !previous.grouping.isSystem,
+              current.grouping.replyToID == nil, current.id != firstUnreadID,
+              current.grouping.webhookID == previous.grouping.webhookID,
+              current.grouping.webhookName == previous.grouping.webhookName,
+              current.grouping.webhookAvatarURL == previous.grouping.webhookAvatarURL,
+              current.grouping.webhookAvatarPath == previous.grouping.webhookAvatarPath,
+              calendar.isDate(current.createdAt, inSameDayAs: previous.createdAt) else { return false }
+        return (0..<420).contains(current.createdAt.timeIntervalSince(previous.createdAt))
+    }
 }
 
 nonisolated struct NativeSession: Codable, Equatable, Sendable {
@@ -64,6 +103,14 @@ nonisolated struct NativeSession: Codable, Equatable, Sendable {
     let refreshToken: String
     let expiresAt: Date
     let userID: String
+}
+
+nonisolated struct NativeIncomingCall: Identifiable, Equatable, Sendable {
+    let channelID: String
+    let fromUserID: String
+    let title: String
+    let startedAt: Date
+    var id: String { channelID }
 }
 
 nonisolated enum NativeClientError: Error, LocalizedError, Equatable {

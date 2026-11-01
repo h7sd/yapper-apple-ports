@@ -1,0 +1,15 @@
+{
+  "all_passed": true,
+  "cleanup": true,
+  "cleanup_status": 0,
+  "delete": true,
+  "delete_status": 0,
+  "preflight": true,
+  "preflight_status": 0,
+  "read": true,
+  "read_status": 0,
+  "update": true,
+  "update_status": 0,
+  "write": true,
+  "write_status": 0
+}

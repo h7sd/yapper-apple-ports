@@ -1,0 +1,227 @@
+{
+  "schemaVersion": 1,
+  "checkedDate": "2026-10-31",
+  "scope": "Native ordinary-user bot directory/install and owned bot/OAuth management",
+  "webEvidence": {
+    "id": "ev_6142d5da0be52935da21de4955bc1734f71172f47d8f84286fbe6fc27471aaec",
+    "rootSha256": "be1fa712ed782e34b8ee49d78b6a30acdc87c50dfee2b788232f4867d271f9db",
+    "manifest": "work/native-full-parity/web-closure-manifest.json",
+    "boundary": "Official Windows Electron app loads the website; these website bundles contain the remotely served feature implementation."
+  },
+  "implemented": [
+    "Native bot directory query/category/sort, profile-backed detail and visible commands.",
+    "Installation lists authoritative bot_add_targets and freshly rechecks selection before bot_add_to_server; never synthesizes management permissions.",
+    "Own bots table is owner_id=current user scoped. Bot create/edit/delete/token rotation/sharing/publication/private review and webhook management use the observed endpoints.",
+    "Bot description and icon updates preserve unrelated fields; unchanged bot names are omitted from edits to avoid the weekly rename operation.",
+    "Owned bot profile text,4MiB native multipart image upload/removal, bot server list/removal and registered commands.",
+    "Owned bot activity registration/edit/removal; actual execution of website activities is not claimed native.",
+    "Owned OAuth app list/create/update/remove, exact redirect validation, scanned app icons and explicit confirmed client-secret rotation.",
+    "Tokens/secrets remain ephemeral view state and are hidden when the app becomes inactive; explicit copy uses local-only expiring clipboard.",
+    "DEBUG fixture mode avoids all network requests and account writes."
+  ],
+  "knownLimits": [
+    "No hosting control, paid hosting checkout, promotions or advertising accounting is included in this checkpoint.",
+    "Directory promotion impressions/click tracking and paid ordering are not reproduced.",
+    "Bot verification progress checklist is not yet rendered; publication/review actions use actual backend state.",
+    "Directory support invite preview/deep-link and arbitrary bot share links are not yet integrated.",
+    "OAuth authorization endpoint execution/SDK sample generation is not a native application login provider; managing owned apps does not claim support for arbitrary OAuth redirect interception.",
+    "No real bot, app, installation, secret rotation, report or uploaded image was created by the agent.",
+    "Full application feature parity remains false; runtime permissions and account-specific backend behavior require human review."
+  ],
+  "productionFiles": [
+    "YapperNative/Core/NativeDeveloperModels.swift",
+    "YapperNative/Core/NativeDeveloperService.swift",
+    "YapperNative/UI/NativeDeveloperViews.swift",
+    "YapperNative/UI/NativeBotViews.swift"
+  ],
+  "validation": {
+    "testFile": "YapperNativeTests/DeveloperFeatureTests.swift",
+    "focusedTestsWritten": 13,
+    "swift6MainActorIOS17SimulatorTypecheck": "passed with current compiled app and real TestingMacros plugin",
+    "combinedRootBuildAndRuntime": "Owned by root agent; not asserted by this document."
+  },
+  "sourceEvidence": [
+    {
+      "artifact": "0mcrufu0avhsc.js",
+      "sha256": "221d3aafe3fa6b1ec082c930d1bc41f1bef98111773a8002f04e225a5a4cf1cb",
+      "literal": "bot_directory",
+      "utf8ByteOffset": 1657,
+      "observation": "Static shipped public client consumer, not an authenticated runtime request."
+    },
+    {
+      "artifact": "0mcrufu0avhsc.js",
+      "sha256": "221d3aafe3fa6b1ec082c930d1bc41f1bef98111773a8002f04e225a5a4cf1cb",
+      "literal": "command_list",
+      "utf8ByteOffset": 2419,
+      "observation": "Static shipped public client consumer, not an authenticated runtime request."
+    },
+    {
+      "artifact": "0mcrufu0avhsc.js",
+      "sha256": "221d3aafe3fa6b1ec082c930d1bc41f1bef98111773a8002f04e225a5a4cf1cb",
+      "literal": "support_invite",
+      "utf8ByteOffset": 1411,
+      "observation": "Static shipped public client consumer, not an authenticated runtime request."
+    },
+    {
+      "artifact": "0sn16tkxmqvqh.js",
+      "sha256": "531b7507b86acf59ffac4695386f12491b4fd6d5c0905c1cb2687c619f9b067b",
+      "literal": "bot_add_targets",
+      "utf8ByteOffset": 2280,
+      "observation": "Static shipped public client consumer, not an authenticated runtime request."
+    },
+    {
+      "artifact": "0sn16tkxmqvqh.js",
+      "sha256": "531b7507b86acf59ffac4695386f12491b4fd6d5c0905c1cb2687c619f9b067b",
+      "literal": "bot_add_to_server",
+      "utf8ByteOffset": 2476,
+      "observation": "Static shipped public client consumer, not an authenticated runtime request."
+    },
+    {
+      "artifact": "0sn16tkxmqvqh.js",
+      "sha256": "531b7507b86acf59ffac4695386f12491b4fd6d5c0905c1cb2687c619f9b067b",
+      "literal": "Pick a server you manage",
+      "utf8ByteOffset": 2793,
+      "observation": "Static shipped public client consumer, not an authenticated runtime request."
+    },
+    {
+      "artifact": "1y5-tms6m1pvx.js",
+      "sha256": "96b85db74b15ab9dd5420e0a3994ffdf16f60aba09dbde1db3d51f40ebfaaab5",
+      "literal": "my_bot_hooks",
+      "utf8ByteOffset": 35395,
+      "observation": "Static shipped public client consumer, not an authenticated runtime request."
+    },
+    {
+      "artifact": "1y5-tms6m1pvx.js",
+      "sha256": "96b85db74b15ab9dd5420e0a3994ffdf16f60aba09dbde1db3d51f40ebfaaab5",
+      "literal": "bot_set_shareable",
+      "utf8ByteOffset": 37812,
+      "observation": "Static shipped public client consumer, not an authenticated runtime request."
+    },
+    {
+      "artifact": "1y5-tms6m1pvx.js",
+      "sha256": "96b85db74b15ab9dd5420e0a3994ffdf16f60aba09dbde1db3d51f40ebfaaab5",
+      "literal": "bot_remove_from_server",
+      "utf8ByteOffset": 38821,
+      "observation": "Static shipped public client consumer, not an authenticated runtime request."
+    },
+    {
+      "artifact": "1y5-tms6m1pvx.js",
+      "sha256": "96b85db74b15ab9dd5420e0a3994ffdf16f60aba09dbde1db3d51f40ebfaaab5",
+      "literal": "bot_commands",
+      "utf8ByteOffset": 35718,
+      "observation": "Static shipped public client consumer, not an authenticated runtime request."
+    },
+    {
+      "artifact": "1y5-tms6m1pvx.js",
+      "sha256": "96b85db74b15ab9dd5420e0a3994ffdf16f60aba09dbde1db3d51f40ebfaaab5",
+      "literal": "owner_id",
+      "utf8ByteOffset": 34936,
+      "observation": "Static shipped public client consumer, not an authenticated runtime request."
+    },
+    {
+      "artifact": "1y5-tms6m1pvx.js",
+      "sha256": "96b85db74b15ab9dd5420e0a3994ffdf16f60aba09dbde1db3d51f40ebfaaab5",
+      "literal": "/api/bots/profile",
+      "utf8ByteOffset": 4827,
+      "observation": "Static shipped public client consumer, not an authenticated runtime request."
+    },
+    {
+      "artifact": "1y5-tms6m1pvx.js",
+      "sha256": "96b85db74b15ab9dd5420e0a3994ffdf16f60aba09dbde1db3d51f40ebfaaab5",
+      "literal": "/api/bots",
+      "utf8ByteOffset": 4827,
+      "observation": "Static shipped public client consumer, not an authenticated runtime request."
+    },
+    {
+      "artifact": "1y5-tms6m1pvx.js",
+      "sha256": "96b85db74b15ab9dd5420e0a3994ffdf16f60aba09dbde1db3d51f40ebfaaab5",
+      "literal": "rotate:!0",
+      "utf8ByteOffset": 38074,
+      "observation": "Static shipped public client consumer, not an authenticated runtime request."
+    },
+    {
+      "artifact": "1y5-tms6m1pvx.js",
+      "sha256": "96b85db74b15ab9dd5420e0a3994ffdf16f60aba09dbde1db3d51f40ebfaaab5",
+      "literal": "public:!0",
+      "utf8ByteOffset": 56184,
+      "observation": "Static shipped public client consumer, not an authenticated runtime request."
+    },
+    {
+      "artifact": "1y5-tms6m1pvx.js",
+      "sha256": "96b85db74b15ab9dd5420e0a3994ffdf16f60aba09dbde1db3d51f40ebfaaab5",
+      "literal": "unlisted:!0",
+      "utf8ByteOffset": 54932,
+      "observation": "Static shipped public client consumer, not an authenticated runtime request."
+    },
+    {
+      "artifact": "1y5-tms6m1pvx.js",
+      "sha256": "96b85db74b15ab9dd5420e0a3994ffdf16f60aba09dbde1db3d51f40ebfaaab5",
+      "literal": "bot_activities_mine",
+      "utf8ByteOffset": 459,
+      "observation": "Static shipped public client consumer, not an authenticated runtime request."
+    },
+    {
+      "artifact": "1y5-tms6m1pvx.js",
+      "sha256": "96b85db74b15ab9dd5420e0a3994ffdf16f60aba09dbde1db3d51f40ebfaaab5",
+      "literal": "bot_activity_save",
+      "utf8ByteOffset": 657,
+      "observation": "Static shipped public client consumer, not an authenticated runtime request."
+    },
+    {
+      "artifact": "1y5-tms6m1pvx.js",
+      "sha256": "96b85db74b15ab9dd5420e0a3994ffdf16f60aba09dbde1db3d51f40ebfaaab5",
+      "literal": "bot_activity_remove",
+      "utf8ByteOffset": 1021,
+      "observation": "Static shipped public client consumer, not an authenticated runtime request."
+    },
+    {
+      "artifact": "1y5-tms6m1pvx.js",
+      "sha256": "96b85db74b15ab9dd5420e0a3994ffdf16f60aba09dbde1db3d51f40ebfaaab5",
+      "literal": "oauth_my_apps",
+      "utf8ByteOffset": 65817,
+      "observation": "Static shipped public client consumer, not an authenticated runtime request."
+    },
+    {
+      "artifact": "1y5-tms6m1pvx.js",
+      "sha256": "96b85db74b15ab9dd5420e0a3994ffdf16f60aba09dbde1db3d51f40ebfaaab5",
+      "literal": "/api/oauth/apps",
+      "utf8ByteOffset": 64546,
+      "observation": "Static shipped public client consumer, not an authenticated runtime request."
+    },
+    {
+      "artifact": "1y5-tms6m1pvx.js",
+      "sha256": "96b85db74b15ab9dd5420e0a3994ffdf16f60aba09dbde1db3d51f40ebfaaab5",
+      "literal": "oauth_update_app",
+      "utf8ByteOffset": 69057,
+      "observation": "Static shipped public client consumer, not an authenticated runtime request."
+    },
+    {
+      "artifact": "1y5-tms6m1pvx.js",
+      "sha256": "96b85db74b15ab9dd5420e0a3994ffdf16f60aba09dbde1db3d51f40ebfaaab5",
+      "literal": "oauth_remove_app",
+      "utf8ByteOffset": 69625,
+      "observation": "Static shipped public client consumer, not an authenticated runtime request."
+    },
+    {
+      "artifact": "1y5-tms6m1pvx.js",
+      "sha256": "96b85db74b15ab9dd5420e0a3994ffdf16f60aba09dbde1db3d51f40ebfaaab5",
+      "literal": "reset_secret:!0",
+      "utf8ByteOffset": 69479,
+      "observation": "Static shipped public client consumer, not an authenticated runtime request."
+    },
+    {
+      "artifact": "1y5-tms6m1pvx.js",
+      "sha256": "96b85db74b15ab9dd5420e0a3994ffdf16f60aba09dbde1db3d51f40ebfaaab5",
+      "literal": "Redirect URLs",
+      "utf8ByteOffset": 72351,
+      "observation": "Static shipped public client consumer, not an authenticated runtime request."
+    },
+    {
+      "artifact": "1y5-tms6m1pvx.js",
+      "sha256": "96b85db74b15ab9dd5420e0a3994ffdf16f60aba09dbde1db3d51f40ebfaaab5",
+      "literal": "maxLength:300",
+      "utf8ByteOffset": 7965,
+      "observation": "Static shipped public client consumer, not an authenticated runtime request."
+    }
+  ]
+}
