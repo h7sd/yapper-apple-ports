@@ -4,9 +4,11 @@ import UniformTypeIdentifiers
 struct NativeConversationView: View {
     let store: NativeStore
     private let seedConversation: Conversation
+    private let conversationOwnerID: String?
     var initialMessageID: String? = nil
     var onBack: (() -> Void)? = nil
     var compactPresentation = true
+    var serverSnapshot: NativeServerSnapshot? = nil
     @Environment(\.dismiss) private var dismiss
     @FocusState private var composerFocused: Bool
     @State private var showingDetails = false
@@ -35,14 +37,39 @@ struct NativeConversationView: View {
     @State private var pendingJumpMessage: ChatMessage?
     @State private var jumpMessageID: String?
     @State private var viewingHistory = false
+    @State private var loadedServerSnapshot: NativeServerSnapshot?
+    @State private var serverPermissionError: String?
+    @State private var serverMembersModel: NativeServerDetailModel?
+    @State private var showingServerMembers = false
+    @State private var isConversationVisible = false
     @AppStorage("native.plugin.characterCounter") private var showCharacterCounter = true
 
-    init(store: NativeStore, conversation: Conversation, initialMessageID: String? = nil, onBack: (() -> Void)? = nil, compactPresentation: Bool = true) {
+    init(store: NativeStore, conversation: Conversation, initialMessageID: String? = nil, onBack: (() -> Void)? = nil, compactPresentation: Bool = true, serverSnapshot: NativeServerSnapshot? = nil) {
         self.store = store; self.seedConversation = conversation; self.initialMessageID = initialMessageID
+        self.conversationOwnerID = store.user?.id
         self.onBack = onBack; self.compactPresentation = compactPresentation
+        self.serverSnapshot = serverSnapshot
     }
 
     private var conversation: Conversation { store.conversations.first(where: { $0.id == seedConversation.id }) ?? seedConversation }
+    private var activeServerSnapshot: NativeServerSnapshot? {
+        if let loadedServerSnapshot, loadedServerSnapshot.server.id == conversation.serverID { return loadedServerSnapshot }
+        return serverSnapshot?.server.id == conversation.serverID ? serverSnapshot : nil
+    }
+    private var postingAccess: NativeChannelPostingAccess {
+        guard conversation.serverID != nil else { return .allowed }
+        if let serverPermissionError { return .denied(serverPermissionError) }
+        return activeServerSnapshot?.postingAccess(channelID: conversation.id, userID: store.user?.id, capabilities: store.capabilities)
+            ?? .denied(serverPermissionError ?? "Die Kanalberechtigungen werden geladen …")
+    }
+    private func channelPermission(_ permission: String) -> Bool {
+        conversation.serverID == nil || activeServerSnapshot?.hasChannelPermission(permission, channelID: conversation.id, userID: store.user?.id, capabilities: store.capabilities) == true
+    }
+    private var canManagePins: Bool {
+        store.capabilities.flagOn("pins", userID: store.user?.id, serverID: conversation.serverID)
+            && activeServerSnapshot?.channels.first(where: { $0.id == conversation.id })?.kind != "voice"
+            && channelPermission("manage_messages")
+    }
 
     private var draft: Binding<String> {
         Binding(
@@ -62,7 +89,8 @@ struct NativeConversationView: View {
     private var messageLimit: Int { store.messageCharacterLimit }
 
     private var canSend: Bool {
-        (!(store.drafts[conversation.id] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || attachment != nil)
+        postingAccess.canSend
+            && (!(store.drafts[conversation.id] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || attachment != nil)
             && draftLength <= messageLimit
             && !store.isSending
             && !isSendingExtra
@@ -117,17 +145,18 @@ struct NativeConversationView: View {
                                          detail: features.details[message.id],
                                          reply: features.details[message.id]?.replyToID.flatMap { features.replies[$0] },
                                          reactions: NativeReactionGroup.groups(features.reactions[message.id] ?? [], currentUserID: store.user?.id),
-                                         react: { emoji in react(to: message, emoji: emoji) }, store: store, emojis: features.emojis, grouped: NativeMessageGrouping.groups(message, after: index > 0 ? visibleMessages[index - 1] : nil) && features.details[message.id]?.replyToID == nil)
+                                         react: { emoji in react(to: message, emoji: emoji) }, store: store, emojis: features.emojis, grouped: NativeMessageGrouping.groups(message, after: index > 0 ? visibleMessages[index - 1] : nil) && features.details[message.id]?.replyToID == nil,
+                                         serverSnapshot: activeServerSnapshot, onMentionDismiss: restoreConversationAfterMention)
                             .id(message.id)
                             .accessibilityIdentifier("native.message.\(message.id)")
                             .contextMenu {
-                                Button { replyTo = message; composerFocused = true } label: { Label("Antworten", systemImage: "arrowshape.turn.up.left") }
-                                Button { reactingMessage = message } label: { Label("Reaktion hinzufügen", systemImage: "face.smiling") }
+                                Button { replyTo = message; composerFocused = true } label: { Label("Antworten", systemImage: "arrowshape.turn.up.left") }.disabled(!postingAccess.canSend)
+                                Button { reactingMessage = message } label: { Label("Reaktion hinzufügen", systemImage: "face.smiling") }.disabled(!channelPermission("add_reactions"))
                                 Button { UIPasteboard.general.string = message.content } label: { Label("Text kopieren", systemImage: "doc.on.doc") }
                                 if !message.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                                     Button { translatingMessage = message } label: { Label("Übersetzen", systemImage: "translate") }
                                 }
-                                Button { pin(message) } label: { Label(features.details[message.id]?.pinnedAt == nil ? "Anheften" : "Lösen", systemImage: features.details[message.id]?.pinnedAt == nil ? "pin" : "pin.slash") }
+                                Button { pin(message) } label: { Label(features.details[message.id]?.pinnedAt == nil ? "Anheften" : "Lösen", systemImage: features.details[message.id]?.pinnedAt == nil ? "pin" : "pin.slash") }.disabled(!canManagePins)
                                 if message.author.id == store.user?.id {
                                     Button { editingMessage = message } label: { Label("Bearbeiten", systemImage: "pencil") }
                                     Button(role: .destructive) { deletingMessage = message } label: { Label("Löschen", systemImage: "trash") }
@@ -145,7 +174,7 @@ struct NativeConversationView: View {
             .defaultScrollAnchor(.bottom)
             .scrollDismissesKeyboard(.interactively)
             .background(YapperPalette.background.ignoresSafeArea())
-            .refreshable { await store.loadMessages(for: conversation) }
+            .refreshable { await store.loadMessages(for: conversation); await loadServerContext(refresh: true) }
             .onChange(of: visibleMessages.last?.id) { _, _ in
                 if pendingJumpMessage == nil && !viewingHistory { proxy.scrollTo("native.messages.bottom", anchor: .bottom) }
                 if scenePhase == .active && pendingJumpMessage == nil && !viewingHistory { Task { await store.markConversationRead(conversation) } }
@@ -197,7 +226,18 @@ struct NativeConversationView: View {
                         .accessibilityElement(children: .contain)
                         .accessibilityIdentifier("native.composer.attachment")
                     }
-                    composer
+                    if postingAccess.canSend { composer }
+                    else {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Label(postingAccess.reason ?? "Dieser Kanal ist schreibgeschützt.", systemImage: "lock.fill")
+                                .font(OriginalYapper.font(13)).foregroundStyle(YapperPalette.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                            if serverPermissionError != nil {
+                                Button("Berechtigungen erneut laden") { Task { await loadServerContext(refresh: true) } }.frame(minHeight: 44)
+                            }
+                        }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                            .accessibilityIdentifier("native.composer.readOnly")
+                    }
                     if showCharacterCounter && draftLength >= messageLimit - 300 {
                         Text(draftLength > messageLimit
                             ? "\(draftLength - messageLimit) Zeichen zu viel · maximal \(messageLimit.formatted())"
@@ -227,16 +267,19 @@ struct NativeConversationView: View {
                     pendingDetailsConversation = target; showingDetails = false
                 }
             }
+            .sheet(isPresented: $showingServerMembers) {
+                if let serverMembersModel { NativeServerMembersView(model: serverMembersModel) }
+            }
             .navigationDestination(item: $nextConversation) { target in NativeConversationView(store: store, conversation: target) }
             .sheet(isPresented: $showingSearch, onDismiss: jumpToPendingMessage) {
-                NativeMessageBrowser(store: store, conversation: conversation, mode: .search, openMessage: { pendingJumpMessage = $0; showingSearch = false })
+                NativeMessageBrowser(store: store, conversation: conversation, mode: .search, canManagePins: { canManagePins }, openMessage: { pendingJumpMessage = $0; showingSearch = false })
             }
             .sheet(isPresented: $showingPins, onDismiss: jumpToPendingMessage) {
-                NativeMessageBrowser(store: store, conversation: conversation, mode: .pins, openMessage: { pendingJumpMessage = $0; showingPins = false })
+                NativeMessageBrowser(store: store, conversation: conversation, mode: .pins, canManagePins: { canManagePins }, openMessage: { pendingJumpMessage = $0; showingPins = false })
             }
-            .sheet(isPresented: $showingPollCreator) { NativePollCreator(store: store, conversation: conversation) { await store.loadMessages(for: conversation) } }
+            .sheet(isPresented: $showingPollCreator) { NativePollCreator(store: store, conversation: conversation, canCreate: { postingAccess.canSend && channelPermission("create_polls") }) { await store.loadMessages(for: conversation) } }
             .sheet(isPresented: $showingMentions) {
-                NativeMentionPicker(users: conversation.participants) { user in
+                NativeMentionPicker(users: activeServerSnapshot?.members.map(\.user) ?? conversation.participants) { user in
                     let current = store.drafts[conversation.id] ?? ""
                     store.setDraft(current + (current.isEmpty || current.hasSuffix(" ") ? "" : " ") + "<@\(user.id)> ", for: conversation.id)
                     composerFocused = true
@@ -291,9 +334,15 @@ struct NativeConversationView: View {
                 if let initialMessageID, await store.focusMessage(id: initialMessageID, in: conversation) { jumpMessageID = initialMessageID }
                 else if initialMessageID == nil && scenePhase == .active && store.errorMessage == nil { await store.markConversationRead(conversation) }
             }
+            .task(id: conversation.serverID) { await loadServerContext() }
+            .onChange(of: postingAccess.canSend) { _, allowed in if !allowed { composerFocused = false } }
             .task(id: visibleMessages) { await reloadFeatures() }
-            .onDisappear { features.cancel(); store.closeConversation(id: conversation.id) }
+            .onAppear { isConversationVisible = true }
+            .onDisappear { isConversationVisible = false; features.cancel(); store.closeConversation(id: conversation.id) }
             .yapperNavigation()
+            .nativeServerAppearance(ownerID: store.user?.id, serverID: conversation.serverID,
+                                    theme: store.capabilities.flagOn("server_theme", userID: store.user?.id, serverID: conversation.serverID) ? activeServerSnapshot?.server.theme ?? .null : .null)
+            .background { NativeChatBackground().ignoresSafeArea() }
         }
     }
 
@@ -310,6 +359,7 @@ struct NativeConversationView: View {
         HStack(spacing: compactPresentation ? 2 : 10) {
             if compactPresentation {
                 Button {
+                    isConversationVisible = false
                     composerFocused = false
                     features.cancel()
                     store.closeConversation(id: conversation.id)
@@ -321,9 +371,22 @@ struct NativeConversationView: View {
                 }
                     .accessibilityLabel("Zurück").accessibilityIdentifier("native.conversation.back")
             }
-            if conversation.serverID != nil { OriginalYapperIcon("hash", size: 24).foregroundStyle(YapperPalette.secondary) }
-            else { NativeAvatar(name: conversation.title, identity: conversation.participants.first?.id, username: conversation.participants.first?.username, url: conversation.avatarURL, presence: conversation.isGroup ? nil : conversation.participants.first(where: { $0.id != store.user?.id })?.presence, size: compactPresentation ? 26 : 28) }
-            Text(conversation.title).font(OriginalYapper.font(compactPresentation ? 16 : 15, weight: compactPresentation ? .bold : .semibold)).lineLimit(1).frame(maxWidth: .infinity, alignment: .leading)
+            if conversation.serverID != nil {
+                Image(systemName: activeServerSnapshot?.channels.first(where: { $0.id == conversation.id })?.symbol ?? "number")
+                    .font(.system(size: 20)).foregroundStyle(YapperPalette.secondary)
+            }
+            else { NativeAvatar(name: conversation.title, identity: conversation.participants.first?.id, username: conversation.participants.first?.username, url: conversation.avatarURL, presence: conversation.isGroup ? nil : conversation.participants.first.map { store.peerPresence(userID: $0.id) }, size: compactPresentation ? 26 : 28) }
+            VStack(alignment: .leading, spacing: 1) {
+                Text(conversation.title).font(OriginalYapper.font(compactPresentation ? 16 : 15, weight: compactPresentation ? .bold : .semibold)).lineLimit(1)
+                if conversation.serverID == nil, !conversation.isGroup, let peer = conversation.participants.first {
+                    let label = NativePresenceLabel.text(store.peerPresence(userID: peer.id))
+                    if !label.isEmpty { Text(label).font(OriginalYapper.font(11)).foregroundStyle(YapperPalette.secondary).accessibilityIdentifier("native.conversation.presence") }
+                }
+                if let members = store.voiceMembers[conversation.id], !members.isEmpty {
+                    Text("\(members.count) im Anruf").font(OriginalYapper.font(11)).foregroundStyle(YapperPalette.success)
+                        .accessibilityIdentifier("native.conversation.callMembers")
+                }
+            }.frame(maxWidth: .infinity, alignment: .leading)
             if store.capabilities.flagOn("calls", userID: store.user?.id, serverID: conversation.serverID) {
                 NativeCallButton(store: store, channelID: conversation.id, title: conversation.title, serverID: conversation.serverID)
             }
@@ -332,6 +395,13 @@ struct NativeConversationView: View {
                 Button { showingSearch = true } label: { Label("Nachrichten suchen", systemImage: "magnifyingglass") }
                 Button { showingPins = true } label: { Label("Angeheftete Nachrichten", systemImage: "pin") }
                 Button { showingDetails = true } label: { Label("Gesprächsinformationen", systemImage: "info.circle") }
+                if let snapshot = activeServerSnapshot {
+                    Button {
+                        serverMembersModel = NativeServerDetailModel(store: store, id: snapshot.server.id, snapshot: snapshot)
+                        showingServerMembers = true
+                    } label: { Label("Servermitglieder", systemImage: "person.3") }
+                    .accessibilityIdentifier("native.conversation.serverMembers")
+                }
             } label: { OriginalYapperIcon("more").frame(width: 44, height: 44) }
                 .accessibilityLabel("Gesprächsaktionen").accessibilityIdentifier("native.conversation.actions")
         }
@@ -348,15 +418,17 @@ struct NativeConversationView: View {
         HStack(alignment: .bottom, spacing: compactPresentation ? 0 : 4) {
             Menu {
                 Button { showingGalleryPicker = true } label: { Label("Foto oder Video auswählen", systemImage: "photo.on.rectangle") }
+                    .disabled(!channelPermission("attach_files"))
                     .accessibilityIdentifier("native.composer.gallery")
                 Button { showingFileImporter = true } label: { Label("Datei anhängen", systemImage: "paperclip") }
+                    .disabled(!channelPermission("attach_files"))
                     .accessibilityIdentifier("native.composer.file")
                 if store.capabilities.flagOn("voice_messages", userID: store.user?.id, serverID: conversation.serverID) {
-                    Button { showingVoiceRecorder = true } label: { Label("Sprachnachricht aufnehmen", systemImage: "mic") }
+                    Button { showingVoiceRecorder = true } label: { Label("Sprachnachricht aufnehmen", systemImage: "mic") }.disabled(!channelPermission("send_voice_messages"))
                 }
-                Button { showingPollCreator = true } label: { Label("Umfrage oder Quiz", systemImage: "chart.bar.xaxis") }
+                Button { showingPollCreator = true } label: { Label("Umfrage oder Quiz", systemImage: "chart.bar.xaxis") }.disabled(!channelPermission("create_polls"))
                 Button { showingEmojis = true } label: { Label("Eigene Emojis", systemImage: "face.smiling") }
-                if !conversation.participants.isEmpty { Button { showingMentions = true } label: { Label("Person erwähnen", systemImage: "at") } }
+                if !(activeServerSnapshot?.members ?? []).isEmpty || !conversation.participants.isEmpty { Button { showingMentions = true } label: { Label("Person erwähnen", systemImage: "at") } }
             } label: { OriginalYapperIcon("plus", size: compactPresentation ? 24 : 20).frame(width: compactPresentation ? 44 : 40, height: compactPresentation ? 44 : 40) }
                 .disabled(isSendingExtra).accessibilityLabel("Nachrichtenoptionen").accessibilityIdentifier("native.composer.attach")
             TextField("Nachricht an \(conversation.isGroup || conversation.serverID != nil ? conversation.title : "@" + conversation.title)", text: draft, axis: .vertical)
@@ -369,7 +441,7 @@ struct NativeConversationView: View {
                 .accessibilityLabel("Emojis").accessibilityIdentifier("native.composer.emoji")
             if !compactPresentation && draftLength == 0 && attachment == nil && store.capabilities.flagOn("voice_messages", userID: store.user?.id, serverID: conversation.serverID) {
                 Button { showingVoiceRecorder = true } label: { OriginalYapperIcon("microphone").frame(width: compactPresentation ? 40 : 32, height: compactPresentation ? 44 : 40) }
-                    .disabled(isSendingExtra).accessibilityLabel("Sprachnachricht aufnehmen").accessibilityIdentifier("native.composer.voice")
+                    .disabled(isSendingExtra || !channelPermission("send_voice_messages")).accessibilityLabel("Sprachnachricht aufnehmen").accessibilityIdentifier("native.composer.voice")
             }
             if !compactPresentation || draftLength > 0 || attachment != nil || store.isSending || isSendingExtra {
             Button { sendDraft() } label: {
@@ -394,6 +466,10 @@ struct NativeConversationView: View {
 
     private func sendDraft() {
         guard canSend else { return }
+        if let attachment, !channelPermission(attachment.voiceSeconds == nil ? "attach_files" : "send_voice_messages") {
+            features.errorMessage = "Du darfst in diesem Kanal keine solchen Anhänge senden."
+            return
+        }
         let rawText = store.drafts[conversation.id] ?? ""
         let transformed = NativePluginPreferences.transform(text: rawText)
         if replyTo != nil || attachment != nil {
@@ -435,7 +511,66 @@ struct NativeConversationView: View {
         }
     }
 
-    private func reloadFeatures() async { await features.load(store: store, messages: visibleMessages, channelID: conversation.id) }
+    private func reloadFeatures() async {
+        #if DEBUG
+        if NativeServerFixtures.isEnabled(userID: store.user?.id) { return }
+        #endif
+        await features.load(store: store, messages: visibleMessages, channelID: conversation.id)
+    }
+
+    private func restoreConversationAfterMention() {
+        guard isConversationVisible, conversationOwnerID == store.user?.id, store.authState == .signedIn,
+              store.selectedConversation?.id != conversation.id else { return }
+        Task {
+            guard isConversationVisible, conversationOwnerID == store.user?.id else { return }
+            await store.loadMessages(for: conversation)
+            if viewingHistory, let target = jumpMessageID { _ = await store.focusMessage(id: target, in: conversation) }
+            else if scenePhase == .active { await store.markConversationRead(conversation) }
+        }
+    }
+
+    private func loadServerContext(refresh: Bool = false) async {
+        guard let serverID = conversation.serverID, let ownerID = store.user?.id else { return }
+        serverPermissionError = nil
+        do {
+            var snapshot: NativeServerSnapshot
+            #if DEBUG
+            if NativeServerFixtures.isEnabled(userID: ownerID), serverID == NativeServerFixtures.serverID {
+                snapshot = try NativeServerFixtures.snapshot()
+            } else {
+                snapshot = try await fetchServerContext(serverID: serverID, refresh: refresh)
+            }
+            #else
+            snapshot = try await fetchServerContext(serverID: serverID, refresh: refresh)
+            #endif
+            try Task.checkCancellation()
+            guard store.user?.id == ownerID else { return }
+            loadedServerSnapshot = snapshot
+            store.observeServer(id: serverID, channelIDs: snapshot.channels.map(\.id), members: snapshot.members.map(\.user))
+            store.registerServerRoles(serverID: serverID, ownRoleIDs: snapshot.roleIDs(for: ownerID))
+        } catch is CancellationError {} catch {
+            guard !Task.isCancelled, store.user?.id == ownerID else { return }
+            serverPermissionError = "Die Kanalberechtigungen konnten nicht geladen werden."
+        }
+    }
+
+    private func fetchServerContext(serverID: String, refresh: Bool) async throws -> NativeServerSnapshot {
+        let seed = refresh ? nil : serverSnapshot
+        let loadOverrides = store.capabilities.flagOn("channel_perms", userID: store.user?.id, serverID: serverID)
+        return try await store.withAuthenticatedSession { api, session in
+            var snapshot: NativeServerSnapshot
+            if let seed, seed.server.id == serverID, !loadOverrides || seed.overridesLoaded { snapshot = seed }
+            else { snapshot = try await api.nativeServerSnapshot(id: serverID, session: session, includeOverrides: loadOverrides) }
+            if !snapshot.channels.contains(where: { $0.id == conversation.id }) {
+                let channel = try await api.nativeServerChannel(id: conversation.id, serverID: serverID, session: session)
+                if let parent = channel.parentID, !snapshot.channels.contains(where: { $0.id == parent }) {
+                    snapshot = snapshot.includingChannel(try await api.nativeServerChannel(id: parent, serverID: serverID, session: session))
+                }
+                snapshot = snapshot.includingChannel(channel)
+            }
+            return snapshot
+        }
+    }
 
     private func jumpToPendingMessage() {
         guard let message = pendingJumpMessage else {
@@ -449,6 +584,7 @@ struct NativeConversationView: View {
     }
 
     private func react(to message: ChatMessage, emoji: String) {
+        guard channelPermission("add_reactions") else { return }
         let existing = features.reactions[message.id] ?? []
         Task {
             let accepted = await features.perform(store: store, key: "react:" + message.id) { api, session in
@@ -459,6 +595,7 @@ struct NativeConversationView: View {
     }
 
     private func pin(_ message: ChatMessage) {
+        guard canManagePins else { return }
         let pinned = features.details[message.id]?.pinnedAt == nil
         Task {
             let accepted = await features.perform(store: store, key: "pin:" + message.id) { api, session in
@@ -505,11 +642,14 @@ struct NativeMessageRow: View {
     var store: NativeStore? = nil
     var emojis: [String: NativeCustomEmoji] = [:]
     var grouped = false
+    var serverSnapshot: NativeServerSnapshot? = nil
+    var onMentionDismiss: (() -> Void)? = nil
+    @State private var selectedMention: NativeMentionTarget?
 
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
             if grouped { Color.clear.frame(width: 34, height: 1).accessibilityHidden(true) }
-            else { NativeAvatar(name: message.author.displayName, identity: message.author.id, username: message.author.username, url: message.author.avatarURL, size: 34, initialsFontSize: 16, decorationURL: message.author.avatarDecorationURL) }
+            else { NativeAvatar(name: message.author.displayName, identity: message.author.id, username: message.author.username, url: message.author.avatarURL, presence: store?.peerPresence(userID: message.author.id), size: 34, initialsFontSize: 16, decorationURL: message.author.avatarDecorationURL) }
             VStack(alignment: .leading, spacing: 6) {
                 if let reply {
                     Label {
@@ -522,9 +662,9 @@ struct NativeMessageRow: View {
                 }
                 if !grouped {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    NativeDisplayName(name: message.author.displayName, bannerURL: message.author.nameBannerURL)
+                    NativeServerRoleName(name: serverSnapshot?.members.first(where: { $0.id == message.author.id })?.displayName ?? message.author.displayName,
+                                         role: serverSnapshot?.colorRole(userID: message.author.id), bannerURL: message.author.nameBannerURL)
                         .font(OriginalYapper.font(15, numericWeight: 650))
-                        .foregroundStyle(YapperPalette.text)
                     Text(timestamp)
                         .font(OriginalYapper.font(12))
                         .foregroundStyle(YapperPalette.faint)
@@ -535,11 +675,14 @@ struct NativeMessageRow: View {
                 if message.content.hasPrefix("📊 "), let store {
                     NativePollCard(store: store, message: message)
                 } else if !message.content.isEmpty {
-                    if NativeEmojiTokens.matches(renderedContent).isEmpty {
-                        Text(.init(renderedContent)).font(OriginalYapper.font(15)).lineSpacing(3).textSelection(.enabled)
+                    if NativeEmojiTokens.matches(message.content).isEmpty && renderedMentions.isEmpty {
+                        Text(.init(message.content)).font(OriginalYapper.font(15)).lineSpacing(3).textSelection(.enabled)
                             .fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading)
                     } else {
-                        NativeMessageRichText(text: renderedContent, emojis: emojis)
+                        NativeMessageRichText(text: message.content, emojis: emojis, mentions: renderedMentions, selectMention: {
+                            if $0.kind == .channel && $0.targetID == message.channelID { return }
+                            selectedMention = $0
+                        })
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
@@ -571,7 +714,12 @@ struct NativeMessageRow: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 10).padding(.vertical, 3).padding(.top, grouped ? 0 : 10)
+        .background(store?.messageMentionsCurrentUser(message) == true ? YapperPalette.accentSoft : .clear)
         .accessibilityElement(children: .contain)
+        .accessibilityValue(store?.messageMentionsCurrentUser(message) == true ? "Du wurdest erwähnt" : "")
+        .sheet(item: $selectedMention, onDismiss: { onMentionDismiss?() }) { target in
+            if let store { NativeMentionDestination(store: store, target: target, snapshot: serverSnapshot) }
+        }
     }
 
     private var timestamp: String {
@@ -581,16 +729,7 @@ struct NativeMessageRow: View {
         return message.createdAt.formatted(date: .numeric, time: .shortened)
     }
 
-    private var renderedContent: String {
-        var content = message.content
-        let people = (store?.selectedConversation?.participants ?? []) + (store?.user.map { [$0] } ?? []) + (store?.messages.map(\.author) ?? [])
-        for person in people {
-            let name = person.displayName.replacingOccurrences(of: "*", with: "\\*").replacingOccurrences(of: "_", with: "\\_").replacingOccurrences(of: "[", with: "\\[")
-            content = content.replacingOccurrences(of: "<@\(person.id)>", with: "@\(name)")
-        }
-        if let conversation = store?.selectedConversation { content = content.replacingOccurrences(of: "<#\(conversation.id)>", with: "#\(conversation.title)") }
-        return content
-    }
+    private var renderedMentions: [NativeRenderedMention] { NativeMentionRendering.mentions(in: message.content, store: store, snapshot: serverSnapshot) }
 
     @ViewBuilder private var reactionButtons: some View {
         ForEach(reactions) { reaction in

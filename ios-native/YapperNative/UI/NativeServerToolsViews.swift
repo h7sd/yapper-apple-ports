@@ -582,7 +582,7 @@ private struct NativeServerSupportView: View {
                 await model.refresh()
             }
         }
-        .navigationDestination(item: $destination) { NativeConversationView(store: model.store, conversation: $0) }
+        .navigationDestination(item: $destination) { NativeConversationView(store: model.store, conversation: $0, serverSnapshot: model.snapshot) }
         .yapperNavigation()
     }
 

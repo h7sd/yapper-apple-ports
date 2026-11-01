@@ -39,7 +39,7 @@ struct NativeConversationList: View {
                     else if filtered.isEmpty { Text(search.isEmpty ? "Noch keine Gespräche." : "Keine Treffer.").font(OriginalYapper.font(14)).foregroundStyle(YapperPalette.faint).frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 8).padding(.vertical, 12) }
                     ForEach(filtered) { conversation in
                         Button { open(conversation) } label: {
-                            NativeConversationRow(conversation: conversation, selected: requestedConversation?.id == conversation.id, pinned: preferenceModel.snapshot?.pins.contains(conversation.id) == true, muted: preferenceModel.isMuted(conversation.id))
+                            NativeConversationRow(conversation: liveConversation(conversation), selected: requestedConversation?.id == conversation.id, pinned: preferenceModel.snapshot?.pins.contains(conversation.id) == true, muted: preferenceModel.isMuted(conversation.id), callMembers: store.voiceMembers[conversation.id] ?? [])
                         }
                         .buttonStyle(.plain)
                         .accessibilityIdentifier("native.conversation.\(conversation.id)")
@@ -65,7 +65,7 @@ struct NativeConversationList: View {
             .scrollIndicators(.hidden)
             .scrollDismissesKeyboard(.interactively)
             .accessibilityIdentifier("native.conversations.list")
-            .refreshable { await store.loadConversations(); await preferenceModel.load(store: store) }
+            .refreshable { await store.loadConversations(); await store.refreshLiveState(); await preferenceModel.load(store: store) }
         }
         .background(YapperPalette.sidebar)
         .accessibilityElement(children: .contain)
@@ -89,6 +89,11 @@ struct NativeConversationList: View {
     }
 
     private func surface(_ value: NativeHomeSheet) { if let onOpenSurface { onOpenSurface(value) } else { homeSheet = value } }
+    private func liveConversation(_ value: Conversation) -> Conversation {
+        var live = value
+        live.participants = value.participants.map(store.userWithLivePresence)
+        return live
+    }
     private func open(_ conversation: Conversation) {
         homeSheet = nil
         if let onOpenConversation { onOpenConversation(conversation) } else { requestedConversation = conversation }
@@ -181,6 +186,7 @@ private struct NativeConversationRow: View {
     let selected: Bool
     let pinned: Bool
     let muted: Bool
+    var callMembers: [NativeVoiceMember] = []
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var preview: String? {
@@ -209,13 +215,18 @@ private struct NativeConversationRow: View {
                         .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
                 }
                 if dynamicTypeSize.isAccessibilitySize { metadata }
+                if !callMembers.isEmpty {
+                    Label("\(callMembers.count) im Anruf", systemImage: "phone.fill")
+                        .font(OriginalYapper.font(12, weight: .medium)).foregroundStyle(YapperPalette.success)
+                }
             }.frame(maxWidth: .infinity, alignment: .leading)
         }
         .foregroundStyle(selected || conversation.unreadCount > 0 && !muted ? YapperPalette.text : YapperPalette.secondary)
         .padding(.horizontal, 8).padding(.vertical, 6).frame(minHeight: 52)
         .background(selected ? YapperPalette.active : .clear, in: .rect(cornerRadius: 8)).contentShape(.rect)
         .accessibilityElement(children: .combine)
-        .accessibilityValue([pinned ? "Angeheftet" : "", muted ? "Stummgeschaltet" : ""].filter { !$0.isEmpty }.joined(separator: ", "))
+        .accessibilityValue([pinned ? "Angeheftet" : "", muted ? "Stummgeschaltet" : "",
+                             conversation.isGroup ? "" : NativePresenceLabel.text(conversation.participants.first?.presence ?? "unknown")].filter { !$0.isEmpty }.joined(separator: ", "))
     }
 
     private var metadata: some View {

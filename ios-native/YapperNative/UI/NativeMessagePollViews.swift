@@ -90,6 +90,7 @@ struct NativePollCard: View {
 struct NativePollCreator: View {
     let store: NativeStore
     let conversation: Conversation
+    var canCreate: @MainActor () -> Bool = { true }
     let didCreate: @MainActor () async -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var question = ""
@@ -104,7 +105,7 @@ struct NativePollCreator: View {
     @State private var error: String?
 
     private var valid: Bool {
-        !question.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && question.utf16.count <= 200
+        canCreate() && !question.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && question.utf16.count <= 200
         && options.allSatisfy { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && $0.utf16.count <= 80 }
         && (!quiz || (!correct.isEmpty && correct.count < options.count && (reveal != "close" || hours > 0)))
     }
@@ -159,6 +160,7 @@ struct NativePollCreator: View {
         busy = true; error = nil
         do {
             _ = try await store.withAuthenticatedSession { api, session in
+                guard canCreate() else { throw NativeClientError.api(status: 403, message: "Du darfst in diesem Kanal keine Umfrage erstellen.") }
                 try await api.createPoll(channelID: conversation.id, question: question, options: options, multi: multi, hours: hours, quiz: quiz, correct: correct, reveal: reveal, anonymous: anonymous, session: session); return true
             }
             await didCreate(); dismiss()

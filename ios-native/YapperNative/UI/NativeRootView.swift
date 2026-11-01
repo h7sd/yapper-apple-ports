@@ -5,9 +5,12 @@ struct NativeRootView: View {
     @State private var didRestoreSession = false
     @State private var call = NativeCallController()
     @AppStorage("native.appearance") private var appearance = "dark"
+    @Environment(\.scenePhase) private var scenePhase
+    private let accountAppearance = NativeAppearanceState.shared
+    private var appearanceOwnerID: String? { store.authState == .signedIn ? store.user?.id : nil }
 
     private var colorScheme: ColorScheme? {
-        switch appearance {
+        switch accountAppearance.preferredTheme ?? appearance {
         case "light": .light
         case "dark": .dark
         default: nil
@@ -41,6 +44,7 @@ struct NativeRootView: View {
         .preferredColorScheme(colorScheme)
         .onChange(of: store.authState) { _, state in
             if state != .signedIn {
+                accountAppearance.prepare(ownerID: nil)
                 NativeMediaPlayback.stopAll()
                 NativeRemoteImage.clearCache()
                 Task { await call.leave() }
@@ -50,6 +54,33 @@ struct NativeRootView: View {
             guard !didRestoreSession else { return }
             didRestoreSession = true
             await store.restoreSession()
+        }
+        .task(id: appearanceOwnerID) { await refreshAccountAppearance() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active, appearanceOwnerID != nil { Task { await refreshAccountAppearance() } }
+        }
+    }
+
+    private func refreshAccountAppearance() async {
+        #if DEBUG
+        let newFixtureOwner = accountAppearance.ownerID != appearanceOwnerID
+        #endif
+        accountAppearance.prepare(ownerID: appearanceOwnerID)
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--native-ui-fixtures") {
+            if newFixtureOwner { accountAppearance.useAccountTheme() }
+            if let ownerID = appearanceOwnerID,
+               let key = UserDefaults.standard.string(forKey: "native.fixtureColorTheme"),
+               NativeChatTint.presets.contains(where: { $0.key == key }) {
+                await accountAppearance.refresh(ownerID: ownerID) {
+                    try NativeAccountAppearance(ownerID: ownerID, prefs: .object(["theme": .string(appearance == "light" ? "light" : "dark"), "color": .object(["key": .string(key)])]))
+                }
+            }
+            return
+        }
+        #endif
+        await accountAppearance.refresh(ownerID: appearanceOwnerID) {
+            try await store.withAuthenticatedSession { api, session in try await api.nativeAccountAppearance(session: session) }
         }
     }
 }
@@ -232,6 +263,7 @@ struct NativeAccountView: View {
             }
             .task { await loadProfile(); await loadAccountSettings() }
         }
+        .nativeServerAppearance(ownerID: store.user?.id, serverID: nil, theme: .null)
     }
     private var accountPage: some View {
         ScrollView {
@@ -302,6 +334,7 @@ struct NativeAccountView: View {
                         appearanceChoice("System", value: "system", color: YapperPalette.sidebar)
                     }
                 }
+                NativeChatAppearanceSettings(store: store)
                 OriginalSettingsSection("Bilder") {
                     Toggle("Profilbilder laden", isOn: $showAvatars).toggleStyle(OriginalYapperToggleStyle())
                     Rectangle().fill(YapperPalette.border).frame(height: 1)
@@ -311,11 +344,11 @@ struct NativeAccountView: View {
         }
     }
     private func appearanceChoice(_ title: String, value: String, color: Color) -> some View {
-        Button { appearance = value } label: {
+        Button { appearance = value; NativeAppearanceState.shared.setLocalTheme(value) } label: {
             VStack(spacing: 10) {
-                RoundedRectangle(cornerRadius: 8).fill(color).frame(height: 64).overlay(alignment: .topTrailing) { if appearance == value { Image(systemName: "checkmark.circle.fill").foregroundStyle(YapperPalette.accent).padding(6) } }
+                RoundedRectangle(cornerRadius: 8).fill(color).frame(height: 64).overlay(alignment: .topTrailing) { if (NativeAppearanceState.shared.preferredTheme ?? appearance) == value { Image(systemName: "checkmark.circle.fill").foregroundStyle(YapperPalette.accent).padding(6) } }
                 Text(title).font(OriginalYapper.font(13, weight: .semibold))
-            }.padding(8).frame(maxWidth: .infinity).overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(appearance == value ? YapperPalette.accent : YapperPalette.border, lineWidth: appearance == value ? 2 : 1))
+            }.padding(8).frame(maxWidth: .infinity).overlay(RoundedRectangle(cornerRadius: 12).strokeBorder((NativeAppearanceState.shared.preferredTheme ?? appearance) == value ? YapperPalette.accent : YapperPalette.border, lineWidth: (NativeAppearanceState.shared.preferredTheme ?? appearance) == value ? 2 : 1))
         }.buttonStyle(.plain)
     }
     private var aboutPage: some View {

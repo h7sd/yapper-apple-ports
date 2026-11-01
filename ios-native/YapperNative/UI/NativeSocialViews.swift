@@ -31,7 +31,7 @@ struct NativePeopleView: View {
             return filter != 3 || ["online", "idle", "dnd", "away", "busy"].contains(presence(entry.id))
         }
     }
-    private func presence(_ id: String) -> String { store.conversations.flatMap(\.participants).first(where: { $0.id == id })?.presence ?? "unknown" }
+    private func presence(_ id: String) -> String { store.peerPresence(userID: id) }
     private func presenceLabel(_ id: String) -> String {
         switch presence(id) { case "online": "Online"; case "idle", "away": "Abwesend"; case "dnd", "busy": "Nicht stören"; case "offline", "invisible": "Offline"; default: "" }
     }
@@ -239,7 +239,7 @@ struct NativeProfileView: View {
 
     private var profilePresence: String {
         if isOwn { return store.user?.presence ?? "unknown" }
-        return store.conversations.flatMap(\.participants).first(where: { $0.id == userID })?.presence ?? "unknown"
+        return store.peerPresence(userID: userID)
     }
     private var profilePresenceLabel: String {
         switch profilePresence { case "online": "Online"; case "idle", "away": "Abwesend"; case "dnd", "busy": "Nicht stören"; case "invisible", "offline": "Offline"; default: "Status unbekannt" }
@@ -707,6 +707,10 @@ struct NativeInboxView: View {
     @State private var isLoading = false
     @State private var error: String?
     @State private var selectedItem: NativeInboxItem?
+    @State private var mentionMessages: [ChatMessage] = []
+    @State private var mentionError: String?
+    @State private var selectedMentionMessage: ChatMessage?
+    private var showsMentions: Bool { store.capabilities.flagOn("mentions_inbox", userID: store.user?.id) }
     private var isFixture: Bool {
         #if DEBUG
         ProcessInfo.processInfo.arguments.contains("--native-ui-fixtures")
@@ -719,8 +723,27 @@ struct NativeInboxView: View {
         List {
             if isFixture { NativeSocialFixtureNotice() }
             if let error { NativeErrorBanner(message: error) { Task { await load() } } }
+            if showsMentions {
+                Section("Erwähnungen") {
+                    if let mentionError { NativeErrorBanner(message: mentionError) { Task { await loadMentions() } } }
+                    if !isLoading && mentionMessages.isEmpty && mentionError == nil { Text("Noch keine Erwähnungen.").foregroundStyle(YapperPalette.secondary) }
+                    ForEach(mentionMessages) { message in
+                        Button { selectedMentionMessage = message } label: {
+                            HStack(alignment: .top, spacing: 10) {
+                                NativeAvatar(name: message.author.displayName, identity: message.author.id, username: message.author.username, url: message.author.avatarURL, size: 34)
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(verbatim: message.author.displayName).font(OriginalYapper.font(14, weight: .semibold))
+                                    Text(verbatim: NativeMentionRendering.plainText(message.content, store: store, snapshot: nil))
+                                        .font(OriginalYapper.font(13)).foregroundStyle(YapperPalette.secondary).lineLimit(3)
+                                    Text(message.createdAt, style: .relative).font(OriginalYapper.font(11)).foregroundStyle(YapperPalette.faint)
+                                }.frame(maxWidth: .infinity, alignment: .leading)
+                            }.frame(minHeight: 44).contentShape(.rect)
+                        }.buttonStyle(.plain).accessibilityIdentifier("native.inbox.mention.\(message.id)")
+                    }
+                }
+            }
             if isLoading && items.isEmpty { ProgressView("Posteingang wird geladen …").frame(maxWidth: .infinity) }
-            else if items.isEmpty { ContentUnavailableView("Alles gelesen", systemImage: "tray", description: Text("Anfragen, verpasste Anrufe und Rückmeldungen erscheinen hier.")) }
+            else if items.isEmpty && mentionMessages.isEmpty { ContentUnavailableView("Alles gelesen", systemImage: "tray", description: Text("Anfragen, verpasste Anrufe und Rückmeldungen erscheinen hier.")) }
             ForEach(items) { item in
                 Button {
                     selectedItem = item
@@ -753,8 +776,14 @@ struct NativeInboxView: View {
                     .frame(minHeight: 44)
             }
         }
-        .task { await load() }
-        .refreshable { await load() }
+        .task { await load(); await loadMentions() }
+        .refreshable { await load(); await loadMentions() }
+        .sheet(item: $selectedMentionMessage) { message in
+            NavigationStack {
+                NativeMessageSearchDestination(store: store, message: message)
+                    .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Fertig") { selectedMentionMessage = nil }.frame(minHeight: 44) } }
+            }
+        }
         .sheet(item: $selectedItem) { item in
             NavigationStack {
                 List {
@@ -797,6 +826,19 @@ struct NativeInboxView: View {
             try await store.withAuthenticatedSession { api, session in try await api.markSocialInbox(keys: keys, all: all, session: session) }
             for index in items.indices where all || keys.contains(items[index].id) { items[index].isUnread = false }
         } catch is CancellationError {} catch { self.error = error.localizedDescription }
+    }
+
+    private func loadMentions() async {
+        guard showsMentions, let ownerID = store.user?.id else { return }
+        mentionError = nil
+        do {
+            let messages = try await store.loadMentionMessages()
+            guard !Task.isCancelled, store.user?.id == ownerID else { return }
+            mentionMessages = messages
+        } catch is CancellationError {} catch {
+            guard !Task.isCancelled, store.user?.id == ownerID else { return }
+            mentionError = "Die Erwähnungen konnten nicht geladen werden."
+        }
     }
 }
 

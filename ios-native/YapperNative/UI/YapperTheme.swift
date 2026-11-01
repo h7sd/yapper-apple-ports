@@ -4,34 +4,37 @@ import UIKit
 /// Colors follow Yapper's shipped dark and light theme tokens.
 /// UIKit resolves dynamic colors on render queues; providers capture only Sendable scalar values.
 enum YapperPalette {
-    static let rail = adaptive(dark: 0x141519, light: 0xE3E5E8)
-    static let sidebar = adaptive(dark: 0x1B1C21, light: 0xF2F3F5)
-    static let background = adaptive(dark: 0x222329, light: 0xFFFFFF)
-    static let elevated = adaptive(dark: 0x2B2C33, light: 0xEBEDEF)
-    static let input = adaptive(dark: 0x2D2E36, light: 0xEBEDEF)
+    static var rail: Color { adaptive(.rail, dark: 0x141519, light: 0xE3E5E8) }
+    static var sidebar: Color { adaptive(.sidebar, dark: 0x1B1C21, light: 0xF2F3F5) }
+    static var background: Color { adaptive(.main, dark: 0x222329, light: 0xFFFFFF) }
+    static var elevated: Color { adaptive(.elevated, dark: 0x2B2C33, light: 0xEBEDEF) }
+    static var input: Color { adaptive(.input, dark: 0x2D2E36, light: 0xEBEDEF) }
     static let text = adaptive(dark: 0xECECF1, light: 0x1D1F23)
-    static let secondary = adaptive(dark: 0xA6A7B4, light: 0x55575F)
-    static let accent = adaptive(dark: 0xFF6B4A, light: 0xD4401E)
-    static let accentFill = adaptive(dark: 0xD4401E, light: 0xD4401E)
+    static var secondary: Color { adaptive(.secondary, dark: 0xA6A7B4, light: 0x55575F) }
+    static var accent: Color { adaptive(.accent, dark: 0xFF6B4A, light: 0xD4401E) }
+    static var accentFill: Color { adaptive(.accentFill, dark: 0xD4401E, light: 0xD4401E) }
     static let onAccent = Color.white
-    static let border = adaptive(dark: 0xFFFFFF, light: 0x000000, darkAlpha: 18 / 255, lightAlpha: 23 / 255)
-    static let hover = adaptive(dark: 0x2F3038, light: 0xE6E7EA)
-    static let active = adaptive(dark: 0x383944, light: 0xD7D9DE)
-    static let faint = adaptive(dark: 0x9A9CA9, light: 0x5F616A)
-    static let accentSoft = adaptive(dark: 0xFF6B4A, light: 0xFF6B4A, darkAlpha: 41 / 255, lightAlpha: 36 / 255)
+    static var border: Color { adaptive(.border, dark: 0xFFFFFF, light: 0x000000, darkAlpha: 18 / 255, lightAlpha: 23 / 255) }
+    static var hover: Color { adaptive(.hover, dark: 0x2F3038, light: 0xE6E7EA) }
+    static var active: Color { adaptive(.active, dark: 0x383944, light: 0xD7D9DE) }
+    static var faint: Color { adaptive(.faint, dark: 0x9A9CA9, light: 0x5F616A) }
+    static var accentSoft: Color { adaptive(.accentSoft, dark: 0xFF6B4A, light: 0xFF6B4A, darkAlpha: 41 / 255, lightAlpha: 36 / 255) }
+    static var floating: Color { adaptive(.floating, dark: 0x1B1C21, light: 0xFFFFFF) }
     static let accentLabel = Color.white
     static let success = Color(red: 63 / 255, green: 207 / 255, blue: 130 / 255)
     static let danger = adaptive(dark: 0xF2555A, light: 0xF2555A)
 
-    private static func adaptive(dark: UInt32, light: UInt32, darkAlpha: CGFloat = 1, lightAlpha: CGFloat = 1) -> Color {
-        Color(uiColor: UIColor { @Sendable traits in
-            let value = traits.userInterfaceStyle == .dark ? dark : light
-            return UIColor(
-                red: CGFloat((value >> 16) & 255) / 255,
-                green: CGFloat((value >> 8) & 255) / 255,
-                blue: CGFloat(value & 255) / 255,
-                alpha: traits.userInterfaceStyle == .dark ? darkAlpha : lightAlpha
-            )
+    private static func adaptive(_ token: NativeAppearanceToken? = nil, dark: UInt32, light: UInt32, darkAlpha: CGFloat = 1, lightAlpha: CGFloat = 1) -> Color {
+        let appearance = NativeAppearanceState.shared
+        let tint = appearance.tint, server = appearance.server
+        let darkBase = NativeAppearanceRGBA(dark, alpha: darkAlpha)
+        let lightBase = NativeAppearanceRGBA(light, alpha: lightAlpha)
+        let darkValue = token.map { NativeAppearanceColors.resolve($0, dark: true, base: darkBase, tint: tint, server: server) } ?? darkBase
+        let lightValue = token.map { NativeAppearanceColors.resolve($0, dark: false, base: lightBase, tint: tint, server: server) } ?? lightBase
+        // Dynamic providers may execute on UIKit rendering queues. Capture scalar values only.
+        return Color(uiColor: UIColor { @Sendable traits in
+            let value = traits.userInterfaceStyle == .dark ? darkValue : lightValue
+            return UIColor(red: CGFloat(value.rgb.red), green: CGFloat(value.rgb.green), blue: CGFloat(value.rgb.blue), alpha: CGFloat(value.alpha))
         })
     }
 }

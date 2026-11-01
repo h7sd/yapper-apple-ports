@@ -345,6 +345,8 @@ nonisolated struct ChannelRow: Decodable, Sendable {
 nonisolated struct UnreadRow: Decodable, Sendable {
     let channel_id: String
     let unread: Int
+    let mentions: Int?
+    let muted: Bool?
 }
 
 nonisolated struct BootstrapResponse: Decodable, Sendable {
@@ -424,6 +426,7 @@ nonisolated struct MessageRow: Decodable, Sendable {
     let system: NativeJSON?
     let reply_to_id: String?
     let webhook: NativeJSON?
+    let here_to: [String]?
 
     func confirmsSend(id: String, channelID: String, authorID: String) -> Bool {
         guard let expectedID = UUID(uuidString: id), let expectedChannel = UUID(uuidString: channelID),
@@ -443,7 +446,7 @@ nonisolated struct MessageRow: Decodable, Sendable {
         let attachments = attachment_path.map { path in
             [MessageAttachment(id: messageID + ":attachment", url: NativeConfiguration.publicAsset(bucket: "attachments", path: path), filename: attachment_name ?? "Anhang", contentType: nil)]
         } ?? []
-        return ChatMessage(id: messageID, channelID: channelID, author: author, content: content ?? "", createdAt: try NativeDate.parse(created_at), attachments: attachments, isEdited: edited_at != nil, grouping: .from(system: system ?? .null, replyToID: reply_to_id.map(canonical), webhook: webhook ?? .null))
+        return ChatMessage(id: messageID, channelID: channelID, author: author, content: content ?? "", createdAt: try NativeDate.parse(created_at), attachments: attachments, isEdited: edited_at != nil, grouping: .from(system: system ?? .null, replyToID: reply_to_id.map(canonical), webhook: webhook ?? .null), hereRecipientIDs: here_to ?? [])
     }
 }
 

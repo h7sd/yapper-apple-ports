@@ -15,6 +15,13 @@ struct NativeMessageSearchDestination: View {
     }
     private func load() async {
         error = nil
+        #if DEBUG
+        if NativeServerFixtures.isEnabled(userID: store.user?.id) {
+            conversation = store.conversations.first { $0.id == message.channelID }
+                ?? (try? NativeServerFixtures.snapshot().channels.first { $0.id == message.channelID }?.conversation)
+            return
+        }
+        #endif
         do { conversation = try await store.withAuthenticatedSession { api, session in try await api.conversationForSearchResult(message, session: session) } }
         catch is CancellationError {} catch { self.error = error.localizedDescription }
     }

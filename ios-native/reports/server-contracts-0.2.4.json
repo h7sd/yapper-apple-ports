@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "version": "0.2.4",
+  "scope": "Static official public-client snapshot contracts plus native implementation; no authenticated runtime or server-policy bypass.",
+  "sources": [
+    {
+      "file": "1rmz66qprxti5.js",
+      "sha256": "1bd0c3af36eb4ee8f3774e2cc5f50569ac5b79c509ab2521080582d566fa54d7",
+      "observations": [
+        {
+          "byteOffset": 22350,
+          "feature": "module4421 server, category, channel overrides; role deny then role allow, category before channel; manual administrator bypass"
+        },
+        {
+          "byteOffset": 24250,
+          "feature": "canPost: thread send_in_threads, locked state and parent inheritance, rules manage_server, read_only and postRoles; voice_chat is rollout gated"
+        },
+        {
+          "byteOffset": 25200,
+          "feature": "colorRole: highest role by descending position then id; skip plain #000000 but retain color2; decorative automatic roles do not grant server management"
+        }
+      ]
+    },
+    {
+      "file": "3-pd02a6i86ee.js",
+      "sha256": "0ec714b3692c4ef7dd5bca6a1445b76b50746217c1addd22eb0fd5ae4c200a42",
+      "observations": [
+        {
+          "byteOffset": 108167,
+          "feature": "server_members_slice initializes roster; roles andserver_role_assignments fetched alongside channels"
+        },
+        {
+          "byteOffset": 111500,
+          "feature": "server_members_by_ids/since RPCs fall back to scoped server_members select user_id,nickname,joined_at"
+        },
+        {
+          "byteOffset": 106700,
+          "feature": "member_roles legacy fallback explicitly pages past 1000 rows ordered by server/user/role"
+        },
+        {
+          "byteOffset": 135091,
+          "feature": "channel_overrides exactselect id,server_id,channel_id,category_id,role_id,allow,deny"
+        }
+      ]
+    },
+    {
+      "file": "1bnmihick9nrh.js",
+      "sha256": "1769b0d0092ad79d321f648797bff094835c4c30bbce1e5ac872fc48caa416e4",
+      "observations": [
+        {
+          "byteOffset": 219350,
+          "feature": "Channel glyph distinguishes rules/read_only/type; private lock; mention count @badge; unread emphasized row"
+        }
+      ]
+    }
+  ],
+  "nativeChanges": [
+    "NativeChannelAccess validates loaded permission state, category/channel precedence, posting roles, rules channels, thread inheritance and server locks. Missing parent or unknown enabled permissions deny the composer.",
+    "The roster continues beyond the initial slice through the authorized server_members projection with a user_id cursor and 100 members per page. Profiles use the shared public projection.",
+    "Role hydration prefers the observed server_role_assignments RPC and filters requested users locally. Only a precise missing-function response permits legacy member_roles reads, which continue beyond 1000 rows with a stable composite cursor. Permission failures propagate.",
+    "Role colors include second-color gradients. Automatic roles follow join metadata for appearance and channel overrides but cannot grant server management.",
+    "Server rows display actual voice members, peer presence, unread state and mention counts from the realtime Store integration."
+  ],
+  "qualifications": [
+    "The native base send_messages denial is enforced even while the channel_perms rollout is off. This is stricter than module4421 canPost, whose base send check is conditional on override presence. Server authorization remains authoritative.",
+    "Member table paging extends the observed authorized fallback projection. Cursor pagination is a native implementation, not a claim that the official frontend uses the identical paging route.",
+    "The shared API error surface retains status and message, not SQLSTATE. The legacy role fallback requires an HTTP400/404 message specifically naming the missing server_role_assignments function and schema cache or nonexistence. Permission and ordinary missing responses never fall back.",
+    "Permission checks do not establish coverage of all anti-abuse verification, timeout and account-age restrictions. Real server denials remain errors.",
+    "No authenticated live server, roster, role or call acceptance was tested by this agent."
+  ],
+  "testSource": "YapperNativeTests/NativeServerAccessTests.swift",
+  "logicalTests": 19,
+  "expandedCases": 23,
+  "executedByThisAgent": false,
+  "parentVerification": {
+    "passed": true,
+    "logicalTests": 304,
+    "suites": 33,
+    "expandedCases": 392,
+    "evidence": "native-0.2.4-unit-final.xcresult",
+    "qualification": "Combined synthetic Xcode unit run; later fixes affect UI only. See native-0.2.4-validation.json for final builds and interaction evidence."
+  }
+}

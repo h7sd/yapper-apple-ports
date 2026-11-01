@@ -23,6 +23,9 @@ struct NativeAppShell: View {
     @State private var discoveringServers = false
     @State private var confirmingLogout = false
     @State private var homeSheet: NativeHomeSheet?
+    @State private var mentionMessage: ChatMessage?
+    @State private var mentionOwnerID: String?
+    @State private var homeSheetOwnerID: String?
     @State private var conversationPreferences = NativeConversationPreferenceModel()
     @State private var ownBannerProfile: NativeProfileDetail?
     @State private var loadedBannerUserID: String?
@@ -35,7 +38,11 @@ struct NativeAppShell: View {
         _servers = State(initialValue: NativeServerLibraryModel(store: store))
     }
 
-    private var unread: Int { conversationPreferences.ordered(store.conversations).filter { !conversationPreferences.isMuted($0.id) }.reduce(0) { $0 + $1.unreadCount } }
+    private var unread: Int {
+        conversationPreferences.ordered(store.conversations)
+            .filter { $0.serverID == nil && (!conversationPreferences.isMuted($0.id) || store.mentionCount(inChannel: $0.id) > 0) }
+            .reduce(0) { $0 + $1.unreadCount }
+    }
     private var recentUnreadConversations: [Conversation] {
         guard railDMPreference != "off", store.capabilities.flagOn("ui_refresh", userID: store.user?.id) else { return [] }
         #if DEBUG
@@ -45,9 +52,8 @@ struct NativeAppShell: View {
         #endif
         let visible = conversationPreferences.ordered(store.conversations)
         let muted = Set(visible.filter { conversationPreferences.isMuted($0.id) }.map(\.id))
-        // Until an authoritative per-channel mention count is available, do not
-        // guess the source's muted-with-mention exception.
-        return NativeRecentUnreadRail.select(visible, activeID: requestedConversation?.id ?? store.selectedConversation?.id, mutedIDs: muted)
+        return NativeRecentUnreadRail.select(visible, activeID: requestedConversation?.id ?? store.selectedConversation?.id,
+                                            mutedIDs: muted, mentionCounts: store.channelUnread.mapValues(\.mentions))
     }
 
     var body: some View {
@@ -59,6 +65,8 @@ struct NativeAppShell: View {
                     HStack(spacing: 0) {
                             NativeOriginalRail(servers: servers.servers, recentConversations: recentUnreadConversations, selectedServerID: selectedServer?.id, compact: small, unread: unread, showDiscovery: store.capabilities.flagOn("discovery", userID: store.user?.id),
                                                bottomContentInset: small ? floatingAccountHeight + 24 : 90,
+                                               serverUnreadCounts: Dictionary(uniqueKeysWithValues: servers.servers.map { ($0.id, store.unreadCount(inServer: $0.id)) }),
+                                               serverMentionCounts: Dictionary(uniqueKeysWithValues: servers.servers.map { ($0.id, store.mentionCount(inServer: $0.id)) }),
                                                onHome: openHome, onServer: openServer, onConversation: openConversation, onAdd: { showingServerActions = true }, onDiscover: { discoveringServers = true })
                             sidebar
                             .frame(width: small ? nil : 260)
@@ -98,7 +106,7 @@ struct NativeAppShell: View {
                             .zIndex(20)
                     }
                 }
-                .background(YapperPalette.rail.ignoresSafeArea())
+                .background { NativeChatBackground().ignoresSafeArea() }
                 .onAppear { compact = small }
                 .onChange(of: small) { _, value in
                     compact = value
@@ -114,9 +122,31 @@ struct NativeAppShell: View {
         }
         .tint(YapperPalette.accent)
         .safeAreaInset(edge: .bottom, spacing: 0) { NativeCallBar() }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            if let notice = store.latestIncomingMention {
+                NativeIncomingMentionBanner(store: store, notice: notice, open: {
+                    mentionOwnerID = store.user?.id
+                    mentionMessage = ChatMessage(id: notice.id, channelID: notice.channelID, author: notice.author,
+                                                 content: notice.content, createdAt: notice.createdAt, attachments: [], isEdited: false)
+                    store.dismissIncomingMention()
+                }, dismiss: { store.dismissIncomingMention() })
+            }
+        }
         .background(YapperPalette.background.ignoresSafeArea())
         .onChange(of: mobilePath.count) { _, count in if compact && count == 0 { requestedConversation = nil } }
         .task(id: store.user?.id) { await store.refreshOwnPresence() }
+        .task(id: store.user?.id) { await store.refreshLiveState() }
+        .task(id: store.user?.id) { await refreshServerNotificationContext() }
+        .task(id: store.latestIncomingMention?.id) {
+            guard let id = store.latestIncomingMention?.id else { return }
+            do { try await Task.sleep(for: .seconds(6)) } catch { return }
+            if store.latestIncomingMention?.id == id { store.dismissIncomingMention() }
+        }
+        .onChange(of: selectedServer?.id) { _, id in if id == nil { store.observeServer(id: nil) } }
+        .onChange(of: homeSheet) { _, sheet in if sheet != nil { homeSheetOwnerID = store.user?.id } }
+        .onChange(of: servers.servers.map(\.id)) { _, ids in store.observeJoinedServers(Set(ids)) }
+        .nativeServerAppearance(ownerID: store.user?.id, serverID: selectedServer?.id,
+                                theme: store.capabilities.flagOn("server_theme", userID: store.user?.id, serverID: selectedServer?.id) ? selectedServer?.theme ?? .null : .null)
         .task(id: store.user?.id) {
             await servers.refresh(); await conversationPreferences.load(store: store)
             store.updateNotificationPreferences(conversationPreferences.snapshot)
@@ -134,7 +164,7 @@ struct NativeAppShell: View {
         .fullScreenCover(isPresented: $showingProfile) {
             NavigationStack { NativeProfileView(store: store, userID: store.user?.id ?? "", presentation: .overlay, onOpenConversation: { conversation in showingProfile = false; openConversation(conversation) }) }.presentationBackground(.clear)
         }
-        .sheet(item: $homeSheet) { surface in
+        .sheet(item: $homeSheet, onDismiss: { restoreVisibleConversation(ownerID: homeSheetOwnerID) }) { surface in
             NavigationStack {
                 Group {
                     switch surface {
@@ -146,6 +176,12 @@ struct NativeAppShell: View {
                 }
                 .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Fertig") { homeSheet = nil }.frame(minHeight: 44) } }
                 .yapperNavigation()
+            }
+        }
+        .sheet(item: $mentionMessage, onDismiss: { restoreVisibleConversation(ownerID: mentionOwnerID) }) { message in
+            NavigationStack {
+                NativeMessageSearchDestination(store: store, message: message)
+                    .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Fertig") { mentionMessage = nil }.frame(minHeight: 44) } }
             }
         }
         .confirmationDialog("Server hinzufügen", isPresented: $showingServerActions, titleVisibility: .visible) {
@@ -234,9 +270,18 @@ struct NativeAppShell: View {
     }
 
     private func accountBar(_ user: YapperUser, compact: Bool) -> some View {
-        NativeOriginalAccountBar(user: user, profile: ownBannerProfile?.id == user.id ? ownBannerProfile : nil, compact: compact, mentions: 0, showInbox: store.capabilities.flagOn("mentions_inbox", userID: user.id) || store.capabilities.flagOn("notif_inbox", userID: user.id), showCustomStatus: store.capabilities.flagOn("activity", userID: user.id),
+        NativeOriginalAccountBar(user: user, profile: ownBannerProfile?.id == user.id ? ownBannerProfile : nil, compact: compact, mentions: store.channelUnread.values.reduce(0) { $0 + $1.mentions }, showInbox: store.capabilities.flagOn("mentions_inbox", userID: user.id) || store.capabilities.flagOn("notif_inbox", userID: user.id), showCustomStatus: store.capabilities.flagOn("activity", userID: user.id),
                                  onIdentity: { showingAccountMenu.toggle() }, onInbox: { homeSheet = .inbox },
                                  onSettings: { showingSettings = true }, onLogout: { confirmingLogout = true })
+    }
+
+    private func restoreVisibleConversation(ownerID: String?) {
+        guard let ownerID, ownerID == store.user?.id, let conversation = requestedConversation,
+              store.authState == .signedIn, store.selectedConversation?.id != conversation.id else { return }
+        Task {
+            guard store.user?.id == ownerID, requestedConversation?.id == conversation.id else { return }
+            await store.loadMessages(for: conversation)
+        }
     }
 
     private func loadOwnBannerProfile(refresh: Bool = false) async {
@@ -260,6 +305,23 @@ struct NativeAppShell: View {
         } catch {
             // Missing cosmetic metadata must not interrupt the message list.
             // Keep the last successful same-account banner while requests cancel.
+        }
+    }
+
+    private func refreshServerNotificationContext() async {
+        guard let ownerID = store.user?.id else { return }
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--native-ui-fixtures") {
+            store.updateServerNotificationContext(NativeServerNotificationState()); return
+        }
+        #endif
+        do {
+            let state = try await store.withAuthenticatedSession { api, session in try await api.nativeServerNotificationState(session: session) }
+            guard !Task.isCancelled, store.user?.id == ownerID else { return }
+            store.updateServerNotificationContext(state)
+        } catch is CancellationError {} catch {
+            guard !Task.isCancelled, store.user?.id == ownerID else { return }
+            store.updateServerNotificationContext(nil)
         }
     }
 

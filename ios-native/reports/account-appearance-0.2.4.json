@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "version": "0.2.4",
+  "scope": "Public shipped frontend source and synthetic native appearance regressions; no private account settings or browser localStorage read.",
+  "observed": {
+    "accountStore": "Authenticated user_prefs row keyed by user_id; select prefs, at most one row. Official module65254 merges per-key timestamps across device local cache and account row.",
+    "fields": [
+      "prefs.theme:dark/light",
+      "prefs.color:{key,a?,b?,c?,k?}",
+      "prefs.serverThemes:boolean"
+    ],
+    "colourSource": "Module 33873 contains 20 preset pairs. Custom a/b/c values use six-digit hex colours; intensity is clamped to 0.15\u20131, defaulting to 0.75.",
+    "background": "The official app CSS layers elliptical radial and linear colour gradients behind translucent panels. This observed contract contains no image-wallpaper field.",
+    "serverOverride": "Module 31691 reads server.theme.{accent,tint}. It honours the server_theme rollout and the personal serverThemes opt-out. A personal tint takes background priority while the server accent can remain active."
+  },
+  "nativeImplementation": {
+    "readOnly": true,
+    "writesUserPrefs": false,
+    "requestsRemoteImagesOrHTML": false,
+    "accountGuard": "Late replies and stale refresh calls cannot apply after an account change. Failed reads retain the current known appearance.",
+    "scopeGuard": "Nested server, DM and settings scopes restore their mounted parent when they disappear. Updating a hidden parent does not replace the foreground scope. Foreign-account scopes are ignored.",
+    "localThemeOverride": "An explicit dark/light/system choice belongs to its account and can be cleared with Website-Design neu laden.",
+    "files": [
+      "YapperNative/Core/NativeChatAppearance.swift",
+      "YapperNative/UI/NativeChatBackground.swift",
+      "YapperNative/UI/YapperTheme.swift",
+      "YapperNative/UI/NativeRootView.swift"
+    ]
+  },
+  "sources": [
+    {
+      "name": "43b-2yp9vd3z_.js",
+      "sha256": "c62971f2217c5884c6a13c50e4cd44b68d173511ca8b3535004f7babf8b7d561",
+      "source": "https://yapin.gg/_next/static/chunks/43b-2yp9vd3z_.js",
+      "moduleOffsets": {
+        "33873": 8157
+      }
+    },
+    {
+      "name": "3-pd02a6i86ee.js",
+      "sha256": "0ec714b3692c4ef7dd5bca6a1445b76b50746217c1addd22eb0fd5ae4c200a42",
+      "source": "https://yapin.gg/_next/static/chunks/3-pd02a6i86ee.js",
+      "moduleOffsets": {
+        "65254": 92456,
+        "31691": 151373,
+        "34080": 160793
+      }
+    },
+    {
+      "name": "40xnk1nkbyecp.css",
+      "sha256": "94c54123e7899df7e1f72093c4d482fa6fdd3a4479e0927849e348229a6751e3",
+      "source": "https://yapin.gg/_next/static/chunks/40xnk1nkbyecp.css"
+    }
+  ],
+  "verification": {
+    "isolatedSwiftPM": {
+      "passed": true,
+      "logicalTests": 13,
+      "expandedCases": 45,
+      "coreSHA256": "be3685c63845921251d460e23e999737eafe234e8d8cbc9b6f48a62d3fac41c0",
+      "harnessUsesAPIAndJSONStubs": true,
+      "evidence": "appearance-contract-tests.log"
+    },
+    "iOS17Swift6Typecheck": {
+      "passed": true,
+      "scope": "Exact new core, palette and background SwiftUI code, with minimal API/UI stubs; this is not a whole-app build.",
+      "evidence": "appearance-typecheck.log"
+    },
+    "realAccountSettingsRead": false,
+    "fullAppBuild": "Owned by parent release validation.",
+    "visualParity": "Source-informed native gradient; pixel equality has not been established."
+  },
+  "parentVerification": {
+    "passed": true,
+    "logicalTests": 304,
+    "suites": 33,
+    "expandedCases": 392,
+    "evidence": "native-0.2.4-unit-final.xcresult",
+    "qualification": "Combined synthetic Xcode unit run; later fixes affect UI only. See native-0.2.4-validation.json for final builds and interaction evidence."
+  }
+}

@@ -19,9 +19,14 @@ nonisolated struct RealtimeEnvelope: Decodable, Sendable {
     let payload: RealtimeMutation?
     let approvedTopics: [String]?
     let rawPayload: NativeJSON?
+    let presenceRows: NativeJSON?
+    let presenceFull: Bool?
+    let presenceServer: String?
+    let readChannel: String?
+    let revokedTopics: [String]?
 
     // `subscribed.ok` is an array, whereas `auth.ok` is a Boolean.
-    private enum CodingKeys: String, CodingKey { case type, ok, event, topic, payload }
+    private enum CodingKeys: String, CodingKey { case type, ok, event, topic, payload, rows, full, server, channel, topics }
     init(from decoder: any Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         type = try c.decode(String.self, forKey: .type)
@@ -31,6 +36,11 @@ nonisolated struct RealtimeEnvelope: Decodable, Sendable {
         topic = try c.decodeIfPresent(String.self, forKey: .topic)
         payload = type == "event" && event == "message" ? try c.decodeIfPresent(RealtimeMutation.self, forKey: .payload) : nil
         rawPayload = type == "event" ? try c.decodeIfPresent(NativeJSON.self, forKey: .payload) : nil
+        presenceRows = type == "presence" ? try c.decodeIfPresent(NativeJSON.self, forKey: .rows) : nil
+        presenceFull = type == "presence" ? try c.decodeIfPresent(Bool.self, forKey: .full) : nil
+        presenceServer = type == "presence" ? try c.decodeIfPresent(String.self, forKey: .server) : nil
+        readChannel = type == "read" ? try c.decodeIfPresent(String.self, forKey: .channel) : nil
+        revokedTopics = type == "revoked" ? try c.decodeIfPresent([String].self, forKey: .topics) : nil
     }
 }
 
@@ -63,6 +73,9 @@ nonisolated struct RealtimeSubscriptionLifecycle: Sendable {
     private var retryDelay = 1
     private var subscribedTopics: Set<String> = []
     private var desiredTopics: Set<String> = []
+    private var joinedServerIDs: Set<String> = []
+    private var presenceIDs: [String] = []
+    private var presenceServerID: String?
     private var authenticated = false
     private var lastReceivedAt = Date()
     private var subscriptionLifecycle = RealtimeSubscriptionLifecycle()
@@ -70,6 +83,8 @@ nonisolated struct RealtimeSubscriptionLifecycle: Sendable {
     var onStatus: (@MainActor (String) -> Void)?
     var onReconnect: (@MainActor () -> Void)?
     var onEvent: (@MainActor (String, NativeJSON) -> Void)?
+    var onPresence: (@MainActor (NativePeerPresenceSnapshot) -> Void)?
+    var onConnectionLost: (@MainActor () -> Void)?
 
     init() {
         let configuration = URLSessionConfiguration.ephemeral
@@ -83,8 +98,14 @@ nonisolated struct RealtimeSubscriptionLifecycle: Sendable {
     func connect(session credentials: NativeSession) {
         let reconnectingSameAccount = self.credentials?.userID == credentials.userID && subscriptionLifecycle.hasConnected
         let retainedTopics = reconnectingSameAccount ? desiredTopics : []
+        let retainedServers = reconnectingSameAccount ? joinedServerIDs : []
+        let retainedPresence = reconnectingSameAccount ? presenceIDs : []
+        let retainedPresenceServer = reconnectingSameAccount ? presenceServerID : nil
         disconnect()
         desiredTopics = retainedTopics
+        joinedServerIDs = retainedServers
+        presenceIDs = retainedPresence
+        presenceServerID = retainedPresenceServer
         self.credentials = credentials
         subscriptionLifecycle = RealtimeSubscriptionLifecycle(previouslyConnected: reconnectingSameAccount)
         retryDelay = 1
@@ -92,10 +113,14 @@ nonisolated struct RealtimeSubscriptionLifecycle: Sendable {
     }
 
     func disconnect() {
+        onConnectionLost?()
         generation += 1
         credentials = nil
         subscribedTopics = []
         desiredTopics = []
+        joinedServerIDs = []
+        presenceIDs = []
+        presenceServerID = nil
         authenticated = false
         subscriptionLifecycle = RealtimeSubscriptionLifecycle()
         receiveTask?.cancel()
@@ -147,11 +172,25 @@ nonisolated struct RealtimeSubscriptionLifecycle: Sendable {
                         guard self.generation == revision, !Task.isCancelled else { return }
                         self.retryDelay = 1
                         self.startHeartbeat(task, revision: revision)
+                        self.askPresence()
                     } else if envelope.type == "subscribed" {
-                        self.subscribedTopics = Set(envelope.approvedTopics ?? [])
+                        self.subscribedTopics.formUnion(envelope.approvedTopics ?? [])
+                        let wanted = self.desiredTopics.union(self.joinedServerIDs.map { "server:\($0)" }).union(["all", "user:\(credentials.userID)"])
+                        self.subscribedTopics.formIntersection(wanted)
                         let approved = self.subscribedTopics.contains("user:\(credentials.userID)")
                         self.onStatus?(approved ? "Verbunden" : "Live-Nachrichten nicht freigegeben. Bitte Chats manuell aktualisieren.")
                         if self.subscriptionLifecycle.acknowledge(userTopicApproved: approved) { self.onReconnect?() }
+                    } else if envelope.type == "presence", self.authenticated, let rows = envelope.presenceRows {
+                        if let presence = try? NativePeerPresenceSnapshot(rows: rows, full: envelope.presenceFull == true, serverID: envelope.presenceServer) {
+                            self.onPresence?(presence)
+                        }
+                    } else if envelope.type == "read", self.authenticated, let channel = envelope.readChannel,
+                              UUID(uuidString: channel) != nil {
+                        self.onEvent?("read", .object(["channel": .string(channel)]))
+                    } else if envelope.type == "event", envelope.event == "voice", self.authenticated,
+                              let payload = envelope.rawPayload, let serverID = payload["server_id"].string,
+                              self.subscribedTopics.contains("server:\(serverID)") {
+                        self.onEvent?("voice", payload)
                     } else if envelope.type == "event", envelope.event == "message",
                               let topic = envelope.topic, self.subscribedTopics.contains(topic),
                               let payload = envelope.payload, payload.table == "messages" {
@@ -163,8 +202,14 @@ nonisolated struct RealtimeSubscriptionLifecycle: Sendable {
                         self.onEvent?("typing", payload)
                     } else if envelope.type == "event", let event = envelope.event, let payload = envelope.rawPayload,
                               let topic = envelope.topic, self.subscribedTopics.contains(topic) {
-                        self.onEvent?(event, payload)
+                        if event == "unread", topic.hasPrefix("server:"), var object = payload.object {
+                            object["server_id"] = .string(String(topic.dropFirst("server:".count)))
+                            self.onEvent?(event, .object(object))
+                        } else { self.onEvent?(event, payload) }
                     } else if envelope.type == "revoked" {
+                        let revoked = envelope.revokedTopics ?? []
+                        self.subscribedTopics.subtract(revoked)
+                        self.onEvent?("revoked", .object(["topics": .array(revoked.map(NativeJSON.string))]))
                         self.onStatus?("Live-Zugriff geändert. Bitte Chats aktualisieren.")
                     }
                 }
@@ -183,7 +228,7 @@ nonisolated struct RealtimeSubscriptionLifecycle: Sendable {
 
     private func sendTopics(userID: String, through socket: URLSessionWebSocketTask) async throws {
         nonisolated struct Subscription: Encodable { let type: String; let topics: [String] }
-        let topics = desiredTopics.union(["all", "user:\(userID)"])
+        let topics = desiredTopics.union(joinedServerIDs.map { "server:\($0)" }).union(["all", "user:\(userID)"])
         let removed = subscribedTopics.subtracting(topics)
         if !removed.isEmpty {
             let data = try JSONEncoder().encode(Subscription(type: "unsubscribe", topics: removed.sorted()))
@@ -206,6 +251,38 @@ nonisolated struct RealtimeSubscriptionLifecycle: Sendable {
             do { try await self.sendTopics(userID: credentials.userID, through: socket) }
             catch { if self.generation == expected { self.retry() } }
         }
+    }
+
+    /// Official wantedTopics subscribes to every joined server for unread and voice summaries.
+    func observeServers(_ ids: Set<String>) {
+        let valid = Set(ids.compactMap { UUID(uuidString: $0)?.uuidString.lowercased() })
+        guard valid != joinedServerIDs else { return }
+        joinedServerIDs = valid
+        guard authenticated, let socket, let credentials else { return }
+        let expected = generation
+        Task { [weak self] in
+            guard let self, self.generation == expected else { return }
+            do { try await self.sendTopics(userID: credentials.userID, through: socket) }
+            catch { if self.generation == expected { self.retry() } }
+        }
+    }
+
+    func observePresence(ids: [String], serverID: String?) {
+        presenceIDs = Array(Set(ids.compactMap { UUID(uuidString: $0)?.uuidString.lowercased() })).sorted().prefix(500).map { $0 }
+        presenceServerID = serverID.flatMap { UUID(uuidString: $0)?.uuidString.lowercased() }
+        askPresence()
+    }
+
+    private func askPresence() {
+        guard authenticated, let socket else { return }
+        sendEvent(["type": .string("presence_ask"), "ids": .array(presenceIDs.map(NativeJSON.string)),
+                   "server": presenceServerID.map(NativeJSON.string) ?? .null], through: socket)
+    }
+
+    func publishPresence(_ status: NativePresencePreference) {
+        guard authenticated, let socket else { return }
+        sendEvent(["type": .string("presence"), "st": .string(status.rawValue), "act": .null,
+                   "at": .number(Date().timeIntervalSince1970 * 1000), "auto": .bool(false)], through: socket)
     }
 
     func typing(channelID: String, recipients: [String]?) {
@@ -256,6 +333,7 @@ nonisolated struct RealtimeSubscriptionLifecycle: Sendable {
         heartbeatTask?.cancel()
         socket?.cancel(with: .goingAway, reason: nil)
         onStatus?("Verbindung unterbrochen · erneuter Versuch …")
+        onConnectionLost?()
         let delay = retryDelay
         retryDelay = min(30, retryDelay * 2)
         reconnectTask?.cancel()

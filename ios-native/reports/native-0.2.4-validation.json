@@ -1,0 +1,188 @@
+{
+  "schemaVersion": 1,
+  "version": "0.2.4",
+  "build": "7",
+  "channel": "development-prerelease",
+  "validationStatus": "completed-local-validation-with-recorded-failed-runs-and-live-account-limits",
+  "overallParityComplete": false,
+  "liveAccountVerified": false,
+  "implementedRequests": {
+    "peerAvailability": "Authoritative who_online and separate realtime presence frames; live map drives DM lists/headers and member views. Unknown is not Online; Invisible is offline to peers.",
+    "unreadAndMentions": "Authenticated channel unread/mention snapshots, server mapping, realtime compact/full deduplication, read synchronization and late-response protection; Home/server/channel indicators.",
+    "mentionPresentation": "Native named user/role/channel links, own-mention highlight, own-mentions inbox, and eligible foreground in-app notice with native message destination. Not APNs push. Unknown unloaded role/channel names remain explicit until server context is available.",
+    "membersAndRoles": "Authorized server member pagination/search and preferred role-assignment RPC; highest eligible role colours/gradients. This is not an unrestricted global account directory.",
+    "callParticipants": "Actual reported voice memberships with mute/deafen/sharing state; unknown participants are not invented.",
+    "channelTypesAndPosting": "Channel type/private/read-only/rules/thread/voice/forum indicators and local posting/feature permission checks. Text/reply/media, reactions, polls and pins have applicable gates; RLS remains authoritative. External permission changes require refreshed snapshots, and server anti-abuse rules are not comprehensively reproduced.",
+    "accountBackground": "Read-only own user_prefs.prefs theme/colour/intensity and scoped server theme support. No arbitrary browser CSS/image-wallpaper import."
+  },
+  "contractEvidence": [
+    "live-state-contract-0.2.4.json",
+    "server-contracts-0.2.4.json",
+    "account-appearance-0.2.4.json"
+  ],
+  "nativeUnitTests": {
+    "passed": true,
+    "logicalTests": 304,
+    "suites": 33,
+    "expandedCases": 392,
+    "failed": 0,
+    "skipped": 0,
+    "runtimeWarnings": [],
+    "evidence": "native-0.2.4-unit-final.xcresult",
+    "scope": "Synthetic native unit tests. Subsequent app edits affect UI permission gates, navigation restoration and decorative-background hit testing; core source remains the tested revision."
+  },
+  "nativeUIFlows": {
+    "passed": true,
+    "logicalCases": 7,
+    "successfulCaseDevicePairs": 21,
+    "singleCleanCompleteMatrix": false,
+    "syntheticFixtures": true,
+    "initialRun": {
+      "evidence": "native-0.2.4-live-ui.xcresult",
+      "result": "Failed",
+      "logicalCases": 4,
+      "devices": [
+        {
+          "model": "iPad Pro 13-inch (M5)",
+          "passed": 2,
+          "failed": 2,
+          "skipped": 0
+        },
+        {
+          "model": "iPhone 17 Pro",
+          "passed": 3,
+          "failed": 1,
+          "skipped": 0
+        },
+        {
+          "model": "iPhone 17 Pro Max",
+          "passed": 3,
+          "failed": 1,
+          "skipped": 0
+        }
+      ],
+      "runtimeWarnings": []
+    },
+    "confirmationRun": {
+      "evidence": "native-0.2.4-ui-confirmation.xcresult",
+      "result": "Failed",
+      "logicalCases": 7,
+      "devices": [
+        {
+          "model": "iPad Pro 13-inch (M5)",
+          "passed": 6,
+          "failed": 1,
+          "skipped": 0
+        },
+        {
+          "model": "iPhone 17 Pro",
+          "passed": 7,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "model": "iPhone 17 Pro Max",
+          "passed": 7,
+          "failed": 0,
+          "skipped": 0
+        }
+      ],
+      "runtimeWarnings": [
+        "Adding '_UIReparentingView' as a subview of UIHostingController.view is not supported and may result in a broken view hierarchy. Add your view above UIHostingController.view in a common superview or insert it into your SwiftUI content in a UIViewRepresentable instead."
+      ]
+    },
+    "finalAffectedStateRun": {
+      "evidence": "native-0.2.4-background-hit-final.xcresult",
+      "result": "Passed",
+      "logicalCases": 3,
+      "devices": [
+        {
+          "model": "iPad Pro 13-inch (M5)",
+          "passed": 3,
+          "failed": 0,
+          "skipped": 0
+        }
+      ],
+      "runtimeWarnings": []
+    },
+    "coverageBasis": "Seven passing cases on each phone and six on iPad in confirmation; final iPad Back, notice destination and single-center channel switch all pass. Merged coverage across runs, not one clean complete-matrix invocation.",
+    "initialFailures": "Inbox DEBUG view initially bypassed the authoritative fixture feed. iPad direct channel switching remained blocked by an oversized decorative gradient crossing the sidebar. Early selector/plain-button theories and their provisional masks were rejected and removed.",
+    "actualHitFix": "Both NativeChatBackground branches now disable hit testing. The unmodified channel-button row activates on the first center tap after a read-only conversation was opened.",
+    "retainedDiagnosticRuns": [
+      "native-0.2.4-final-navigation.xcresult",
+      "native-0.2.4-channel-hit-confirmation.xcresult",
+      "native-0.2.4-channel-wrapper-hit.xcresult",
+      "native-0.2.4-channel-glyph-diagnostic.xcresult"
+    ],
+    "runtimeQualification": "Photos runs record UIKit _UIReparentingView warnings. The Pro Max photo case passed but recorded1415.646seconds; this is not a latency/performance acceptance result. No physical-device test.",
+    "captureManifest": "live-ui-captures-0.2.4.json",
+    "captureCount": 24
+  },
+  "builds": {
+    "deviceRelease": {
+      "passed": true,
+      "evidence": "native-0.2.4-archive-final.log",
+      "signing": "Unsigned; own Apple provisioning required."
+    },
+    "simulatorRelease": {
+      "passed": true,
+      "evidence": "native-0.2.4-simulator-final.log",
+      "architectures": [
+        "arm64",
+        "x86_64"
+      ]
+    },
+    "exactDeliveredSimulatorLaunch": {
+      "passed": true,
+      "device": "iPhone17Pro",
+      "simulatorID": "4D9ED43E-4B65-473B-B3A6-CF05C5D3A672",
+      "processID": 85528,
+      "fixtureArguments": false,
+      "artifactSHA256": "299c1c19cfa947f942c0cc402ac2e16c1a6705e10aa2dae1a2c8f7fda18c5daf",
+      "image": "../docs/images/welcome-0.2.4-release-de-iphone-pro.png",
+      "imageSHA256": "30b3ff5166ba0cb2fd106642b64a44abe4ece37d13a332c57ef6e7b3fa615b56"
+    },
+    "warnings": [
+      "Existing pinned LiveKit E2EEOptions deprecation; no encryption migration in this change.",
+      "AppIntents metadata extraction skipped because the app has no AppIntents framework dependency."
+    ]
+  },
+  "packageInspection": {
+    "passed": true,
+    "checks": 235,
+    "shippingSwiftFiles": 91,
+    "report": "package-verification-0.2.4.json",
+    "artifacts": [
+      {
+        "name": "Yapinplugger-Native-0.2.4-iOS-Simulator.zip",
+        "bytes": 32093668,
+        "sha256": "299c1c19cfa947f942c0cc402ac2e16c1a6705e10aa2dae1a2c8f7fda18c5daf"
+      },
+      {
+        "name": "Yapinplugger-Native-0.2.4-ios-unsigned.ipa",
+        "bytes": 12017525,
+        "sha256": "5277a1cb0f75be5cff6c69ad76ba61b1691d2981b58ce406dc6d47a73442ef3a"
+      }
+    ],
+    "recordedSourceHashesMatchFrozenSource": true
+  },
+  "keychainEvidence": {
+    "newStandaloneProbeRun": false,
+    "historicalProbe": "keychain-0.2.2.json",
+    "scope": "SessionVault source is unchanged; Models has new message metadata. Current exact Simulator package independently launched through session restoration into Welcome without an error."
+  },
+  "verificationLimits": {
+    "realAccountLoginAndCaptchaCompletion": false,
+    "liveMessageDelivery": false,
+    "liveMediaUploadAndScan": false,
+    "currentLiveServerPermissions": false,
+    "realAccountAppearanceRead": false,
+    "physicalDevice": false,
+    "liveEncryptedCalls": false,
+    "allVencordPlugins": false,
+    "backendPushAndNativePurchaseProvisioning": false,
+    "hostedCIExecuted": false,
+    "completeVisualAndFunctionalParity": false,
+    "securityScope": "Source, protocol, package and hash checks are bounded evidence, not a comprehensive malware audit or a guarantee about server/dependency behavior."
+  }
+}

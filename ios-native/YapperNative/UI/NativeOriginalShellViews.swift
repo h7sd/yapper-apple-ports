@@ -2,11 +2,12 @@ import SwiftUI
 
 enum NativeRecentUnreadRail {
     /// Caller supplies visible chats after the observed hidden_at/revival policy.
-    static func select(_ visible: [Conversation], activeID: String?, mutedIDs: Set<String>, at now: Date = Date()) -> [Conversation] {
+    static func select(_ visible: [Conversation], activeID: String?, mutedIDs: Set<String>, mentionCounts: [String: Int] = [:], at now: Date = Date()) -> [Conversation] {
         let cutoff = now.addingTimeInterval(-86_400)
         return Array(visible.enumerated().filter { _, conversation in
             conversation.serverID == nil && conversation.id != activeID && conversation.unreadCount > 0
-                && !mutedIDs.contains(conversation.id) && conversation.lastMessageAt.map { $0 >= cutoff } == true
+                && (!mutedIDs.contains(conversation.id) || (mentionCounts[conversation.id] ?? 0) > 0)
+                && conversation.lastMessageAt.map { $0 >= cutoff } == true
         }.sorted {
             let left = $0.element.lastMessageAt ?? .distantPast, right = $1.element.lastMessageAt ?? .distantPast
             return left == right ? $0.offset < $1.offset : left > right
@@ -23,6 +24,8 @@ struct NativeOriginalRail: View {
     let unread: Int
     let showDiscovery: Bool
     var bottomContentInset: CGFloat = 90
+    var serverUnreadCounts: [String: Int] = [:]
+    var serverMentionCounts: [String: Int] = [:]
     let onHome: () -> Void
     let onServer: (NativeServer) -> Void
     let onConversation: (Conversation) -> Void
@@ -43,15 +46,17 @@ struct NativeOriginalRail: View {
                 ForEach(recentConversations) { conversation in
                     railItem(selected: false, badge: conversation.unreadCount, label: "Ungelesene Nachrichten von \(conversation.title)", action: { onConversation(conversation) }) {
                         NativeAvatar(name: conversation.title, identity: conversation.participants.first?.id ?? conversation.id,
-                                     username: conversation.participants.first?.username ?? conversation.title, url: conversation.avatarURL, size: 48)
+                                     username: conversation.participants.first?.username ?? conversation.title, url: conversation.avatarURL, presence: conversation.isGroup ? nil : conversation.participants.first?.presence, size: 48)
                     }.accessibilityIdentifier("native.rail.dm.\(conversation.id)")
                 }
                 Rectangle().fill(YapperPalette.active).frame(width: 32, height: 2).padding(.vertical, 2)
                 ForEach(servers) { server in
-                    railItem(selected: selectedServerID == server.id, badge: 0, label: server.name, action: { onServer(server) }) {
+                    railItem(selected: selectedServerID == server.id, badge: serverMentionCounts[server.id] ?? 0,
+                             hasUnread: (serverUnreadCounts[server.id] ?? 0) > 0, label: server.name, action: { onServer(server) }) {
                         if server.iconURL != nil { NativeAvatar(name: server.name, url: server.iconURL, size: 48) }
                         else { Text(server.name.split(separator: " ").prefix(2).compactMap(\.first).map(String.init).joined().uppercased()).font(OriginalYapper.fixedFont(16, numericWeight: 700)) }
                     }
+                    .accessibilityValue("\(serverUnreadCounts[server.id] ?? 0) ungelesene Nachrichten, \(serverMentionCounts[server.id] ?? 0) Erwähnungen")
                     .accessibilityIdentifier("native.server.\(server.id)")
                 }
                 railItem(selected: false, badge: 0, label: "Server hinzufügen", action: onAdd) { OriginalYapperIcon("plus", size: 24).foregroundStyle(actionInk) }
@@ -66,7 +71,7 @@ struct NativeOriginalRail: View {
         .accessibilityIdentifier("native.original.rail")
     }
 
-    private func railItem<Content: View>(selected: Bool, badge: Int, label: String, action: @escaping () -> Void, @ViewBuilder content: () -> Content) -> some View {
+    private func railItem<Content: View>(selected: Bool, badge: Int, hasUnread: Bool = false, label: String, action: @escaping () -> Void, @ViewBuilder content: () -> Content) -> some View {
         Button(action: action) {
             ZStack(alignment: .bottomTrailing) {
                 content()
@@ -78,6 +83,7 @@ struct NativeOriginalRail: View {
             .frame(width: 72, height: 48)
             .overlay(alignment: .leading) {
                 if selected { Capsule().fill(YapperPalette.text).frame(width: 4, height: 36).offset(x: -2) }
+                else if hasUnread { Capsule().fill(YapperPalette.text).frame(width: 4, height: 8).offset(x: -2).accessibilityHidden(true) }
             }
             .contentShape(.rect)
         }

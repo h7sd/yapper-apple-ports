@@ -215,7 +215,7 @@ struct NativeServerDiscoveryView: View {
     var error: String?
     private var revision = UUID()
 
-    init(store: NativeStore, id: String) { self.store = store; serverID = id }
+    init(store: NativeStore, id: String, snapshot: NativeServerSnapshot? = nil) { self.store = store; serverID = id; self.snapshot = snapshot }
 
     var isReadOnlyFixture: Bool {
         #if DEBUG
@@ -231,11 +231,13 @@ struct NativeServerDiscoveryView: View {
         defer { if revision == current { isLoading = false } }
         do {
             #if DEBUG
-            if isReadOnlyFixture { snapshot = try NativeServerFixtures.snapshot(); return }
+            if isReadOnlyFixture { let value = try NativeServerFixtures.snapshot(); snapshot = value; registerSnapshot(value); return }
             #endif
             let id = serverID
-            let value = try await store.withAuthenticatedSession { api, session in try await api.nativeServerSnapshot(id: id, session: session) }
+            let overrides = store.capabilities.flagOn("channel_perms", userID: store.user?.id, serverID: id)
+            let value = try await store.withAuthenticatedSession { api, session in try await api.nativeServerSnapshot(id: id, session: session, includeOverrides: overrides) }
             guard revision == current else { return }; snapshot = value
+            registerSnapshot(value)
         } catch is CancellationError { }
         catch { if revision == current { self.error = error.localizedDescription } }
     }
@@ -250,6 +252,17 @@ struct NativeServerDiscoveryView: View {
     }
 
     func allows(_ permission: String) -> Bool { snapshot?.hasPermission(permission, userID: store.user?.id) == true }
+
+    func mergeMembers(_ members: [NativeServerMember], memberRoles: [String: Set<String>] = [:]) {
+        guard let current = snapshot else { return }
+        let updated = current.includingMembers(members, memberRoles: memberRoles); snapshot = updated
+        registerSnapshot(updated)
+    }
+
+    private func registerSnapshot(_ value: NativeServerSnapshot) {
+        store.observeServer(id: value.server.id, channelIDs: value.channels.map(\.id), members: value.members.map(\.user))
+        store.registerServerRoles(serverID: value.server.id, ownRoleIDs: store.user.map { value.roleIDs(for: $0.id) } ?? [])
+    }
 }
 
 private enum NativeServerSheet: Identifiable {
@@ -339,7 +352,7 @@ struct NativeServerDetailView: View {
         }
         .navigationTitle(originalSidebar ? "" : model.snapshot?.server.name ?? server.name)
         .navigationBarTitleDisplayMode(.inline)
-        .scrollContentBackground(.hidden).background(YapperPalette.background.ignoresSafeArea())
+        .scrollContentBackground(.hidden).background { NativeChatBackground().ignoresSafeArea() }
         .toolbar {
             if !originalSidebar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -360,6 +373,8 @@ struct NativeServerDetailView: View {
             if let channel = closingTicket { Button("Ticket schließen", role: .destructive) { action { api, session in try await api.nativeCloseServerTicket(channel: channel, session: session) } } }
         } message: { Text("Der Ticketkanal wird geschlossen und aus der Kanalliste entfernt.") }
         .yapperNavigation()
+        .nativeServerAppearance(ownerID: store.user?.id, serverID: server.id,
+                                theme: store.capabilities.flagOn("server_theme", userID: store.user?.id, serverID: server.id) ? model.snapshot?.server.theme ?? server.theme : .null)
     }
 
     private var serverMenu: some View {
@@ -399,15 +414,17 @@ struct NativeServerDetailView: View {
                     Spacer()
                     if model.isReadOnlyFixture {
                         OriginalYapperIcon("phone", size: 18).frame(minWidth: 44, minHeight: 44).foregroundStyle(YapperPalette.secondary).accessibilityLabel("Demo: Anrufe deaktiviert")
-                    } else if let onJoinVoice { Button { onJoinVoice(channel) } label: { OriginalYapperIcon("phone", size: 18).frame(minWidth: 44, minHeight: 44) }.accessibilityLabel("\(channel.name) beitreten") }
-                    else { NativeCallButton(store: store, channelID: channel.id, title: channel.name, serverID: channel.serverID) }
+                    } else if snapshot.hasChannelPermission("connect", channelID: channel.id, userID: store.user?.id, capabilities: store.capabilities) {
+                        if let onJoinVoice { Button { onJoinVoice(channel) } label: { OriginalYapperIcon("phone", size: 18).frame(minWidth: 44, minHeight: 44) }.accessibilityLabel("\(channel.name) beitreten") }
+                        else { NativeCallButton(store: store, channelID: channel.id, title: channel.name, serverID: channel.serverID) }
+                    } else { Image(systemName: "lock.fill").foregroundStyle(YapperPalette.faint).accessibilityLabel("Kein Recht, diesem Sprachkanal beizutreten") }
                 }
             } else if channel.kind == "forum" {
                 NavigationLink { NativeServerForumView(store: store, channel: channel, snapshot: snapshot) } label: { channelLabel(channel) }
                     .disabled(model.isReadOnlyFixture)
             } else {
                 if let onOpenConversation { Button { onOpenConversation(channel.conversation) } label: { channelLabel(channel) }.buttonStyle(.plain) }
-                else { NavigationLink { NativeConversationView(store: store, conversation: channel.conversation) } label: { channelLabel(channel) } }
+                else { NavigationLink { NativeConversationView(store: store, conversation: channel.conversation, serverSnapshot: snapshot) } label: { channelLabel(channel) } }
             }
         }
         .frame(minHeight: 44)
@@ -425,17 +442,51 @@ struct NativeServerDetailView: View {
             }
             if !model.isReadOnlyFixture && (model.allows("manage_channels") || model.allows("manage_roles")) { Button("Berechtigungen", systemImage: "lock.shield") { sheet = .permissions(channelID: channel.id, categoryID: nil) } }
         }
+        if channel.kind == "voice" { voiceMembers(channel, snapshot: snapshot) }
     }
 
     private func channelLabel(_ channel: NativeServerChannel) -> some View {
-        HStack(spacing: 6) {
-            if channel.kind == "voice" { OriginalYapperIcon("volume", size: 20).frame(width: 20) }
-            else if channel.kind == "forum" { OriginalYapperIcon("servers", size: 20).frame(width: 20) }
-            else { Text("#").font(OriginalYapper.font(23, weight: .medium)).frame(width: 20).foregroundStyle(YapperPalette.faint) }
-            Text(channel.name).font(OriginalYapper.font(15, weight: .medium)).lineLimit(1).frame(maxWidth: .infinity, alignment: .leading)
+        let unread = store.unreadCount(channelID: channel.id)
+        let mentions = store.mentionCount(channelID: channel.id)
+        let selected = store.selectedConversation?.id == channel.id
+        let rules = store.capabilities.flagOn("rules_channel", userID: store.user?.id, serverID: server.id) && (model.snapshot?.server.raw["rules_channel_id"].string == channel.id)
+        return HStack(spacing: 6) {
+            if channel.kind == "voice", !channel.stage { OriginalYapperIcon("volume", size: 20).frame(width: 20) }
+            else if channel.kind == "text", !channel.readOnly, !rules { Text("#").font(OriginalYapper.font(23, weight: .medium)).frame(width: 20).foregroundStyle(YapperPalette.faint) }
+            else { Image(systemName: rules ? "book.closed" : channel.symbol).font(.system(size: 17)).frame(width: 20) }
+            Text(channel.name).font(OriginalYapper.font(15, weight: unread > 0 && !selected ? .bold : .medium)).lineLimit(1).frame(maxWidth: .infinity, alignment: .leading)
+            if channel.isPrivate { Image(systemName: "lock.fill").font(.system(size: 10)).foregroundStyle(YapperPalette.faint).accessibilityLabel("Privater Kanal") }
+            if mentions > 0, !selected {
+                Text("@\(min(mentions, 99))\(mentions > 99 ? "+" : "")")
+                    .font(OriginalYapper.fixedFont(11, numericWeight: 700)).foregroundStyle(.white)
+                    .padding(.horizontal, 5).frame(minHeight: 18).background(YapperPalette.danger, in: .capsule)
+                    .accessibilityLabel("\(mentions) Erwähnungen")
+            } else if unread > 0, !selected {
+                Circle().fill(YapperPalette.text).frame(width: 6, height: 6).accessibilityLabel("Ungelesene Nachrichten")
+            }
         }
-        .foregroundStyle(YapperPalette.secondary)
+        .foregroundStyle(unread > 0 && !selected ? YapperPalette.text : YapperPalette.secondary)
         .padding(.horizontal, 8).frame(minHeight: 44).contentShape(.rect)
+    }
+
+    @ViewBuilder private func voiceMembers(_ channel: NativeServerChannel, snapshot: NativeServerSnapshot) -> some View {
+        ForEach(store.voiceMembers[channel.id] ?? []) { member in
+            let profile = store.knownUser(id: member.userID) ?? snapshot.members.first(where: { $0.id == member.userID })?.user
+            HStack(spacing: 8) {
+                NativeAvatar(name: profile?.displayName ?? "Teilnehmer", identity: member.userID, username: profile?.username,
+                             url: profile?.avatarURL, presence: store.peerPresence(userID: member.userID), size: 24)
+                NativeServerRoleName(name: profile?.displayName ?? "Teilnehmer", role: snapshot.colorRole(userID: member.userID))
+                    .font(OriginalYapper.font(13)).lineLimit(1)
+                Spacer(minLength: 0)
+                if member.deafened { Image(systemName: "speaker.slash.fill").accessibilityLabel("Ton deaktiviert") }
+                else if member.muted { Image(systemName: "mic.slash.fill").accessibilityLabel("Mikrofon stumm") }
+                if member.sharing { Image(systemName: "rectangle.on.rectangle").accessibilityLabel("Bildschirmübertragung") }
+            }
+            .font(.system(size: 11)).foregroundStyle(YapperPalette.faint)
+            .padding(.leading, 36).padding(.trailing, 8).frame(minHeight: 36)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("native.server.voice.member.\(member.userID)")
+        }
     }
 
     @ViewBuilder private func sheetContent(_ destination: NativeServerSheet) -> some View {
@@ -690,7 +741,7 @@ private struct NativeServerSettingsView: View {
     }
 }
 
-private struct NativeServerMembersView: View {
+struct NativeServerMembersView: View {
     let model: NativeServerDetailModel
     @Environment(\.dismiss) private var dismiss
     @State private var search = ""
@@ -700,19 +751,34 @@ private struct NativeServerMembersView: View {
     @State private var nicknameMember: NativeServerMember?
     @State private var moderation: NativeServerModeration?
     @State private var error: String?
+    @State private var roster: [NativeServerMember]?
+    @State private var nextUserID: String?
+    @State private var loadingRoster = false
+    @State private var hasMoreMembers = true
+    @State private var rosterGeneration = UUID()
 
-    private var members: [NativeServerMember] { results ?? (model.snapshot?.members ?? []) }
+    private var members: [NativeServerMember] { results ?? roster ?? (model.snapshot?.members ?? []) }
 
     var body: some View {
         NavigationStack {
             List {
                 if let error { NativeErrorBanner(message: error) }
                 if finding { ProgressView("Mitglieder werden gesucht …") }
+                if loadingRoster { ProgressView("Mitglieder werden geladen …") }
                 if model.isReadOnlyFixture { Label("Synthetische Vorschau · nur Lesen", systemImage: "flask").font(OriginalYapper.font(13)).foregroundStyle(YapperPalette.secondary) }
                 ForEach(members) { member in
                     HStack(spacing: 12) {
-                        NativeAvatar(name: member.displayName, url: member.user.avatarURL)
-                        VStack(alignment: .leading, spacing: 4) { Text(member.displayName).font(OriginalYapper.font(16, weight: .semibold)); Text("@" + member.user.username).font(OriginalYapper.font(14)).foregroundStyle(YapperPalette.secondary) }
+                        NativeAvatar(name: member.displayName, identity: member.id, username: member.user.username, url: member.user.avatarURL,
+                                     presence: model.store.peerPresence(userID: member.id))
+                        VStack(alignment: .leading, spacing: 4) {
+                            NativeServerRoleName(name: member.displayName, role: model.snapshot?.colorRole(userID: member.id))
+                                .font(OriginalYapper.font(16, weight: .semibold))
+                            Text("@" + member.user.username).font(OriginalYapper.font(14)).foregroundStyle(YapperPalette.secondary)
+                            if let role = model.snapshot?.colorRole(userID: member.id) {
+                                Text(role.name).font(OriginalYapper.font(11, weight: .semibold))
+                                    .foregroundStyle(Color.originalProfileHex(role.color) ?? YapperPalette.secondary)
+                            }
+                        }
                         Spacer()
                         if member.id == model.snapshot?.server.ownerID { Image(systemName: "crown.fill").foregroundStyle(YapperPalette.accent).accessibilityLabel("Serverinhaber") }
                     }
@@ -720,12 +786,18 @@ private struct NativeServerMembersView: View {
                     .accessibilityIdentifier("native.server.member.\(member.id)")
                     .contextMenu { memberActions(member) }
                 }
-                if search.isEmpty { Text("Suche nach weiteren Mitgliedern mit mindestens zwei Zeichen.").font(OriginalYapper.font(13)).foregroundStyle(YapperPalette.secondary) }
+                if search.isEmpty && hasMoreMembers && !model.isReadOnlyFixture {
+                    Button("Weitere Mitglieder laden") { Task { await loadMembers(more: true) } }
+                        .disabled(loadingRoster).frame(minHeight: 44).accessibilityIdentifier("native.server.members.more")
+                }
+                if search.isEmpty { Text("\(members.count) Mitglieder geladen. Suche nach Namen oder Benutzernamen mit mindestens zwei Zeichen.").font(OriginalYapper.font(13)).foregroundStyle(YapperPalette.secondary) }
                 if members.isEmpty && !finding { ContentUnavailableView.search(text: search) }
             }
             .navigationTitle("Mitglieder").searchable(text: $search, prompt: "Name oder Benutzername")
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Fertig") { dismiss() } } }
             .task(id: search) { await findMembers() }
+            .task { await loadMembers() }
+            .refreshable { if search.isEmpty { await loadMembers() } else { await findMembers() } }
             .sheet(item: $nicknameMember) { member in
                 NativeServerTextSheet(title: "Nickname ändern", field: "Nickname", initial: member.nickname ?? "", submit: "Speichern", allowsEmpty: true) { text in
                     try await model.perform { api, session in try await api.nativeSetNickname(serverID: model.serverID, userID: member.id, nickname: text, session: session) }
@@ -778,8 +850,31 @@ private struct NativeServerMembersView: View {
             let q = search; let id = model.serverID
             let value = try await model.store.withAuthenticatedSession { api, session in try await api.nativeFindServerMembers(serverID: id, query: q, session: session) }
             guard current == searchGeneration else { return }; results = value
+            model.mergeMembers(value)
         } catch is CancellationError { }
         catch { if current == searchGeneration { self.error = error.localizedDescription } }
+    }
+
+    private func loadMembers(more: Bool = false) async {
+        guard !Task.isCancelled, !loadingRoster, !more || hasMoreMembers else { return }
+        if model.isReadOnlyFixture { roster = model.snapshot?.members ?? []; hasMoreMembers = false; return }
+        let current = UUID(); rosterGeneration = current
+        let ownerID = model.store.user?.id
+        loadingRoster = true; error = nil
+        defer { if rosterGeneration == current { loadingRoster = false } }
+        do {
+            let cursor = more ? nextUserID : nil
+            let page = try await model.store.withAuthenticatedSession { api, session in
+                try await api.nativeServerMembersPage(serverID: model.serverID, afterUserID: cursor, session: session)
+            }
+            guard rosterGeneration == current, model.store.user?.id == ownerID else { return }
+            let previous = more ? roster ?? [] : []
+            let replaced = Set(page.members.map(\.id))
+            roster = (previous.filter { !replaced.contains($0.id) } + page.members).sorted { $0.displayName.localizedStandardCompare($1.displayName) == .orderedAscending }
+            nextUserID = page.nextUserID; hasMoreMembers = page.nextUserID != nil
+            model.mergeMembers(page.members, memberRoles: page.memberRoles)
+        } catch is CancellationError { }
+        catch { if rosterGeneration == current { self.error = error.localizedDescription } }
     }
 
     private func apply(_ moderation: NativeServerModeration) async {
@@ -875,7 +970,7 @@ private struct NativeServerRoleEditor: View {
     }
 }
 
-private struct NativeServerForumView: View {
+struct NativeServerForumView: View {
     let store: NativeStore
     let channel: NativeServerChannel
     let snapshot: NativeServerSnapshot
@@ -899,7 +994,7 @@ private struct NativeServerForumView: View {
             if !channel.guidelines.isEmpty { Text(channel.guidelines).font(OriginalYapper.font(14)).foregroundStyle(YapperPalette.secondary) }
             ForEach(posts) { post in
                 NavigationLink {
-                    NativeConversationView(store: store, conversation: Conversation(id: post.id, title: post.title, participants: [], serverID: channel.serverID))
+                    NativeConversationView(store: store, conversation: Conversation(id: post.id, title: post.title, participants: [], serverID: channel.serverID), serverSnapshot: snapshot)
                 } label: {
                     VStack(alignment: .leading, spacing: 7) {
                         HStack { if post.isClosed { Image(systemName: "lock.fill").accessibilityLabel("Geschlossen") }; Text(post.title).font(OriginalYapper.font(16, weight: .semibold)) }
@@ -943,7 +1038,7 @@ private struct NativeServerForumView: View {
             }
         }
         .confirmationDialog("Beitrag dauerhaft löschen?", isPresented: deleteConfirmation, titleVisibility: .visible) { deletionAction }
-        .navigationDestination(item: $destination) { conversation in NativeConversationView(store: store, conversation: conversation) }
+        .navigationDestination(item: $destination) { conversation in NativeConversationView(store: store, conversation: conversation, serverSnapshot: snapshot) }
         .scrollContentBackground(.hidden).background(YapperPalette.background.ignoresSafeArea()).yapperNavigation()
     }
 
@@ -969,7 +1064,9 @@ private struct NativeServerForumView: View {
             .accessibilityLabel("Beiträge filtern")
         }
         ToolbarItem(placement: .topBarTrailing) {
-            Button { composing = true } label: { Image(systemName: "square.and.pencil").frame(minWidth: 44, minHeight: 44) }.accessibilityLabel("Beitrag erstellen")
+            Button { composing = true } label: { Image(systemName: "square.and.pencil").frame(minWidth: 44, minHeight: 44) }
+                .accessibilityLabel("Beitrag erstellen")
+                .disabled(!snapshot.canCreateForumPost(channelID: channel.id, userID: store.user?.id, capabilities: store.capabilities))
         }
     }
 

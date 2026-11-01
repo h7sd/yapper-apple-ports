@@ -18,7 +18,7 @@ parser.add_argument('--app', type=pathlib.Path, help='Optional unsigned build re
 parser.add_argument('--simulator-zip', required=True, type=pathlib.Path)
 parser.add_argument('--ipa', required=True, type=pathlib.Path)
 parser.add_argument('--report', required=True, type=pathlib.Path)
-parser.add_argument('--expected-version', default='0.2.3')
+parser.add_argument('--expected-version', default='0.2.4')
 args = parser.parse_args()
 root = pathlib.Path(__file__).resolve().parent.parent
 checks = []
@@ -114,7 +114,7 @@ for pin in pins:
     check(pin['state'] == {'version': version, 'revision': revision}, f'Pinned native dependency: {pin["identity"]} {version}')
 check(not any(p.suffix.lower() in ['.html', '.js', '.asar'] for p in args.app.rglob('*')), 'Application embeds no website or JavaScript application resources')
 release_bytes = binary.read_bytes()
-for marker in [b'--native-ui-fixtures', b'--native-ui-login-fixture', b'fixture-chat', b'fixture-password', b'demo@example.invalid']:
+for marker in [b'--native-ui-fixtures', b'--native-ui-login-fixture', b'--native-ui-live-fixtures', b'native.fixtureColorTheme', b'fixture-chat', b'fixture-password', b'demo@example.invalid']:
     check(marker not in release_bytes, f'Debug fixture marker excluded from Release: {marker.decode()}')
 
 assets = []

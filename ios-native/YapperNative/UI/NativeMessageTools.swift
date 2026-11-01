@@ -101,6 +101,7 @@ struct NativeMessageBrowser: View {
     let store: NativeStore
     let conversation: Conversation
     let mode: Mode
+    var canManagePins: @MainActor () -> Bool = { true }
     var openMessage: (@MainActor (ChatMessage) -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
     @State private var query = ""
@@ -176,7 +177,7 @@ struct NativeMessageBrowser: View {
                             if mode == .pins {
                                 Button {
                                     Task { await unpin(item) }
-                                } label: { Label("Lösen", systemImage: "pin.slash") }
+                                } label: { Label("Lösen", systemImage: "pin.slash") }.disabled(!canManagePins())
                             }
                         }
                 }
@@ -217,6 +218,7 @@ struct NativeMessageBrowser: View {
     }
 
     private func unpin(_ item: NativeMessageResult) async {
+        guard canManagePins() else { return }
         let id = requestID
         do {
             _ = try await store.withAuthenticatedSession { api, session in

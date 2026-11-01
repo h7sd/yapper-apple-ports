@@ -168,13 +168,25 @@ struct NativeServerNotificationsView: View {
     private func load() async {
         guard !model.isReadOnlyFixture else { state = NativeServerNotificationState(); return }
         loading = true; error = nil; defer { loading = false }
-        do { state = try await model.store.withAuthenticatedSession { api, session in try await api.nativeServerNotificationState(session: session) } }
+        let ownerID = model.store.user?.id
+        do {
+            let loaded = try await model.store.withAuthenticatedSession { api, session in try await api.nativeServerNotificationState(session: session) }
+            guard model.store.user?.id == ownerID, model.store.authState == .signedIn else { throw CancellationError() }
+            state = loaded
+            model.store.updateServerNotificationContext(loaded)
+        }
         catch is CancellationError { } catch { self.error = error.localizedDescription }
     }
     private func perform(_ action: @escaping @MainActor (NativeAPI, NativeSession) async throws -> Void) async {
         guard !busy, !model.isReadOnlyFixture else { return }; busy = true; error = nil
         defer { busy = false }
-        do { try await model.store.withAuthenticatedSession(action); await load() }
+        let ownerID = model.store.user?.id
+        do {
+            try await model.store.withAuthenticatedSession(action)
+            guard model.store.user?.id == ownerID, model.store.authState == .signedIn else { throw CancellationError() }
+            model.store.updateServerNotificationContext(nil)
+            await load()
+        }
         catch is CancellationError { } catch { self.error = error.localizedDescription }
     }
 }

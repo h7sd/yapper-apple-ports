@@ -72,6 +72,8 @@ nonisolated struct ChatMessage: Identifiable, Hashable, Sendable {
     var attachments: [MessageAttachment]
     var isEdited: Bool
     var grouping = NativeMessageGroupingMetadata()
+    var hereRecipientIDs: [String] = []
+    var mentions: NativeMessageMentions { NativeMessageMentions(content: content, hereRecipientIDs: hereRecipientIDs) }
 }
 
 nonisolated struct NativeMessageGroupingMetadata: Hashable, Sendable {

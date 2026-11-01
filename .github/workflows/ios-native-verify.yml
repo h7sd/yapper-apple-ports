@@ -75,8 +75,8 @@ jobs:
           ios-native/scripts/build-native.sh archive
           python3 ios-native/scripts/verify-native.py \
             --app "$DERIVED_DATA/Build/Products/Release-iphonesimulator/YapperNative.app" \
-            --simulator-zip "$OUTPUT_DIR/Yapinplugger-Native-0.2.3-iOS-Simulator.zip" \
-            --ipa "$OUTPUT_DIR/Yapinplugger-Native-0.2.3-ios-unsigned.ipa" \
+            --simulator-zip "$OUTPUT_DIR/Yapinplugger-Native-0.2.4-iOS-Simulator.zip" \
+            --ipa "$OUTPUT_DIR/Yapinplugger-Native-0.2.4-ios-unsigned.ipa" \
             --report "$OUTPUT_DIR/package-verification.json"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()

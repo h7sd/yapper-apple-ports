@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 1,
+  "version": "0.2.4",
+  "scope": "Anonymous opt-in live-state fixtures and public/generated media. No private references or actual account content. Earlier confirmation images precede the decorative background hit-testing correction; final iPad images cover the affected route.",
+  "captures": [
+    {
+      "image": "docs/images/live-ui-0.2.4-iphone-pro-online-peer.png",
+      "sha256": "2a9e2af44eb37f86de289b6fc1dff96d44e930b775daf79f28d7dac876a3175f",
+      "device": "iphone-pro",
+      "state": "online-peer",
+      "evidence": "native-0.2.4-ui-confirmation.xcresult",
+      "test": "NativeLiveFeatureFlowTests/testMentionInboxAndPeerOnlineHeader()",
+      "syntheticFixture": true
+    },
+    {
+      "image": "docs/images/live-ui-0.2.4-iphone-pro-inbox.png",
+      "sha256": "790d957d5349a9529d130645cec6127e87b4bcb50d7f282fc9c5db8a4bd6214c",
+      "device": "iphone-pro",
+      "state": "inbox",
+      "evidence": "native-0.2.4-ui-confirmation.xcresult",
+      "test": "NativeLiveFeatureFlowTests/testMentionInboxAndPeerOnlineHeader()",
+      "syntheticFixture": true
+    },
+    {
+      "image": "docs/images/live-ui-0.2.4-iphone-promax-online-peer.png",
+      "sha256": "de83a788a2924833200f83469520f87ca9cf6ee0d1f754df0158c3f72496dc00",
+      "device": "iphone-promax",
+      "state": "online-peer",
+      "evidence": "native-0.2.4-ui-confirmation.xcresult",
+      "test": "NativeLiveFeatureFlowTests/testMentionInboxAndPeerOnlineHeader()",
+      "syntheticFixture": true
+    },
+    {
+      "image": "docs/images/live-ui-0.2.4-iphone-promax-inbox.png",
+      "sha256": "a5cb8e9ef83ffb6e5bb82bd1925d6273a9af6a875e04ffc15f8b039aa5070650",
+      "device": "iphone-promax",
+      "state": "inbox",
+      "evidence": "native-0.2.4-ui-confirmation.xcresult",
+      "test": "NativeLiveFeatureFlowTests/testMentionInboxAndPeerOnlineHeader()",
+      "syntheticFixture": true
+    },
+    {
+      "image": "docs/images/live-ui-0.2.4-ipad-online-peer.png",
+      "sha256": "85ae7ea5143e2209b35ee9f5b8e6f8c804bc4e6911e9e5a94ff9002fb71c7f2d",
+      "device": "ipad",
+      "state": "online-peer",
+      "evidence": "native-0.2.4-ui-confirmation.xcresult",
+      "test": "NativeLiveFeatureFlowTests/testMentionInboxAndPeerOnlineHeader()",
+      "syntheticFixture": true
+    },
+    {
+      "image": "docs/images/live-ui-0.2.4-ipad-inbox.png",
+      "sha256": "beb78627a2a5ff264fc0e7c31845a6879a935f0c107517a388a9b56d2cc213ed",
+      "device": "ipad",
+      "state": "inbox",
+      "evidence": "native-0.2.4-ui-confirmation.xcresult",
+      "test": "NativeLiveFeatureFlowTests/testMentionInboxAndPeerOnlineHeader()",
+      "syntheticFixture": true
+    },
+    {
+      "image": "docs/images/live-ui-0.2.4-iphone-pro-mention-destination.png",
+      "sha256": "3d393aba2974e6eea25cfa2e714d8edea6865ce82cadca2d5111c286118afa26",
+      "device": "iphone-pro",
+      "state": "mention-destination",
+      "evidence": "native-0.2.4-ui-confirmation.xcresult",
+      "test": "NativeLiveFeatureFlowTests/testMentionNoticeOpensTheActualNativeMessage()",
+      "syntheticFixture": true
+    },
+    {
+      "image": "docs/images/live-ui-0.2.4-iphone-promax-mention-destination.png",
+      "sha256": "ba8216ab1c1fa34d50d74fc0a75fad8f4a49b1c22c9db8e396373eee5e5d769d",
+      "device": "iphone-promax",
+      "state": "mention-destination",
+      "evidence": "native-0.2.4-ui-confirmation.xcresult",
+      "test": "NativeLiveFeatureFlowTests/testMentionNoticeOpensTheActualNativeMessage()",
+      "syntheticFixture": true
+    },
+    {
+      "image": "docs/images/live-ui-0.2.4-ipad-mention-destination.png",
+      "sha256": "278c71f809dc6b0153782685a9f71d5935244f968cbbefacdada51b8d4fac19e",
+      "device": "ipad",
+      "state": "mention-destination",
+      "evidence": "native-0.2.4-background-hit-final.xcresult",
+      "test": "NativeLiveFeatureFlowTests/testMentionNoticeOpensTheActualNativeMessage()",
+      "syntheticFixture": true
+    },
+    {
+      "image": "docs/images/live-ui-0.2.4-iphone-pro-members.png",
+      "sha256": "908c44f91a57900c7c96453e9a5ce819d474354e9fc9b6f0192da2341ddba9e6",
+      "device": "iphone-pro",
+      "state": "members",
+      "evidence": "native-0.2.4-ui-confirmation.xcresult",
+      "test": "NativeLiveFeatureFlowTests/testOnlineHomeServerUnreadAndActualVoiceRoster()",
+      "syntheticFixture": true
+    },
+    {
+      "image": "docs/images/live-ui-0.2.4-iphone-pro-channels-voice.png",
+      "sha256": "caadee01373398ffdda613716647fe3115fd6184338836f9264077923f139b16",
+      "device": "iphone-pro",
+      "state": "channels-voice",
+      "evidence": "native-0.2.4-ui-confirmation.xcresult",
+      "test": "NativeLiveFeatureFlowTests/testOnlineHomeServerUnreadAndActualVoiceRoster()",
+      "syntheticFixture": true
+    },
+    {
+      "image": "docs/images/live-ui-0.2.4-iphone-pro-home.png",
+      "sha256": "b11ee13fcace7549aa6acdffa7828600f64c7ef0110633d048f3ee2255c88bfe",
+      "device": "iphone-pro",
+      "state": "home",
+      "evidence": "native-0.2.4-ui-confirmation.xcresult",
+      "test": "NativeLiveFeatureFlowTests/testOnlineHomeServerUnreadAndActualVoiceRoster()",
+      "syntheticFixture": true
+    },
+    {
+      "image": "docs/images/live-ui-0.2.4-iphone-promax-members.png",
+      "sha256": "a14f41d8b0510c90f65bf62ac579d029bbadd5ef73a5475974f7367a38ff067b",
+      "device": "iphone-promax",
+      "state": "members",
+      "evidence": "native-0.2.4-ui-confirmation.xcresult",
+      "test": "NativeLiveFeatureFlowTests/testOnlineHomeServerUnreadAndActualVoiceRoster()",
+      "syntheticFixture": true
+    },
+    {
+      "image": "docs/images/live-ui-0.2.4-iphone-promax-channels-voice.png",
+      "sha256": "075ed6ee8aa3fd11ca9c6c451b9dcc7348d16a829bbbbaf0c6539da424089aa5",
+      "device": "iphone-promax",
+      "state": "channels-voice",
+      "evidence": "native-0.2.4-ui-confirmation.xcresult",
+      "test": "NativeLiveFeatureFlowTests/testOnlineHomeServerUnreadAndActualVoiceRoster()",
+      "syntheticFixture": true
+    },
+    {
+      "image": "docs/images/live-ui-0.2.4-iphone-promax-home.png",
+      "sha256": "4deed4bf381ca65daf78d486d7e7dbe183f240c8562a2c655c69e42b35f59d06",
+      "device": "iphone-promax",
+      "state": "home",
+      "evidence": "native-0.2.4-ui-confirmation.xcresult",
+      "test": "NativeLiveFeatureFlowTests/testOnlineHomeServerUnreadAndActualVoiceRoster()",
+      "syntheticFixture": true
+    },
+    {
+      "image": "docs/images/live-ui-0.2.4-ipad-members.png",
+      "sha256": "4cc083c27d907998730a5790e949de889a8dfcde7a0c3f0157c10ad7fd5fe8e0",
+      "device": "ipad",
+      "state": "members",
+      "evidence": "native-0.2.4-ui-confirmation.xcresult",
+      "test": "NativeLiveFeatureFlowTests/testOnlineHomeServerUnreadAndActualVoiceRoster()",
+      "syntheticFixture": true
+    },
+    {
+      "image": "docs/images/live-ui-0.2.4-ipad-channels-voice.png",
+      "sha256": "844432c0dde6dcc9f4f9567fd56c74b8c3bf72ae0daba39c5e24aa71fa5dfd7b",
+      "device": "ipad",
+      "state": "channels-voice",
+      "evidence": "native-0.2.4-ui-confirmation.xcresult",
+      "test": "NativeLiveFeatureFlowTests/testOnlineHomeServerUnreadAndActualVoiceRoster()",
+      "syntheticFixture": true
+    },
+    {
+      "image": "docs/images/live-ui-0.2.4-ipad-home.png",
+      "sha256": "1009dda28456d29cdf948160b2508aadf343c923fcf6e2db82897994e6f0174c",
+      "device": "ipad",
+      "state": "home",
+      "evidence": "native-0.2.4-ui-confirmation.xcresult",
+      "test": "NativeLiveFeatureFlowTests/testOnlineHomeServerUnreadAndActualVoiceRoster()",
+      "syntheticFixture": true
+    },
+    {
+      "image": "docs/images/live-ui-0.2.4-iphone-pro-mentions.png",
+      "sha256": "25292c9c638d8fe791126d3e752c266cc8ea39c768b9a76f049a9d87a77afad2",
+      "device": "iphone-pro",
+      "state": "mentions",
+      "evidence": "native-0.2.4-ui-confirmation.xcresult",
+      "test": "NativeLiveFeatureFlowTests/testReadOnlyChannelBlocksComposerAndMentionsResolveInWritableChannel()",
+      "syntheticFixture": true
+    },
+    {
+      "image": "docs/images/live-ui-0.2.4-iphone-pro-read-only.png",
+      "sha256": "58fe3cb0ebc993067d2022cbf8ce3d0a391a08181fc950c8297109055486d19a",
+      "device": "iphone-pro",
+      "state": "read-only",
+      "evidence": "native-0.2.4-ui-confirmation.xcresult",
+      "test": "NativeLiveFeatureFlowTests/testReadOnlyChannelBlocksComposerAndMentionsResolveInWritableChannel()",
+      "syntheticFixture": true
+    },
+    {
+      "image": "docs/images/live-ui-0.2.4-iphone-promax-mentions.png",
+      "sha256": "6f37686df72ed443f5d767aefb4054e952e40a73b995b02c1028d05c30604c58",
+      "device": "iphone-promax",
+      "state": "mentions",
+      "evidence": "native-0.2.4-ui-confirmation.xcresult",
+      "test": "NativeLiveFeatureFlowTests/testReadOnlyChannelBlocksComposerAndMentionsResolveInWritableChannel()",
+      "syntheticFixture": true
+    },
+    {
+      "image": "docs/images/live-ui-0.2.4-iphone-promax-read-only.png",
+      "sha256": "2ac1bcb2a78c18a19b24d512602b49408aad6772641427a296097fdf3e050b37",
+      "device": "iphone-promax",
+      "state": "read-only",
+      "evidence": "native-0.2.4-ui-confirmation.xcresult",
+      "test": "NativeLiveFeatureFlowTests/testReadOnlyChannelBlocksComposerAndMentionsResolveInWritableChannel()",
+      "syntheticFixture": true
+    },
+    {
+      "image": "docs/images/live-ui-0.2.4-ipad-mentions.png",
+      "sha256": "6d43000c6e15a77b4587b05ca7744cd3314875521c70f169af7b457bff9b73f7",
+      "device": "ipad",
+      "state": "mentions",
+      "evidence": "native-0.2.4-background-hit-final.xcresult",
+      "test": "NativeLiveFeatureFlowTests/testReadOnlyChannelBlocksComposerAndMentionsResolveInWritableChannel()",
+      "syntheticFixture": true
+    },
+    {
+      "image": "docs/images/live-ui-0.2.4-ipad-read-only.png",
+      "sha256": "67cc6efa3a7527138cd04994bdff974b933f4b7f7c3a49b7b60013d72ad4ca3b",
+      "device": "ipad",
+      "state": "read-only",
+      "evidence": "native-0.2.4-background-hit-final.xcresult",
+      "test": "NativeLiveFeatureFlowTests/testReadOnlyChannelBlocksComposerAndMentionsResolveInWritableChannel()",
+      "syntheticFixture": true
+    }
+  ]
+}

@@ -28,6 +28,7 @@ nonisolated struct NativeServer: Identifiable, Hashable, Sendable {
     }
 
     var iconURL: URL? { NativeConfiguration.publicAsset(bucket: "icons", path: iconPath) }
+    var theme: NativeJSON { raw["theme"] }
     static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
     func hash(into hasher: inout Hasher) { hasher.combine(id) }
 }
@@ -53,6 +54,8 @@ nonisolated struct NativeServerChannel: Identifiable, Hashable, Sendable {
     let guidelines: String
     let allowedRoles: Set<String>
     let postRoles: Set<String>
+    let locked: Bool
+    let isClosed: Bool
 
     init(_ row: NativeJSON, serverID expectedServer: String) throws {
         guard let id = row["id"].string, UUID(uuidString: id) != nil,
@@ -70,9 +73,18 @@ nonisolated struct NativeServerChannel: Identifiable, Hashable, Sendable {
         requireTag = row["require_tag"].bool ?? false; guidelines = row["guidelines"].string ?? ""
         allowedRoles = Set(row["allowedRoles"].array.compactMap(\.string))
         postRoles = Set(row["postRoles"].array.compactMap(\.string))
+        locked = row["locked"].bool ?? false
+        isClosed = row["closed_at"].string != nil
     }
 
-    var symbol: String { kind == "voice" ? "speaker.wave.2" : kind == "forum" ? "text.bubble" : "number" }
+    var symbol: String {
+        switch kind {
+        case "voice": stage ? "person.wave.2" : "speaker.wave.2"
+        case "forum": "text.bubble"
+        case "thread": "bubble.left.and.bubble.right"
+        default: readOnly ? "megaphone" : "number"
+        }
+    }
     var conversation: Conversation { Conversation(id: id, title: kind == "text" ? "#" + name : name, participants: [], serverID: serverID) }
 }
 
@@ -92,6 +104,7 @@ nonisolated struct NativeServerRole: Identifiable, Hashable, Sendable {
     let serverID: String
     var name: String
     var color: String?
+    var color2: String?
     let position: Int
     let auto: String
     var manageServer: Bool
@@ -103,7 +116,7 @@ nonisolated struct NativeServerRole: Identifiable, Hashable, Sendable {
         guard let id = row["id"].string, UUID(uuidString: id) != nil,
               row["server_id"].string == serverID, let name = row["name"].string else { throw NativeClientError.malformedResponse("Server role") }
         self.id = id; self.serverID = serverID; self.name = name
-        color = row["color"].string; position = row["position"].int ?? 0
+        color = row["color"].string; color2 = row["color2"].string; position = row["position"].int ?? 0
         auto = row["auto"].string ?? "none"; autoBefore = row["auto_before"].string
         manageServer = row["manage_server"].bool ?? false; manageMessages = row["manage_messages"].bool ?? false
         permissions = (row["perms"].object ?? [:]).compactMapValues(\.bool)
@@ -127,6 +140,12 @@ nonisolated struct NativeServerMember: Identifiable, Hashable, Sendable {
     var displayName: String { nickname.flatMap { $0.isEmpty ? nil : $0 } ?? user.displayName }
 }
 
+nonisolated struct NativeServerMemberPage: Sendable {
+    let members: [NativeServerMember]
+    let nextUserID: String?
+    let memberRoles: [String: Set<String>]
+}
+
 nonisolated struct NativeServerSnapshot: Sendable {
     var server: NativeServer
     let channels: [NativeServerChannel]
@@ -134,6 +153,14 @@ nonisolated struct NativeServerSnapshot: Sendable {
     let members: [NativeServerMember]
     let roles: [NativeServerRole]
     let memberRoles: [String: Set<String>]
+    let channelOverrides: [NativeChannelOverride]
+    let overridesLoaded: Bool
+
+    init(server: NativeServer, channels: [NativeServerChannel], categories: [NativeServerCategory], members: [NativeServerMember], roles: [NativeServerRole], memberRoles: [String: Set<String>], channelOverrides: [NativeChannelOverride] = [], overridesLoaded: Bool = false) {
+        self.server = server; self.channels = channels; self.categories = categories
+        self.members = members; self.roles = roles; self.memberRoles = memberRoles
+        self.channelOverrides = channelOverrides; self.overridesLoaded = overridesLoaded
+    }
 
     var uncategorized: [NativeServerChannel] {
         let known = Set(categories.map(\.id))

@@ -57,6 +57,8 @@ private nonisolated final class NativeEmojiAttachment: NSTextAttachment {
 struct NativeMessageRichText: UIViewRepresentable {
     let text: String
     let emojis: [String: NativeCustomEmoji]
+    var mentions: [NativeRenderedMention] = []
+    var selectMention: ((NativeMentionTarget) -> Void)? = nil
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.colorScheme) private var colorScheme
 
@@ -76,13 +78,21 @@ struct NativeMessageRichText: UIViewRepresentable {
     }
 
     func updateUIView(_ view: UITextView, context: Context) {
-        let key = text + "#" + String(describing: dynamicTypeSize) + String(describing: colorScheme) + emojis.values.sorted { $0.id < $1.id }.map { $0.id + ($0.url?.absoluteString ?? "") }.joined()
+        context.coordinator.selectMention = selectMention
+        let traits = UITraitCollection(userInterfaceStyle: colorScheme == .dark ? .dark : .light)
+        let mentionKey = mentions.map { $0.token.target.id + $0.label + String(describing: UIColor($0.color).resolvedColor(with: traits).cgColor.components) }.joined()
+        let key = text + "#" + String(describing: dynamicTypeSize) + String(describing: colorScheme) + mentionKey + emojis.values.sorted { $0.id < $1.id }.map { $0.id + ($0.url?.absoluteString ?? "") }.joined()
         guard key != context.coordinator.key else { return }
         context.coordinator.key = key
+        context.coordinator.mentionTargets = [:]
+        // Protect wire tokens before Markdown interprets angle brackets as markup.
+        let source = NSMutableString(string: text)
+        let markers = mentions.map { ($0, "YAPPERMENTION" + UUID().uuidString.replacingOccurrences(of: "-", with: "")) }
+        for (mention, marker) in markers.reversed() { source.replaceCharacters(in: mention.token.range, with: marker) }
         let font = OriginalYapper.uiFont(15)
         let attributed: NSMutableAttributedString
-        if let markdown = try? AttributedString(markdown: text, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)) { attributed = NSMutableAttributedString(attributedString: NSAttributedString(markdown)) }
-        else { attributed = NSMutableAttributedString(string: text) }
+        if let markdown = try? AttributedString(markdown: source as String, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)) { attributed = NSMutableAttributedString(attributedString: NSAttributedString(markdown)) }
+        else { attributed = NSMutableAttributedString(string: source as String) }
         let full = NSRange(location: 0, length: attributed.length)
         attributed.addAttributes([.font: font, .foregroundColor: UIColor(YapperPalette.text)], range: full)
         attributed.enumerateAttribute(.inlinePresentationIntent, in: full) { value, range, _ in
@@ -98,6 +108,17 @@ struct NativeMessageRichText: UIViewRepresentable {
             attributed.addAttribute(.font, value: styled, range: range)
             if intent.contains(.strikethrough) { attributed.addAttribute(.strikethroughStyle, value: NSUnderlineStyle.single.rawValue, range: range) }
         }
+        for (mention, marker) in markers {
+            let range = (attributed.string as NSString).range(of: marker)
+            guard range.location != NSNotFound else { continue }
+            let link = URL(string: "yapper-native-mention://open/" + UUID().uuidString)!
+            context.coordinator.mentionTargets[link] = mention.token.target
+            let replacement = NSAttributedString(string: mention.label, attributes: [
+                .font: font, .foregroundColor: UIColor(mention.color),
+                .backgroundColor: UIColor(mention.color.opacity(0.16)), .link: link,
+            ])
+            attributed.replaceCharacters(in: range, with: replacement)
+        }
         for token in NativeEmojiTokens.matches(attributed.string).reversed() {
             if let emoji = emojis[token.id], emoji.url != nil {
                 let attachment = NativeEmojiAttachment(emoji: emoji, font: font)
@@ -105,7 +126,7 @@ struct NativeMessageRichText: UIViewRepresentable {
             } else { attributed.replaceCharacters(in: token.range, with: ":\(token.name):") }
         }
         view.attributedText = attributed
-        view.linkTextAttributes = [.foregroundColor: UIColor(YapperPalette.accent)]
+        view.linkTextAttributes = [.underlineStyle: 0]
     }
 
     func sizeThatFits(_ proposal: ProposedViewSize, uiView: UITextView, context: Context) -> CGSize? {
@@ -115,8 +136,11 @@ struct NativeMessageRichText: UIViewRepresentable {
 
     @MainActor final class Coordinator: NSObject, UITextViewDelegate {
         var key = ""
+        var mentionTargets: [URL: NativeMentionTarget] = [:]
+        var selectMention: ((NativeMentionTarget) -> Void)?
         func textView(_ textView: UITextView, primaryActionFor textItem: UITextItem, defaultAction: UIAction) -> UIAction? {
             if case let .link(url) = textItem.content {
+                if let target = mentionTargets[url] { return UIAction { [weak self] _ in self?.selectMention?(target) } }
                 return ["http", "https"].contains(url.scheme ?? "") && url.user == nil && url.password == nil ? defaultAction : nil
             }
             return nil

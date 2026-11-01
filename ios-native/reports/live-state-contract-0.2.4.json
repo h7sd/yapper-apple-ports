@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "version": "0.2.4",
+  "evidenceType": "static-official-client-contracts",
+  "sources": [
+    {
+      "file": "0ba37x0fkjfr1.js",
+      "sha256": "b1021ed7f47a3213132f08ee0c01258385064179f10a1b8de73677e8f97125ec",
+      "scope": "Retained official public frontend source; static observation, not authenticated runtime acceptance."
+    },
+    {
+      "file": "3uh83gxb82rs2.js",
+      "sha256": "24afca3eaa6500cea3c5de0c26824bf7190d8eff493fe0391211da218d1b47a6",
+      "scope": "Retained official public frontend source; static observation, not authenticated runtime acceptance."
+    },
+    {
+      "file": "3-pd02a6i86ee.js",
+      "sha256": "0ec714b3692c4ef7dd5bca6a1445b76b50746217c1addd22eb0fd5ae4c200a42",
+      "scope": "Retained official public frontend source; static observation, not authenticated runtime acceptance."
+    },
+    {
+      "file": "1axmaw-2qjnnk.js",
+      "sha256": "e6b38e4ef010ed998640d5f90197eb6216d0fe68372553722ba553469c09394f",
+      "scope": "Retained official public frontend source; static observation, not authenticated runtime acceptance."
+    }
+  ],
+  "observations": [
+    {
+      "source": "0ba37x0fkjfr1.js",
+      "offset": 53292,
+      "behavior": "Peer presence arrives as a top-level presence frame with rows, full and server. It is not an ordinary topic event."
+    },
+    {
+      "source": "0ba37x0fkjfr1.js",
+      "offset": 55384,
+      "behavior": "presence_ask sends ids limited to500 plus optional server. Own presence sends st, act, at and auto. Top-level read frames contain channel."
+    },
+    {
+      "source": "3uh83gxb82rs2.js",
+      "offset": 71100,
+      "behavior": "Presence tuples contain user ID, availability and optional activity. who_online takes sid, extra, since and returns now plus rows. A full poll uses since:null; off removes online state. Unknown native values are rejected rather than becoming Online."
+    },
+    {
+      "source": "3uh83gxb82rs2.js",
+      "offset": 73700,
+      "behavior": "heartbeat publishes the current explicit status and activity; the official fallback runs periodically. The native client publishes only a verified current-account preference while active."
+    },
+    {
+      "source": "3-pd02a6i86ee.js",
+      "offset": 59472,
+      "behavior": "wantedTopics includes all, own user topic and every joined server topic, plus the open server channel. Ordinary topic acknowledgments are not themselves a reconnect."
+    },
+    {
+      "source": "3-pd02a6i86ee.js",
+      "offset": 18270,
+      "behavior": "unread_counts_v2 is the supported base route and unread_counts_v3 the flagged newer route. Rows contain channel_id, unread, mentions and muted. The native implementation uses the observed v2 base route."
+    },
+    {
+      "source": "3-pd02a6i86ee.js",
+      "offset": 51700,
+      "behavior": "Compact unread events carry operation, message ID, channel ID and author ID, with optional everyone and here_to. Full content can arrive separately; native counters deduplicate by message ID and reconcile authoritative counts without reloading history."
+    },
+    {
+      "source": "1axmaw-2qjnnk.js",
+      "offset": 8450,
+      "behavior": "A voice event is a complete per-server members snapshot with channel_id, user_id, muted, deafened and sharing. Native state replaces only that server roster and removes departed users; joining a call is not required to see this roster."
+    },
+    {
+      "source": "3-pd02a6i86ee.js",
+      "offset": 83217,
+      "behavior": "Mention tokens are <@UUID>, <@&UUID> and <#UUID>. Own ping eligibility uses direct user token, bounded @everyone, server-selected here_to, eligible assigned roles, or a known reply to self. Forwarded prefix suppresses ping eligibility. @here text alone is not proof of eligibility."
+    },
+    {
+      "source": "0ba37x0fkjfr1.js",
+      "offset": 48400,
+      "behavior": "Mention history uses my_mentions_v2 when mentions_v2 is enabled, otherwise my_mentions, with lim:40. It is separate from my_inbox."
+    }
+  ],
+  "nativeGuards": [
+    "Keep own account availability separate from peers; invisible never maps to Online.",
+    "Ignore stale account/scope/presence requests; optional errors preserve known data without inventing Online.",
+    "Protect reads and in-flight realtime changes against stale count responses.",
+    "Accept voice events only for an authenticated approved server subscription.",
+    "Hydrate mention/voice profiles through the shared official public42-column projection.",
+    "Native mention notices require verified DND/block/mute context; server notices also require verified server notification settings.",
+    "No automatic posting, CAPTCHA bypass, private browser/session reads or real-account test messages were performed.",
+    "Compact everyone/here pings may fetch exactly one authorized message by UUID, channel and author. Returned identities and timestamp must match; no POST or history reload is used.",
+    "Opaque compact direct/role pings reconcile counts and consult the authenticated own-mentions feed; only queued matching message/channel/author IDs can become a native notice.",
+    "Compact notice resolution rejects stale/future timestamps, superseded notices, account/navigation/read changes and already-shown IDs. Read-ID tombstones prevent compact-read-full ordering from restoring a cleared badge.",
+    "Partial subscription acknowledgments merge approved topics and intersect current desired topics; ordinary acknowledgments do not restart history resynchronization."
+  ],
+  "verificationLimits": {
+    "liveAuthenticatedAcceptance": false,
+    "physicalDevice": false,
+    "nativeAPNsPush": false,
+    "fullGlobalPresenceParity": false,
+    "automaticIdleDetectionParity": false,
+    "completeNotificationPreferenceParity": false
+  },
+  "tests": {
+    "source": "YapperNativeTests/NativeLiveStateTests.swift",
+    "logicalCases": 17,
+    "expandedCases": 18,
+    "status": "Passed in the final combined Xcode unit run.",
+    "scope": [
+      "Top-level presence/invisible mapping and malformed input",
+      "who_online auth/body and unread_counts_v2 rows",
+      "Direct/role/here recipient parsing and forwarded suppression",
+      "Full presence snapshots and scope ownership",
+      "Unread summary/full dedup, read elsewhere and stale-count protection",
+      "Server voice snapshot replacement",
+      "Actual versioned mention feed",
+      "DND/mute verified policy gates",
+      "Compact actual GET/dedup/out-of-order filtering",
+      "Read during lookup and late full-message suppression",
+      "Opaque direct ping through actual own-mentions feed",
+      "Denied and identity-mismatched scoped message rows"
+    ],
+    "evidence": "native-0.2.4-unit-final.xcresult",
+    "passed": true,
+    "failed": 0,
+    "skipped": 0,
+    "runtimeWarnings": [],
+    "combinedRun": {
+      "logicalTests": 304,
+      "suites": 33,
+      "expandedCases": 392,
+      "failed": 0,
+      "skipped": 0,
+      "runtimeWarnings": [],
+      "scope": "Combined synthetic native unit run; includes these17 logical/18 expanded live-state cases. Does not establish real-account or physical-device acceptance."
+    }
+  }
+}

@@ -21,7 +21,7 @@ extension NativeAPI {
         return servers
     }
 
-    func nativeServerSnapshot(id: String, session: NativeSession) async throws -> NativeServerSnapshot {
+    func nativeServerSnapshot(id: String, session: NativeSession, includeOverrides: Bool = false) async throws -> NativeServerSnapshot {
         try Self.validateServerID(id)
         let serverRows = try await table("servers", query: [URLQueryItem(name: "id", value: "eq.\(id)"), URLQueryItem(name: "select", value: "*")], session: session).rows
         guard serverRows.count == 1, serverRows[0]["id"].string == id else { throw NativeClientError.api(status: 404, message: "Dieser Server ist nicht mehr verfügbar.") }
@@ -47,7 +47,9 @@ extension NativeAPI {
         guard Set(channels.map(\.id)).count == channels.count,
               Set(categories.map(\.id)).count == categories.count,
               Set(roles.map(\.id)).count == roles.count else { throw NativeClientError.malformedResponse("Duplicate server content identity") }
-        let assignments = try await rpc("server_role_assignments", arguments: ["sids": .array([.string(id)])], session: session).array
+        let assignmentResponse = try await rpc("server_role_assignments", arguments: ["sids": .array([.string(id)])], session: session)
+        guard case .array = assignmentResponse else { throw NativeClientError.invalidResponse }
+        let assignments = assignmentResponse.array
         var memberRoles: [String: Set<String>] = [:]
         for tuple in assignments {
             let values = tuple.array
@@ -58,7 +60,89 @@ extension NativeAPI {
         }
         let memberRows = try await rpc("server_members_slice", arguments: ["sids": .array([.string(id)])], session: session).rows
         let members = try await nativeServerMembers(rows: memberRows, serverID: id, session: session)
-        return NativeServerSnapshot(server: server, channels: channels, categories: categories, members: members, roles: roles, memberRoles: memberRoles)
+        let overrides: [NativeChannelOverride]
+        if includeOverrides {
+            let rows = try await table("channel_overrides", query: [URLQueryItem(name: "server_id", value: "eq.\(id)"), URLQueryItem(name: "select", value: "id,server_id,channel_id,category_id,role_id,allow,deny")], session: session).rows
+            overrides = try rows.map { try NativeChannelOverride($0, serverID: id) }
+        } else { overrides = [] }
+        return NativeServerSnapshot(server: server, channels: channels, categories: categories, members: members, roles: roles, memberRoles: memberRoles, channelOverrides: overrides, overridesLoaded: includeOverrides)
+    }
+
+    /// The official member fallback reads this authorized table/projection. Cursor paging
+    /// lets the native roster continue beyond its initial server_members_slice.
+    func nativeServerMembersPage(serverID: String, afterUserID: String? = nil, session: NativeSession) async throws -> NativeServerMemberPage {
+        try Self.validateServerID(serverID)
+        guard afterUserID == nil || UUID(uuidString: afterUserID!) != nil else { throw NativeClientError.invalidResponse }
+        var query = [URLQueryItem(name: "server_id", value: "eq.\(serverID)"), URLQueryItem(name: "select", value: "user_id,nickname,joined_at"), URLQueryItem(name: "order", value: "user_id.asc"), URLQueryItem(name: "limit", value: "100")]
+        if let afterUserID { query.append(URLQueryItem(name: "user_id", value: "gt.\(afterUserID)")) }
+        let rows = try await table("server_members", query: query, session: session).rows
+        guard rows.count <= 100 else { throw NativeClientError.invalidResponse }
+        var last = afterUserID?.lowercased()
+        for row in rows {
+            guard let id = row["user_id"].string?.lowercased(), UUID(uuidString: id) != nil,
+                  last.map({ id > $0 }) ?? true else { throw NativeClientError.invalidResponse }
+            last = id
+        }
+        let members = try await nativeServerMembers(rows: rows, serverID: serverID, session: session)
+        let assigned = try await nativeServerMemberRoles(serverID: serverID, userIDs: members.map(\.id), session: session)
+        return NativeServerMemberPage(members: members, nextUserID: rows.count == 100 ? last : nil, memberRoles: assigned)
+    }
+
+    func nativeServerMemberRoles(serverID: String, userIDs: [String], session: NativeSession) async throws -> [String: Set<String>] {
+        try Self.validateServerID(serverID)
+        let ids = Array(Set(userIDs)).sorted()
+        guard ids.count <= 100, ids.allSatisfy({ UUID(uuidString: $0) != nil }) else { throw NativeClientError.invalidResponse }
+        guard !ids.isEmpty else { return [:] }
+        do {
+            let result = try await rpc("server_role_assignments", arguments: ["sids": .array([.string(serverID)])], session: session)
+            guard case .array = result else { throw NativeClientError.invalidResponse }
+            var assigned = Dictionary(uniqueKeysWithValues: ids.map { ($0, Set<String>()) })
+            for tuple in result.array {
+                let fields = tuple.array
+                guard fields.count == 3, fields[0].string == serverID,
+                      let user = fields[1].string, UUID(uuidString: user) != nil,
+                      let role = fields[2].string, UUID(uuidString: role) != nil else { throw NativeClientError.invalidResponse }
+                if assigned[user] != nil { assigned[user, default: []].insert(role) }
+            }
+            return assigned
+        } catch let NativeClientError.api(status, message) {
+            // The shared error surface retains the server message, not its SQLSTATE.
+            // Only the precise missing-function/schema-cache response permits the
+            // official legacy table fallback; permission/network errors propagate.
+            let text = message.lowercased()
+            guard [400, 404].contains(status), text.contains("function"), text.contains("server_role_assignments"),
+                  text.contains("does not exist") || text.contains("schema cache") else { throw NativeClientError.api(status: status, message: message) }
+        }
+        return try await nativeLegacyServerMemberRoles(serverID: serverID, ids: ids, session: session)
+    }
+
+    private func nativeLegacyServerMemberRoles(serverID: String, ids: [String], session: NativeSession) async throws -> [String: Set<String>] {
+        var assigned = Dictionary(uniqueKeysWithValues: ids.map { ($0, Set<String>()) })
+        var cursor: (user: String, role: String)?
+        repeat {
+            try Task.checkCancellation()
+            var query = [URLQueryItem(name: "server_id", value: "eq.\(serverID)"), URLQueryItem(name: "user_id", value: "in.(\(ids.joined(separator: ",")))"),
+                         URLQueryItem(name: "select", value: "server_id,user_id,role_id"), URLQueryItem(name: "order", value: "user_id.asc,role_id.asc"), URLQueryItem(name: "limit", value: "1000")]
+            if let cursor { query.append(URLQueryItem(name: "or", value: "(user_id.gt.\(cursor.user),and(user_id.eq.\(cursor.user),role_id.gt.\(cursor.role)))")) }
+            let rows = try await table("member_roles", query: query, session: session).rows
+            guard rows.count <= 1000 else { throw NativeClientError.invalidResponse }
+            for row in rows {
+                guard row["server_id"].string == serverID,
+                      let user = row["user_id"].string, ids.contains(user),
+                      let role = row["role_id"].string, UUID(uuidString: role) != nil,
+                      cursor.map({ user > $0.user || user == $0.user && role > $0.role }) ?? true else { throw NativeClientError.invalidResponse }
+                assigned[user, default: []].insert(role); cursor = (user, role)
+            }
+            if rows.count < 1000 { return assigned }
+        } while true
+    }
+
+    /// Forum/thread entry uses the actual channel row, including parent and locked state.
+    func nativeServerChannel(id: String, serverID: String, session: NativeSession) async throws -> NativeServerChannel {
+        try Self.validateServerID(id); try Self.validateServerID(serverID)
+        let rows = try await table("channels", query: [URLQueryItem(name: "id", value: "eq.\(id)"), URLQueryItem(name: "server_id", value: "eq.\(serverID)"), URLQueryItem(name: "select", value: "*")], session: session).rows
+        guard rows.count == 1, rows[0]["id"].string == id else { throw NativeClientError.invalidResponse }
+        return try NativeServerChannel(rows[0], serverID: serverID)
     }
 
     func nativeFindServerMembers(serverID: String, query: String, session: NativeSession) async throws -> [NativeServerMember] {
@@ -77,14 +161,11 @@ extension NativeAPI {
         }
         guard !ids.isEmpty else { return [] }
         var profiles: [String: YapperUser] = [:]
-        // The website requests profiles for a slice; bound each request to avoid an unbounded URL.
-        for offset in stride(from: 0, to: ids.count, by: 100) {
-            let batch = Array(Set(ids[offset..<min(offset + 100, ids.count)])).sorted()
-            let records = try await table("profiles", query: [URLQueryItem(name: "id", value: "in.(\(batch.joined(separator: ",")))"), URLQueryItem(name: "select", value: "id,username,display_name,avatar_path,bio")], session: session).rows
-            for record in records {
-                guard let id = record["id"].string, batch.contains(id), let username = record["username"].string else { throw NativeClientError.malformedResponse("Server member profile") }
-                profiles[id] = YapperUser(id: id, username: username, displayName: record["display_name"].string, avatarURL: NativeConfiguration.publicAsset(bucket: "avatars", path: record["avatar_path"].string), bio: record["bio"].string)
-            }
+        // Shared projection omits protected profile columns and bounds each request.
+        let records = try await publicProfiles(ids: ids, session: session)
+        for record in records {
+            let profile = try JSONDecoder().decode(ProfileRow.self, from: JSONEncoder().encode(record))
+            profiles[profile.id] = profile.user()
         }
         var seen = Set<String>()
         return rows.compactMap { row in
